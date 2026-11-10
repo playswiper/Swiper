@@ -615,18 +615,31 @@ async function handleQuickRunEnd(){
   }
 
   quickSubmitFailed=false;
-  if(activeTeamSize>1&&!quickLeaderboardSubmitted&&user&&profile){
-    quickLeaderboardSubmitted=true;
-    const isGuest=user.is_anonymous===true||user.app_metadata?.provider==="anonymous";
-    const {error:scoreError}=await db.from("swipe_scores").insert({
-      player_name:isGuest?"Guest":profile.username,
-      score,
-      mode:"quick",
-      difficulty:null,
-      user_id:user.id
-    });
-    if(scoreError)console.warn("Quick Play leaderboard score could not be saved:",scoreError.message);
-    else if(matchRoomId===roomId&&matchSearchGeneration===runGeneration)await loadBoard();
+  if(user&&profile&&!isSwiperGuestSession()){
+    let leaderboardSaved=false;
+    if(activeTeamSize>1&&!quickLeaderboardSubmitted){
+      quickLeaderboardSubmitted=true;
+      const {error:scoreError}=await db.from("swipe_scores").insert({
+        player_name:profile.username,
+        score,
+        mode:"quick",
+        difficulty:null,
+        user_id:user.id
+      });
+      if(scoreError){
+        quickLeaderboardSubmitted=false;
+        console.warn("Quick Play leaderboard score could not be saved:",scoreError.message);
+      }else leaderboardSaved=true;
+    }
+
+    if(matchRoomId!==roomId||matchSearchGeneration!==runGeneration)return;
+    const {data:ranked,error:rankError}=await db.rpc("swipe_record_game",{p_score:score});
+    if(rankError)console.warn("Quick Play game statistics could not be updated:",rankError.message);
+    else{
+      profile={...profile,games_played:ranked.games_played,rank_name:ranked.rank_name};
+      if($("rankStatus"))$("rankStatus").textContent="Games played: "+Math.max(0,Number(profile.games_played)||0)+" total";
+    }
+    if(leaderboardSaved&&matchRoomId===roomId&&matchSearchGeneration===runGeneration)await loadBoard();
   }
 
   if(data?.status==="finished"&&matchRoomId===roomId&&matchSearchGeneration===runGeneration)await pollQuickMatch();
