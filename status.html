@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080d16">
+<title>Swiper · System Status</title>
+<style>
+:root{color-scheme:dark;--bg:#080d16;--panel:#111a28;--line:#29384b;--text:#eef4ff;--muted:#9aa9bd;--cyan:#70eee2;--green:#55d69b;--yellow:#ffd078;--red:#ff718b}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -10%,#193143 0,#080d16 58%);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{width:min(100% - 32px,900px);margin:0 auto;padding:34px 0 60px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:24px}.brand{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:800}.sub{color:var(--muted);margin-top:5px}.pill{border:1px solid var(--line);border-radius:999px;padding:7px 12px;color:var(--muted);font-size:12px}.hero,.panel{background:linear-gradient(145deg,#142133,#0e1724);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 16px 45px #0003}.hero{margin-bottom:16px}.hero h1{font-size:clamp(27px,5vw,42px);line-height:1.08;margin:10px 0}.hero p{color:var(--muted);max-width:620px}.overall{display:flex;align-items:center;gap:12px;margin-top:18px}.dot{width:11px;height:11px;border-radius:50%;background:var(--yellow);box-shadow:0 0 15px currentColor}.overall strong{font-size:14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}.panel h2{font-size:16px;margin:0 0 12px}.checks{display:grid;gap:9px}.check{display:flex;align-items:flex-start;gap:10px;border-top:1px solid #29384b;padding-top:9px}.check:first-child{border:0;padding-top:0}.mark{font-weight:900;min-width:18px}.ok{color:var(--green)}.warn{color:var(--yellow)}.bad{color:var(--red)}.detail{color:var(--muted);font-size:12px;display:block;margin-top:2px;overflow-wrap:anywhere}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}button,a.button{cursor:pointer;border:1px solid #35636a;border-radius:10px;padding:10px 14px;background:#15353a;color:var(--text);font:inherit;font-size:13px;font-weight:750;text-decoration:none}button:disabled{opacity:.5;cursor:wait}.smallprint{color:var(--muted);font-size:12px;margin-top:16px}.scan-list{max-height:270px;overflow:auto;display:grid;gap:7px}.scan-item{padding:9px 10px;border:1px solid var(--line);border-radius:9px;font-size:12px;overflow-wrap:anywhere}.empty{color:var(--muted);font-size:13px}footer{color:#74849a;font-size:12px;text-align:center;margin-top:22px}@media(max-width:620px){.grid{grid-template-columns:1fr}.hero,.panel{padding:17px}}
+</style>
+</head>
+<body>
+<main>
+<header class="top"><div><div class="brand">SWIPER / OPERATIONS</div><div class="sub">Automated website diagnostics</div></div><div class="pill" id="lastRun">Not scanned yet</div></header>
+<section class="hero">
+<div class="brand">LIVE CHECKS</div><h1>System status</h1><p>This page checks the published Swiper page, its key feature markers, suspicious alert calls, and arrow characters. It reports what it can verify from the public website source; it does not claim to inspect private Supabase data.</p>
+<div class="overall"><span class="dot" id="overallDot"></span><strong id="overallText">Waiting for first scan…</strong></div>
+<div class="actions"><button id="runScan">Run checks</button><a class="button" href="./">Open Swiper</a></div>
+</section>
+<div class="grid">
+<section class="panel"><h2>Core health checks</h2><div class="checks" id="coreChecks"><div class="empty">Starting scan…</div></div></section>
+<section class="panel"><h2>Arrow & alert scan</h2><div class="checks" id="signalChecks"><div class="empty">Starting scan…</div></div></section>
+</div>
+<section class="panel"><h2>Detected arrows and alert calls</h2><div class="scan-list" id="signals"><div class="empty">No scan results yet.</div></div><p class="smallprint">Arrow characters are listed as source occurrences, not automatically treated as defects. Alert calls are flagged for review because unexpected blocking dialogs can interrupt gameplay.</p></section>
+<footer>Swiper automated status · Checks run in this browser · <span id="version">status monitor v1.0</span></footer>
+</main>
+<script>
+(()=> {
+const $=id=>document.getElementById(id);
+const setStatus=(target,items)=>{target.replaceChildren();for(const item of items){const row=document.createElement("div");row.className="check";const mark=document.createElement("span");mark.className="mark "+(item.state==="ok"?"ok":item.state==="bad"?"bad":"warn");mark.textContent=item.state==="ok"?"✓":item.state==="bad"?"×":"!";const body=document.createElement("div");body.textContent=item.label;const detail=document.createElement("span");detail.className="detail";detail.textContent=item.detail||"";body.append(detail);row.append(mark,body);target.append(row)}};
+const tests=[];
+async function scan(){
+const button=$("runScan");button.disabled=true;button.textContent="Scanning…";
+const core=[],signals=[];let source="";
+try{
+const response=await fetch("./index.html?status_scan="+Date.now(),{cache:"no-store"});
+if(!response.ok)throw new Error("index.html returned HTTP "+response.status);
+source=await response.text();
+core.push({state:"ok",label:"Published index.html is reachable",detail:"HTTP "+response.status+" · "+source.length.toLocaleString()+" characters"});
+}catch(error){core.push({state:"bad",label:"Could not fetch the published game",detail:error.message});setStatus($("coreChecks"),core);setStatus($("signalChecks"),[{state:"bad",label:"Source scan skipped",detail:"The game source could not be loaded."}]);$("signals").textContent="No source available.";finish(core,signals);button.disabled=false;button.textContent="Run checks";return}
+const checks=[
+["Leaderboard category tabs",/data-board-mode="practice"[\s\S]*data-board-mode="bot"[\s\S]*data-board-mode="quick"/.test(source),"Practice, Bot Play, and Online tab markers"],
+["Leaderboard filters scores by mode",/q=q\.eq\("mode",activeBoardMode\)/.test(source),"Database query applies the selected board mode"],
+["Password recovery email uses Supabase",/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(source),"Forgot password calls the Supabase recovery API"],
+["Auth callback supports PKCE deep links",/detectSessionInUrl:true/.test(source)&&/PASSWORD_RECOVERY/.test(source),"Session detection and password-recovery event handler"],
+["Tomato preset has an unlock gate",/tomato_unlocked_setting/.test(source)&&/avatar_tomato_setting/.test(source),"Tomato preset checks the account unlock fields"],
+["Crown preset has a leaderboard gate",/profile\.is_leader/.test(source)&&/current #1/.test(source),"Crown preset is restricted to the current leader"],
+["Name tags use the selected preset",/function effectiveAvatarPreset/.test(source)&&/data-tag=/.test(source),"Avatar/name-tag rendering helpers are present"]
+];
+for(const [label,pass,detail] of checks)core.push({state:pass?"ok":"bad",label,detail});
+const arrowPattern=/[←→↑↓↔↕↖↗↘↙⇐⇒⇑⇓➜➤➔⟵⟶]/g;
+const arrows=[...(source.matchAll(arrowPattern))].slice(0,160);
+const alertPattern=/\balert\s*\(/g;
+const alerts=[...(source.matchAll(alertPattern))].slice(0,100);
+const arrowCount=(source.match(arrowPattern)||[]).length;
+const alertCount=(source.match(alertPattern)||[]).length;
+signals.push({state:"ok",label:"Arrow character scan complete",detail:arrowCount+" arrow character occurrence(s) found"});
+signals.push({state:alertCount?"warn":"ok",label:"Blocking alert() scan complete",detail:alertCount+" alert() call(s) found"});
+const list=$("signals");list.replaceChildren();
+const add=(label,detail)=>{const node=document.createElement("div");node.className="scan-item";node.textContent=label+" — "+detail;list.append(node)};
+if(!arrows.length)add("Arrows","No arrow glyphs found.");
+else arrows.forEach(m=>add("Arrow "+m[0],"Source offset "+m.index));
+if(!alerts.length)add("alert()","No blocking alert() calls found.");
+else alerts.forEach((m,i)=>add("alert() call #"+(i+1),"Source offset "+m.index));
+if(arrowCount>arrows.length)add("Additional arrows",String(arrowCount-arrows.length)+" more occurrence(s) not expanded.");
+if(alertCount>alerts.length)add("Additional alert calls",String(alertCount-alerts.length)+" more occurrence(s) not expanded.");
+setStatus($("coreChecks"),core);setStatus($("signalChecks"),signals);finish(core,signals);button.disabled=false;button.textContent="Run checks";
+}
+function finish(core,signals){const failures=core.filter(x=>x.state==="bad").length,warnings=core.filter(x=>x.state==="warn").length+signals.filter(x=>x.state==="warn").length;const dot=$("overallDot"),label=$("overallText");if(failures){dot.style.background="var(--red)";dot.style.color="var(--red)";label.textContent=failures+" critical check(s) need attention"}else if(warnings){dot.style.background="var(--yellow)";dot.style.color="var(--yellow)";label.textContent="Core checks passed · "+warnings+" item(s) to review"}else{dot.style.background="var(--green)";dot.style.color="var(--green)";label.textContent="All automated checks passed"}$("lastRun").textContent="Last scan: "+new Date().toLocaleString()}
+$("runScan").addEventListener("click",scan);scan();
+})();
+</script>
+</body>
+</html>
