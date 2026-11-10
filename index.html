@@ -573,7 +573,62 @@ async function pollQuickMatch(){
   try{return await pending}
   finally{if(matchPollInFlight===pending)matchPollInFlight=null}
 }
-async function handleQuickRunEnd(){if(!matchRoomId||quickSubmitted)return;quickSubmitted=true;$("overlayTitle").textContent="You are out!";$("overlayText").textContent="Checking whether your opponent is still connected…";$("overlayStart").hidden=true;$("start").hidden=true;if($("restart"))$("restart").hidden=true;if($("pause"))$("pause").hidden=true;overlay.hidden=false;const {data,error}=await db.rpc("swipe_submit_match_score",{p_room_id:matchRoomId,p_score:score});if(error){$("overlayTitle").textContent="Could not submit score";$("overlayText").textContent=error.message+" Your run is saved locally until the connection returns. Tap Retry score submission."; $("overlayStart").textContent="Retry score submission";$("overlayStart").hidden=false;quickSubmitted=false;quickSubmitFailed=true;quickFinished=false;return}if(activeTeamSize>1&&!quickLeaderboardSubmitted&&user&&profile){quickLeaderboardSubmitted=true;const isGuest=user.is_anonymous===true||user.app_metadata?.provider==="anonymous";const {error:scoreError}=await db.from("swipe_scores").insert({player_name:isGuest?"Guest":profile.username,score,mode:"quick",difficulty:null,user_id:user.id});if(scoreError)console.warn("Quick Play leaderboard score could not be saved:",scoreError.message);else await loadBoard()}if(data?.status==="finished")await pollQuickMatch()}
+async function handleQuickRunEnd(){
+  if(!matchRoomId||quickSubmitted)return;
+  quickSubmitted=true;
+  quickSubmitFailed=false;
+  $("overlayTitle").textContent="You are out!";
+  $("overlayText").textContent="Submitting your score and checking the match…";
+  $("overlayStart").hidden=true;
+  $("start").hidden=true;
+  if($("restart"))$("restart").hidden=true;
+  if($("pause"))$("pause").hidden=true;
+  overlay.hidden=false;
+
+  let result;
+  try{
+    result=await Promise.race([
+      db.rpc("swipe_submit_match_score",{p_room_id:matchRoomId,p_score:score}),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error("Score submission timed out. Check your connection and retry.")),10000))
+    ]);
+  }catch(e){
+    quickSubmitted=false;
+    quickSubmitFailed=true;
+    $("overlayTitle").textContent="Could not submit score";
+    $("overlayText").textContent=(e?.message||"The connection failed.")+" Your score is ready to retry.";
+    $("overlayStart").textContent="Retry score submission";
+    $("overlayStart").hidden=false;
+    return;
+  }
+
+  const {data,error}=result||{};
+  if(error){
+    quickSubmitted=false;
+    quickSubmitFailed=true;
+    $("overlayTitle").textContent="Could not submit score";
+    $("overlayText").textContent=error.message+" Your score is ready to retry.";
+    $("overlayStart").textContent="Retry score submission";
+    $("overlayStart").hidden=false;
+    return;
+  }
+
+  quickSubmitFailed=false;
+  if(activeTeamSize>1&&!quickLeaderboardSubmitted&&user&&profile){
+    quickLeaderboardSubmitted=true;
+    const isGuest=user.is_anonymous===true||user.app_metadata?.provider==="anonymous";
+    const {error:scoreError}=await db.from("swipe_scores").insert({
+      player_name:isGuest?"Guest":profile.username,
+      score,
+      mode:"quick",
+      difficulty:null,
+      user_id:user.id
+    });
+    if(scoreError)console.warn("Quick Play leaderboard score could not be saved:",scoreError.message);
+    else await loadBoard();
+  }
+
+  if(data?.status==="finished")await pollQuickMatch();
+}
 async function startMatchmaking(){const searchGeneration=++matchSearchGeneration;if(!user||!profile){$("matchStatus").textContent="Your Guest session is not ready. Cancel search, return to the menu, and try Quick Play again.";showScreen("match");return}songLevelMode=false;stopRun();stopMatch();stopMatchPoll();$("teamHud")?.classList.add("hidden");matchRoomId=null;quickGameStarted=false;quickSubmitted=false;quickSubmitFailed=false;quickFinished=false;quickLeaderboardSubmitted=false;matchStartedAt=Date.now();$("matchElapsed").textContent="Time elapsed: 00:00";$("matchStatus").textContent="Connecting to Supabase matchmaking…";showScreen("match");matchWatchdog=setTimeout(()=>{if(screen==="match"&&!matchRoomId){$("matchStatus").textContent="Supabase matchmaking did not respond. Tap Cancel search, then retry. If it repeats, check the Supabase RPC/network logs."}},6500);matchTimer=setInterval(()=>{const total=Math.floor((Date.now()-matchStartedAt)/1000);$("matchElapsed").textContent="Time elapsed: "+String(Math.floor(total/60)).padStart(2,"0")+":"+String(total%60).padStart(2,"0")},1000);selectedTeamSize=Number(selectedTeamSize)||1;selectedPerk=$("matchPerk")?.value||"shield";activeTeamSize=selectedTeamSize;let rpcResult;try{rpcResult=await Promise.race([db.rpc("swipe_find_match",{p_team_size:selectedTeamSize}),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Matchmaking timed out. Supabase did not answer within 10 seconds. Please cancel and try again.")),10000))])}catch(e){$("matchStatus").textContent=e.message||"Matchmaking could not connect to Supabase. Please try again.";stopMatch();stopMatchPoll();return}const {data,error}=rpcResult;if(searchGeneration!==matchSearchGeneration){if(data?.room_id)db.rpc("swipe_leave_match",{p_room_id:data.room_id}).then(({error:leaveError})=>{if(leaveError)console.warn("Could not clean up cancelled matchmaking room:",leaveError.message)});return}if(error){$("matchStatus").textContent="Matchmaking error: "+error.message;stopMatch();return}if(!data?.room_id){$("matchStatus").textContent="Supabase replied without a match room. Please cancel and try again.";stopMatch();return}matchRoomId=data.room_id;if(matchWatchdog){clearTimeout(matchWatchdog);matchWatchdog=null}$("matchStatus").textContent=data.status==="playing"?"Match found! Starting…":"Waiting for another player…";const initialPollOk=await pollQuickMatch();if(initialPollOk!==false&&!quickFinished&&matchRoomId)matchPoll=setInterval(pollQuickMatch,1200)}
 function showScreen(name){if(swiperBanLock&&name!=="restricted")return;if(name==="menu")startOnlinePresence();const valid=["menu","match","online","game","account","leaderboard","avatar","friends","messages","community","settings","shop","song","restricted"];if(!valid.includes(name))name="menu";screen=name;$("restrictedScreen").classList.toggle("hidden",name!=="restricted");if(name!=="game"){running=false;paused=false;if(raf){cancelAnimationFrame(raf);raf=0}if(songLevelMode&&songMedia)songMedia.pause();if($("pause"))$("pause").textContent="Pause";const bg=$("arenaVideo");if(bg){bg.pause();bg.muted=true}}document.body.classList.toggle("screen-menu",name==="menu");const siteFooter=document.querySelector(".site-footer");if(siteFooter)siteFooter.hidden=name!=="menu";document.body.classList.toggle("playing-fullscreen",name==="game");if(name==="game"){window.scrollTo({top:0,behavior:"instant"});document.documentElement.style.overflow="hidden";document.body.style.overflow="hidden";document.body.style.height="100dvh"}else{document.documentElement.style.removeProperty("overflow");document.body.style.removeProperty("overflow");document.body.style.removeProperty("height")}$("optionsMenu")?.classList.add("hidden");$("optionsButton")?.setAttribute("aria-expanded","false");const menu=$("mainMenu"),match=$("matchScreen"),online=$("onlineLobbyScreen"),layout=document.querySelector(".layout");layout.hidden=["menu","match","online","restricted"].includes(name);if(online)online.classList.toggle("hidden",name!=="online");layout.classList.toggle("hidden",name==="restricted");menu.classList.toggle("hidden",name!=="menu");match.classList.toggle("hidden",name!=="match");menu.hidden=name!=="menu";match.hidden=name!=="match";if(online)online.hidden=name!=="online";layout.classList.remove("view-game","view-account","view-leaderboard","view-avatar","view-friends","view-community","view-settings","view-shop","view-song","view-messages");layout.classList.remove("menu-hidden");if(["game","account","leaderboard","avatar","friends","messages","community","settings","shop","song"].includes(name))layout.classList.add("view-"+name);for(const id of ["accountPanel","avatarPanel","friendsPage","leaderPanel","communityPanel","settingsPanel","shopPanel","songPanel","messagesPage"]){const el=$(id);if(el)el.style.removeProperty("display")}if(name==="avatar")$("avatarPanel").style.display="block";if(name==="shop")$("shopPanel").style.display="block";if(name==="song")$("songPanel").style.display="block";if(name==="friends")$("friendsPage").style.display="block";if(name==="messages")$("messagesPage").style.display="block";if(name==="messages")$("messagesPage").style.display="block";if(name==="menu"){layout.classList.remove("view-game","view-account","view-leaderboard","view-avatar","view-friends","view-community","view-settings");layout.classList.remove("menu-hidden");restartSwiperBackgroundAnimation();renderMenuIdentity();window.scrollTo({top:0,behavior:"instant"})}if(name!=="match")stopMatch();}
 /* Capture navigation taps so no nested handler or stale screen can swallow Back. */
