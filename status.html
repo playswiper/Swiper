@@ -117,6 +117,37 @@ const groups=[
   {name:"Login notice handling",location:"Account → Login Message",test:s=>/function\s+showLoginMessage\s*\(/.test(s)&&/swipe_profiles/.test(s),success:"The one-time profile login notice handler was found.",problem:"The login notice handler or profile integration is missing. Check showLoginMessage() and its profile flag handling."}
  ]}
 
+
+ ,
+ {title:"Social & Multiplayer Features",items:[
+  {name:"Direct messaging",location:"Friends → Direct Messages",test:s=>/function\s+openDirectChatByUsername\s*\(/.test(s)&&/function\s+sendChatPayload\s*\(/.test(s),success:"Direct-chat opening and message sending functions were found.",problem:"Direct messaging code is missing. Check openDirectChatByUsername() and sendChatPayload()."},
+  {name:"Chat message refresh",location:"Chat → Message Updates",test:s=>/function\s+refreshChatMessages\s*\(/.test(s),success:"Chat message refresh logic was found.",problem:"Chat refresh logic was not found. Check refreshChatMessages()."},
+  {name:"Group voice calls",location:"Chat → Group Voice Call",test:s=>/function\s+startGroupChatCall\s*\(/.test(s)&&/function\s+joinGroupVoiceChat\s*\(/.test(s),success:"Group-call start and join functions were found.",problem:"Group voice-call start or join logic is missing."},
+  {name:"Voice-call cleanup",location:"Chat → Leave Call",test:s=>/function\s+leaveVoiceChat\s*\(/.test(s)&&/function\s+endSwiperCall\s*\(/.test(s),success:"Voice-call leave and end handlers were found.",problem:"Voice-call cleanup handlers are missing. Check leaveVoiceChat() and endSwiperCall()."},
+  {name:"Call request polling",location:"Chat → Incoming Calls",test:s=>/function\s+pollSwiperCalls\s*\(/.test(s)&&/function\s+startSwiperCallPolling\s*\(/.test(s),success:"Incoming-call polling functions were found.",problem:"Incoming-call polling is missing. Check pollSwiperCalls() and startSwiperCallPolling()."},
+  {name:"Message notifications",location:"Chat → New Message Notifications",test:s=>/function\s+pollSwiperMessageNotifications\s*\(/.test(s),success:"Message-notification polling was found.",problem:"Message notification polling is missing."},
+  {name:"Friend list refresh",location:"Friends → Refresh Friends",test:s=>/function\s+refreshSocial\s*\(/.test(s)&&/function\s+refreshChatList\s*\(/.test(s),success:"Social and chat-list refresh functions were found.",problem:"Friend/social refresh logic is missing."},
+  {name:"Friend challenge requests",location:"Friends → Challenge",test:s=>/function\s+sendFriendChallenge\s*\(/.test(s)&&/function\s+pollDuelRequests\s*\(/.test(s),success:"Friend challenge sending and request polling were found.",problem:"Friend challenge sending or incoming request polling is missing."},
+  {name:"Online lobby refresh",location:"Online Lobbies → Refresh",test:s=>/function\s+refreshOnlineLobbies\s*\(/.test(s),success:"Online lobby refresh logic was found.",problem:"Online lobby refresh logic is missing."},
+  {name:"Lobby joining",location:"Online Lobbies → Join Room",test:s=>/function\s+joinOnlineLobby\s*\(/.test(s)&&/function\s+enterOnlineLobbyMatch\s*\(/.test(s),success:"Lobby join and match-entry functions were found.",problem:"Lobby joining or match entry code is missing."},
+  {name:"Team match result handling",location:"Quick Play → Match End",test:s=>/function\s+handleQuickRunEnd\s*\(/.test(s)&&/function\s+renderTeamBoard\s*\(/.test(s),success:"Team match-end and team-board rendering functions were found.",problem:"Team match result handling or team board rendering is missing."}
+ ]},
+ {title:"Account Security & Data Handling",items:[
+  {name:"Auth state synchronization",location:"Account → Login State",test:s=>/onAuthStateChange\s*\(/.test(s)&&/function\s+syncAccount\s*\(/.test(s),success:"Auth state listener and account synchronization were found.",problem:"Auth state synchronization is missing. Check onAuthStateChange() and syncAccount()."},
+  {name:"Profile synchronization timeout",location:"Account → Profile Sync",test:s=>/function\s+syncAccountUnsafe\s*\(/.test(s)&&/function\s+withTimeout\s*\(/.test(s),success:"Profile sync and timeout protection functions were found.",problem:"Profile sync or timeout protection is missing."},
+  {name:"Guest session separation",location:"Guest Play → Account Handling",test:s=>/function\s+isSwiperGuestSession\s*\(/.test(s)&&/function\s+getGuestLeaderboardName\s*\(/.test(s),success:"Guest-session detection and guest leaderboard naming were found.",problem:"Guest-session separation logic is missing."},
+  {name:"Ban enforcement",location:"Account → Access Restrictions",test:s=>/function\s+enforceSwiperAuthBan\s*\(/.test(s)&&/function\s+showSwiperBanScreen\s*\(/.test(s),success:"Ban enforcement and ban-screen functions were found.",problem:"Ban enforcement or the ban screen is missing."},
+  {name:"Report submission",location:"Community Safety → Report Player",test:s=>/function\s+reportTarget\s*\(/.test(s)&&/swipe_reports/.test(s),success:"Report submission handler and report table reference were found.",problem:"Player-report submission code is missing."},
+  {name:"Moderator permission checks",location:"Moderation → Admin / Moderator Tools",test:s=>/function\s+isSwiperAdmin\s*\(/.test(s)&&/function\s+moderatorMark\s*\(/.test(s),success:"Admin detection and moderator badge logic were found.",problem:"Admin detection or moderator badge logic is missing."},
+  {name:"Score leaderboard loading",location:"Leaderboard → Load Scores",test:s=>/function\s+loadBoard\s*\(/.test(s)&&/function\s+sendScore\s*\(/.test(s),success:"Leaderboard loading and score submission functions were found.",problem:"Leaderboard loading or score submission logic is missing."}
+ ]},
+ {title:"Media & Local Device Features",items:[
+  {name:"Local video storage",location:"Settings → Background Video",test:s=>/function\s+storeLocalVideo\s*\(/.test(s)&&/function\s+readLocalVideo\s*\(/.test(s),success:"Local video save and read functions were found.",problem:"Local video storage functions are missing."},
+  {name:"Local video cleanup",location:"Settings → Background Video → Remove",test:s=>/function\s+clearLocalVideo\s*\(/.test(s)&&/URL\.revokeObjectURL/.test(s),success:"Local video cleanup and object-URL release code were found.",problem:"Local video cleanup or object-URL release code is missing."},
+  {name:"Music playback controls",location:"Settings → Music",test:s=>/function\s+startSwiperMusic\s*\(/.test(s)&&/function\s+setSwiperMusic\s*\(/.test(s),success:"Music start and settings functions were found.",problem:"Music playback controls are missing."},
+  {name:"Audio analysis",location:"Gameplay → Music Beat Detection",test:s=>/function\s+prepareSongAnalyser\s*\(/.test(s)&&/function\s+detectSongBeat\s*\(/.test(s),success:"Audio analyser and beat detection functions were found.",problem:"Audio analysis or beat detection code is missing."}
+ ]}
+
 ];
 function render(item,ok){
  const card=document.createElement("article");card.className="check"+(ok?"":" bad");
