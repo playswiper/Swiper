@@ -40,6 +40,21 @@ button:disabled{opacity:.6;cursor:wait}
 .check.bad .state{color:#ff7777;background:#321313}
 #scanTime{font-size:11px;color:#666;text-align:center;margin:2px 0 0}
 #checks{width:100%}
+
+.summary{width:100%;border:1px solid #303030;border-radius:14px;background:#090909;padding:14px;margin:18px 0 0}
+.summary h2{font-size:16px;margin:0 0 7px}
+.summary p{font-size:13px;color:#bbb;line-height:1.45;margin:0}
+.summary ul{margin:8px 0 0;padding-left:19px;color:#ff8585;font-size:13px;line-height:1.5}
+.summary.good ul{color:#56df91}
+.error-panel{width:100%;margin:0 0 20px}
+.error-panel h2{font-size:17px;margin:0 0 5px}
+.error-note{font-size:12px;color:#888;line-height:1.45;margin:0 0 10px}
+.error-list{display:grid;gap:8px}
+.error-item{border:1px solid #392626;background:#100909;border-radius:10px;padding:10px}
+.error-meta{font-size:11px;color:#ff9999;margin-bottom:4px}
+.error-message{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.error-empty{border:1px solid #292929;background:#080808;border-radius:10px;padding:12px;color:#aaa;font-size:13px}
+
 [hidden]{display:none!important}
 @media(max-width:390px){.actions{grid-template-columns:1fr}.check{grid-template-columns:30px minmax(0,1fr)}.state{grid-column:2;justify-self:start}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -55,6 +70,7 @@ button:disabled{opacity:.6;cursor:wait}
 <p id="headline" role="status" aria-live="polite">Checking status…</p>
 <p id="detail">Running system checks.</p>
 </header>
+<section class="summary" id="summary" aria-live="polite"><h2>System Summary</h2><p id="summaryText">Running diagnostics…</p><ul id="summaryIssues"></ul></section>
 <div class="actions">
 <button id="scan" type="button">Check Again</button>
 <a class="back" href="./">Back to Game</a>
@@ -149,6 +165,51 @@ const groups=[
  ]}
 
 ];
+
+const ERROR_LOG_KEY="swiper-client-errors-v1";
+function readRecentErrors(){
+ const cutoff=Date.now()-90*24*60*60*1000;
+ try{
+  const raw=JSON.parse(localStorage.getItem(ERROR_LOG_KEY)||"[]");
+  return Array.isArray(raw)?raw.filter(x=>x&&Number(x.time)>=cutoff).sort((a,b)=>b.time-a.time):[];
+ }catch(e){return []}
+}
+function renderRecentErrors(){
+ const old=$("recentErrors");if(old)old.remove();
+ const errors=readRecentErrors();
+ const panel=document.createElement("section");panel.id="recentErrors";panel.className="error-panel";
+ const title=document.createElement("h2");title.textContent="Recent Browser Errors — Past 90 Days";
+ const note=document.createElement("p");note.className="error-note";note.textContent="Errors recorded by this browser on playswiper.com. Collection starts when the updated game is loaded; this is not a retroactive server log.";
+ panel.append(title,note);
+ if(!errors.length){const empty=document.createElement("div");empty.className="error-empty";empty.textContent="No browser errors have been captured in this browser during the last 90 days.";panel.append(empty)}
+ else{
+  const list=document.createElement("div");list.className="error-list";
+  errors.slice(0,20).forEach(e=>{
+   const card=document.createElement("article");card.className="error-item";
+   const meta=document.createElement("div");meta.className="error-meta";
+   meta.textContent=(e.type||"error").toUpperCase()+" · "+new Date(Number(e.time)).toLocaleString()+(e.source?" · "+e.source:"")+(e.line?" · line "+e.line:"");
+   const message=document.createElement("div");message.className="error-message";message.textContent=String(e.message||"Unknown error");
+   card.append(meta,message);list.append(card);
+  });
+  panel.append(list);
+ }
+ $("checks").append(panel);
+ return errors;
+}
+function updateSummary(all,errors){
+ const failed=all.filter(x=>!x.ok),box=$("summary"),list=$("summaryIssues");
+ box.classList.toggle("good",failed.length===0&&!errors.length);
+ list.replaceChildren();
+ const notes=[];
+ if(failed.length)notes.push(failed.length+" feature/service check"+(failed.length===1?"":"s")+" need attention.");
+ if(errors.length)notes.push(errors.length+" browser error"+(errors.length===1?"":"s")+" recorded in the past 90 days on this device.");
+ if(!failed.length&&!errors.length)notes.push("No code checks failed and no recent browser errors were recorded.");
+ $("summaryText").textContent=notes.join(" ");
+ failed.slice(0,12).forEach(x=>{const li=document.createElement("li");li.textContent=x.item.name+" — "+x.item.problem;list.append(li)});
+ if(errors.length){const li=document.createElement("li");li.textContent="Most recent browser error: "+String(errors[0].message||"Unknown error").slice(0,180);list.append(li)}
+ if(failed.length>12){const li=document.createElement("li");li.textContent="And "+(failed.length-12)+" more failed checks below.";list.append(li)}
+}
+
 function render(item,ok){
  const card=document.createElement("article");card.className="check"+(ok?"":" bad");
  const symbol=document.createElement("div");symbol.className="symbol";symbol.textContent=ok?"✓":"×";
