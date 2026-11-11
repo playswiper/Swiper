@@ -939,7 +939,7 @@ document.addEventListener("visibilitychange",()=>{const v=$("arenaVideo");if(doc
     update();tickTimer=setInterval(update,100);clearTimeout(hideTimer);
     hideTimer=setTimeout(()=>{
       el.classList.remove("swiper-transition-visible");el.classList.add("swiper-transition-exit");clearInterval(tickTimer);
-      setTimeout(()=>{el.classList.remove("swiper-transition-exit");active=false},520);
+      setTimeout(()=>{el.classList.remove("swiper-transition-exit");active=false},950);
     },2600);
   }
   const originalShowScreen=showScreen;
@@ -959,7 +959,7 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
 };
 </script>
 <style id="swiper-transition-loader-style">
-#swiperTransitionLoader{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(115,120,128,.78);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);opacity:0;visibility:hidden;pointer-events:none;transform:translate3d(0,100%,0);transition:transform .48s cubic-bezier(.2,.82,.22,1),opacity .38s ease,visibility .48s ease}
+#swiperTransitionLoader{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:24px;background:#858585;opacity:0;visibility:hidden;pointer-events:none;transform:translate3d(0,100%,0);transition:transform .9s cubic-bezier(.22,.75,.18,1),opacity .8s ease,visibility .9s ease}
 #swiperTransitionLoader.swiper-transition-visible{opacity:1;visibility:visible;transform:translate3d(0,0,0)}
 #swiperTransitionLoader.swiper-transition-exit{opacity:0;visibility:hidden;transform:translate3d(0,100%,0)}
 .swiper-transition-card{display:flex;flex-direction:column;align-items:center;gap:20px;min-width:180px;text-align:center;color:#fff;text-shadow:0 2px 12px #0008}
