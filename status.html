@@ -246,7 +246,7 @@ async function scan(){
    all.push(...results);renderGroup(group,results);
   }
   const urlMatch=source.match(/const\s+SUPABASE_URL\s*=\s*["'](https?:\/\/[^"']+)["']/);
-   const keyMatch=source.match(/const\s+SUPABASE_KEY\s*=\s*["']([^"']+)["']/)||source.match(/const\s+SUPABASE_STATUS_KEY\s*=\s*["']([^"']+)["']/);
+   const keyMatch=source.match(/const\s+SUPABASE_STATUS_KEY\s*=\s*["']([^"']+)["']/)||source.match(/const\s+SUPABASE_KEY\s*=\s*["']([^"']+)["']/);
   const config=urlMatch&&keyMatch?{url:urlMatch[1],key:keyMatch[1]}:null;
   let live={item:{name:"Supabase API connection",location:"Live service → Supabase REST API",success:"The Supabase API responded successfully.",problem:"The Supabase API did not respond successfully. Check the project status, API URL, network, and anon key."},ok:false};
   if(config){
