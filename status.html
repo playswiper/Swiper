@@ -96,7 +96,7 @@ const groups=[
   {name:"Matchmaking controls",location:"Quick Play → Search / Cancel",test:s=>/swipe_find_team_match/.test(s)&&/swipe_leave_match/.test(s)&&/swipe_match_status/.test(s),success:"Search, match-status, and leave-match requests were found.",problem:"A matchmaking RPC is missing. Check swipe_find_team_match, swipe_match_status, and swipe_leave_match."}
  ]},
  {title:"Accounts & Community",items:[
-  {name:"Sign-in session",location:"Game startup → online service Auth",test:s=>/createClient\(/.test(s)&&/persistSession\s*:\s*true/.test(s)&&/detectSessionInUrl\s*:\s*true/.test(s),success:"online service Auth and persistent login configuration were found.",problem:"The auth client or session settings are missing. Check createClient() and its auth options."},
+  {name:"Sign-in session",location:"Game startup → the account service",test:s=>/createClient\(/.test(s)&&/persistSession\s*:\s*true/.test(s)&&/detectSessionInUrl\s*:\s*true/.test(s),success:"the account service and persistent login configuration were found.",problem:"The auth client or session settings are missing. Check createClient() and its auth options."},
   {name:"Password recovery",location:"More → Account → Forgot Password",test:s=>/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(s),success:"The password-reset email request was found.",problem:"The password-reset request is missing or changed. Check the forgot-password handler and online service redirect URL allowlist."},
   {name:"Friends",location:"More → Friends",test:s=>/id="friendsPage"/.test(s)&&/id="friendSearch"/.test(s)&&/swipe_friend_requests/.test(s),success:"Friends page, friend search, and friend-request data calls were found.",problem:"A friends feature is missing. Check friendsPage, friendSearch, and swipe_friend_requests."},
   {name:"Chat & messages",location:"Friends → Chat",test:s=>/id="chatMessages"/.test(s)&&/id="sendChatMessage"/.test(s)&&/swipe_messages/.test(s),success:"Chat interface and message sending code were found.",problem:"Chat UI or message database calls are missing. Check chatMessages, sendChatMessage, and swipe_messages."},
@@ -224,15 +224,15 @@ async function scan(){
   const urlMatch=source.match(/const\s+online service_URL\s*=\s*["'](https?:\/\/[^"']+)["']/);
    const keyMatch=source.match(/const\s+online service_STATUS_KEY\s*=\s*["']([^"']+)["']/)||source.match(/const\s+online service_KEY\s*=\s*["']([^"']+)["']/);
   const config=urlMatch&&keyMatch?{url:urlMatch[1],key:keyMatch[1]}:null;
-  let live={item:{name:"Supabase API connection",location:"Live service → Supabase health endpoint",success:"The Supabase health endpoint responded successfully.",problem:"The Supabase health endpoint did not respond. Check the project status, API URL, network, and anon key."},ok:false};
+  let live={item:{name:"Live API connection",location:"Live service → health endpoint",success:"The service health endpoint responded successfully.",problem:"The service health endpoint did not respond. Check the project status, API URL, network, and public key."},ok:false};
   if(config){
    try{
     const ping=await fetch(config.url.replace(/\/$/,"")+"/auth/v1/health",{method:"GET",headers:{apikey:config.key,Authorization:"Bearer "+config.key},cache:"no-store"});
     live.ok=ping.status<500;
-    if(ping.status>=500)live.item.problem="Supabase Auth returned HTTP "+ping.status+". The service endpoint is responding, but Auth may be temporarily unavailable.";
-    else if(!ping.ok)live.item.success="Supabase is reachable (HTTP "+ping.status+"). This response is not a service outage; this check does not test user-specific table permissions.";
-   }catch(e){live.item.problem="Could not reach Supabase from this browser. Check internet access, browser privacy settings, and the Supabase project URL."}
-   }else{live.item.problem="Swiper could not read SUPABASE_URL and SUPABASE_KEY from index.html. Check that both constants exist and are quoted."}
+    if(ping.status>=500)live.item.problem="the account service returned HTTP "+ping.status+". The service endpoint is responding, but Auth may be temporarily unavailable.";
+    else if(!ping.ok)live.item.success="The service is reachable (HTTP "+ping.status+"). This response is not a service outage; this check does not test user-specific table permissions.";
+   }catch(e){live.item.problem="Could not reach online service from this browser. Check internet access, browser privacy settings, and the online service project URL."}
+   }else{live.item.problem="Swiper could not read the service URL and public key from index.html. Check that both constants exist and are quoted."}
   const liveGroup={title:"Live Services",items:[live.item]};renderGroup(liveGroup,[live]);all.push(live);
   updateSummary(all);
   const failed=all.filter(x=>!x.ok).length,passed=all.length-failed;
