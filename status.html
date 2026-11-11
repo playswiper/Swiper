@@ -28,7 +28,7 @@ footer{margin-top:18px;color:#777;font-size:11px}
 <header><h1>SWIPER STATUS</h1><button id="scan" type="button">SCAN</button></header>
 <div id="summary" role="status" aria-live="polite">CHECKING…</div>
 <section id="alerts" aria-label="Alerts"></section>
-<footer id="updated"></footer>
+
 </main>
 <script>
 (()=>{
@@ -58,7 +58,7 @@ const failed=checks.filter(x=>!x[1]).length;
 if(!arrows.length&&!alerts.length&&!failed)addAlert("ok","No alerts found");
 $("summary").textContent=failed?failed+" CHECK(S) FAILED":arrows.length||alerts.length?arrows.length+" ARROWS · "+alerts.length+" ALERT CALLS":"ALL CHECKS PASSED";
 }catch(error){$("summary").textContent="SCAN FAILED";addAlert("error",error.message)}
-$("updated").textContent="LAST SCAN · "+new Date().toLocaleString();
+
 button.disabled=false;button.textContent="SCAN";
 }
 $("scan").addEventListener("click",scan);
