@@ -246,7 +246,7 @@ async function scan(){
    all.push(...results);renderGroup(group,results);
   }
   const urlMatch=source.match(/const\s+SUPABASE_URL\s*=\s*["'](https?:\/\/[^"']+)["']/);
-  const keyMatch=source.match(/const\\s+SUPABASE_STATUS_KEY\\s*=\\s*["\x27]([^"\x27]+)["\x27]/);
+  const keyMatch=source.match(/const\s+SUPABASE_STATUS_KEY\s*=\s*["']([^"']+)["']/);
   const config=urlMatch&&keyMatch?{url:urlMatch[1],key:keyMatch[1]}:null;
   let live={item:{name:"Supabase API connection",location:"Live service → Supabase REST API",success:"The Supabase API responded successfully.",problem:"The Supabase API did not respond successfully. Check the project status, API URL, network, and anon key."},ok:false};
   if(config){
@@ -255,7 +255,7 @@ async function scan(){
     live.ok=ping.ok;
     if(!ping.ok)live.item.problem="Supabase responded with HTTP "+ping.status+". Check project availability and API configuration. This check does not test user-specific table permissions.";
    }catch(e){live.item.problem="Could not reach Supabase from this browser. Check internet access, browser privacy settings, and the Supabase project URL."}
-  }else{live.item.problem="The expected SUPABASE_URL and SUPABASE_KEY constants were not found near the top of index.html."}
+  }else{live.item.problem="Swiper could not read SUPABASE_URL and SUPABASE_STATUS_KEY from index.html. Check that both constants exist and are quoted."}
   const liveGroup={title:"Live Services",items:[live.item]};renderGroup(liveGroup,[live]);all.push(live);
   const recentErrors=renderRecentErrors();updateSummary(all,recentErrors);
   const failed=all.filter(x=>!x.ok).length,passed=all.length-failed;
