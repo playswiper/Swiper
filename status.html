@@ -55,7 +55,7 @@ button:disabled{opacity:.6;cursor:wait}
 .error-message{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
 .error-empty{border:1px solid #292929;background:#080808;border-radius:10px;padding:12px;color:#aaa;font-size:13px}
 
-[hidden]{display:none!important}
+.dev-panel{width:100%;margin:0 0 20px;border:1px solid #3b3420;border-radius:14px;background:#0d0c08;padding:14px}.dev-panel h2{font-size:17px;margin:0 0 5px}.dev-intro{font-size:12px;color:#aaa;line-height:1.45;margin:0 0 12px}.dev-summary{font-size:13px;color:#ddd;margin:0 0 10px}.dev-findings{display:grid;gap:8px}.dev-finding{border:1px solid #353535;border-radius:10px;background:#090909;padding:10px}.dev-finding.issue{border-color:#552525;background:#100808}.dev-finding.warn{border-color:#55451e;background:#100e08}.dev-finding.pass{border-color:#21452f;background:#08100b}.dev-finding strong{display:block;font-size:13px;margin-bottom:4px}.dev-finding p{font-size:12px;color:#bbb;line-height:1.45;margin:0;overflow-wrap:anywhere}.dev-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.dev-tools button{min-height:36px;padding:0 14px;font-size:12px}[hidden]{display:none!important}
 @media(max-width:390px){.actions{grid-template-columns:1fr}.check{grid-template-columns:30px minmax(0,1fr)}.state{grid-column:2;justify-self:start}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -75,6 +75,7 @@ button:disabled{opacity:.6;cursor:wait}
 <button id="scan" type="button">Check Again</button>
 <a class="back" href="./">Back to Game</a>
 </div>
+<section class="dev-panel" id="devPanel" hidden><h2>Developer Diagnostics</h2><p class="dev-intro">Extended static, syntax, markup, resource, and runtime checks. This diagnoses what the browser can inspect; it does not execute game actions or modify player data.</p><p class="dev-summary" id="devSummary">Preparing extended diagnostics…</p><div class="dev-findings" id="devFindings"></div><div class="dev-tools"><button id="devRescan" type="button">Run Deep Scan Again</button></div></section>
 <div id="checks" aria-label="System checks"></div>
 <p id="scanTime"></p>
 </main>
@@ -166,6 +167,49 @@ const groups=[
 
 ];
 
+const DEV_MODE=new URLSearchParams(location.search).has("dev");
+const devRuntimeFindings=[];
+if(DEV_MODE){$("devPanel").hidden=false;window.addEventListener("error",event=>{devRuntimeFindings.push({level:"issue",name:"Browser runtime error",detail:(event.message||"Unknown script error")+(event.filename?" — "+event.filename.split("/").pop():"")+(event.lineno?":"+event.lineno:"")});renderDevFindings()});window.addEventListener("unhandledrejection",event=>{const reason=event.reason;devRuntimeFindings.push({level:"issue",name:"Unhandled promise rejection",detail:reason?.message||String(reason||"Unknown rejection")});renderDevFindings()});}
+function renderDevFindings(findings=[]){
+ const list=$("devFindings");if(!list)return;list.replaceChildren();
+ const all=[...findings,...devRuntimeFindings];const counts={issue:all.filter(x=>x.level==="issue").length,warn:all.filter(x=>x.level==="warn").length,pass:all.filter(x=>x.level==="pass").length};
+ $("devSummary").textContent=counts.issue+" errors · "+counts.warn+" warnings · "+counts.pass+" checks passed";
+ for(const item of all){const card=document.createElement("article");card.className="dev-finding "+item.level;const title=document.createElement("strong");title.textContent=(item.level==="issue"?"ERROR":item.level==="warn"?"WARNING":"PASS")+" — "+item.name;const detail=document.createElement("p");detail.textContent=item.detail;card.append(title,detail);list.append(card)}
+ if(!all.length){const card=document.createElement("article");card.className="dev-finding pass";card.textContent="No problems detected by the extended checks.";list.append(card)}
+}
+async function runDevDiagnostics(source){
+ if(!DEV_MODE)return;
+ const findings=[];
+ const add=(level,name,detail)=>findings.push({level,name,detail});
+ try{
+  const parsed=new DOMParser().parseFromString(source,"text/html");
+  const ids=[...parsed.querySelectorAll("[id]")].map(x=>x.id),duplicates=ids.filter((id,i)=>ids.indexOf(id)!==i);
+  if(duplicates.length)add("warn","Duplicate HTML IDs",[...new Set(duplicates)].slice(0,20).join(", "));else add("pass","HTML IDs","No duplicate id attributes were found.");
+  const brokenLinks=[...parsed.querySelectorAll('a[href]')].map(a=>a.getAttribute("href")).filter(h=>h&&h.startsWith("#")&&!parsed.getElementById(decodeURIComponent(h.slice(1))));
+  if(brokenLinks.length)add("warn","Broken in-page links",[...new Set(brokenLinks)].slice(0,15).join(", "));else add("pass","In-page links","All local # links point to an existing element.");
+  const scripts=[...parsed.querySelectorAll("script:not([src])")];let syntaxErrors=0;
+  scripts.forEach((script,i)=>{const code=script.textContent.trim();if(!code)return;try{new Function(code)}catch(e){syntaxErrors++;add("issue","Inline script syntax #"+(i+1),e.message)}});
+  if(!syntaxErrors)add("pass","Inline JavaScript syntax",scripts.length+" inline script block(s) parsed without syntax errors.");
+  const missingAssets=[];
+  for(const el of parsed.querySelectorAll('script[src],link[rel="stylesheet"][href],img[src]')){
+   const raw=el.getAttribute(el.hasAttribute("src")?"src":"href");if(!raw||/^(data:|blob:|javascript:)/i.test(raw))continue;
+   let url;try{url=new URL(raw,location.href)}catch(e){missingAssets.push(raw+" (invalid URL)");continue}
+   if(url.origin!==location.origin)continue;
+   try{const response=await fetch(url.href,{method:"HEAD",cache:"no-store"});if(!response.ok)missingAssets.push(raw+" (HTTP "+response.status+")")}catch(e){missingAssets.push(raw+" (request failed)")}
+  }
+  if(missingAssets.length)add("warn","Local asset requests",missingAssets.slice(0,12).join("; "));else add("pass","Local assets","All checked same-origin scripts, stylesheets, and images responded successfully.");
+  const emptyButtons=[...parsed.querySelectorAll("button")].filter(b=>!b.textContent.trim()&&!b.getAttribute("aria-label")&&!b.getAttribute("title"));
+  if(emptyButtons.length)add("warn","Unlabelled buttons",emptyButtons.length+" button(s) have no text, aria-label, or title.");else add("pass","Button labels","All buttons have visible text or an accessible label.");
+  const inlineHandlers=[...parsed.querySelectorAll("*")].filter(el=>[...el.attributes].some(a=>/^on/i.test(a.name)));
+  if(inlineHandlers.length)add("warn","Inline event handlers",inlineHandlers.length+" element(s) use inline event-handler attributes; review for CSP and maintainability.");
+  else add("pass","Event handler markup","No inline HTML event-handler attributes were found.");
+  const riskyPatterns=[{re:/console\.error\s*\(/g,name:"Explicit console.error calls"},{re:/TODO|FIXME|XXX/g,name:"TODO / FIXME markers"},{re:/debugger\s*;/g,name:"Debugger statements"}];
+  for(const item of riskyPatterns){const matches=source.match(item.re)||[];if(matches.length)add("warn",item.name,matches.length+" occurrence(s) found in source.");else add("pass",item.name,"No occurrences found.");}
+  const resources=[...performance.getEntriesByType("resource")].filter(x=>x.duration>5000);
+  if(resources.length)add("warn","Slow resources",resources.slice(0,8).map(x=>x.name.split("/").pop()+" ("+Math.round(x.duration)+" ms)").join("; "));else add("pass","Resource timing","No resource taking over five seconds was recorded in this page session.");
+ }catch(error){add("issue","Deep scan failure",error?.message||String(error))}
+ renderDevFindings(findings);
+}
 const ERROR_LOG_KEY="swiper-client-errors-v1";
 function readRecentErrors(){
  const cutoff=Date.now()-90*24*60*60*1000;
@@ -217,6 +261,7 @@ async function scan(){
   const response=await fetch("./index.html?status="+Date.now(),{cache:"no-store"});
   if(!response.ok)throw new Error("Game page returned HTTP "+response.status+". The website may be unavailable.");
   const source=await response.text();
+  await runDevDiagnostics(source);
   for(const group of groups){
    const results=group.items.map(item=>({item,ok:!!item.test(source)}));
    all.push(...results);renderGroup(group,results);
@@ -254,7 +299,7 @@ async function scan(){
   $("scanTime").textContent="Last checked: "+new Date().toLocaleString();
  }
 }
-$("scan").addEventListener("click",scan);scan();
+$("scan").addEventListener("click",scan);if(DEV_MODE)$("devRescan").addEventListener("click",scan);scan();
 })();
 </script>
 </body>
