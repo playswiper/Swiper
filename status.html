@@ -135,7 +135,7 @@ async function scan(){
   let live={item:{name:"Supabase API connection",location:"Live service → Supabase REST API",success:"The Supabase API responded successfully.",problem:"The Supabase API did not respond successfully. Check the project status, API URL, network, and anon key."},ok:false};
   if(config){
    try{
-    const ping=await fetch(config.url.replace(/\/$/,"")+"/rest/v1/",{method:"GET",headers:{apikey:config.key,Authorization:"Bearer "+config.key},cache:"no-store"});
+    const ping=await fetch(config.url.replace(/\/$/,"")+"/rest/v1/",{method:"GET",headers:{apikey:config.key},cache:"no-store"});
     live.ok=ping.ok;
     if(!ping.ok)live.item.problem="Supabase responded with HTTP "+ping.status+". Check project availability and API configuration. This check does not test user-specific table permissions.";
    }catch(e){live.item.problem="Could not reach Supabase from this browser. Check internet access, browser privacy settings, and the Supabase project URL."}
