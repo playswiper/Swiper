@@ -12,99 +12,108 @@
 *{box-sizing:border-box}
 :root{color-scheme:dark;font-family:"Fredoka",ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif;background:#000;color:#fff}
 html,body{margin:0;min-height:100%;background:#000;color:#fff}
-body{min-height:100svh;display:grid;place-items:center;padding:28px 18px}
-main{width:min(100%,440px);display:flex;flex-direction:column;align-items:center;text-align:center}
-.status-mark{width:116px;height:116px;border:6px solid #18d66b;border-radius:50%;display:grid;place-items:center;margin-bottom:13px}
-.status-mark svg{width:72px;height:72px;display:block}
-h1{font-size:clamp(29px,7vw,40px);line-height:1.05;font-weight:700;margin:0;letter-spacing:-.8px}
-.rule{width:44px;height:2px;border-radius:2px;background:#555;margin:17px 0 14px}
-#headline{font-size:19px;font-weight:600;line-height:1.2;margin:0}
-#detail{font-size:15px;font-weight:400;color:#aaa;margin:6px 0 0}
-.actions{width:min(100%,204px);display:grid;gap:10px;margin-top:28px}
-button,.back{height:44px;width:100%;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:#fff;color:#000;font:600 16px "Fredoka",ui-rounded,system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:transform .15s ease,opacity .15s ease}
-button:active,.back:active{transform:scale(.98)}
+body{min-height:100svh;padding:30px 18px 48px}
+main{width:min(100%,510px);margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center}
+.status-mark{width:86px;height:86px;border:5px solid #18d66b;border-radius:50%;display:grid;place-items:center;margin:8px 0 12px}
+.status-mark svg{width:54px;height:54px}
+h1{font-size:clamp(29px,7vw,39px);line-height:1.05;font-weight:700;margin:0;letter-spacing:-.7px}
+#headline{font-size:19px;font-weight:600;margin:15px 0 0}
+#detail{font-size:14px;color:#999;margin:5px 0 0}
+#checks{width:100%;display:grid;gap:9px;margin-top:25px;text-align:left}
+.check{display:grid;grid-template-columns:34px minmax(0,1fr);gap:11px;align-items:start;padding:12px;border:1px solid #292929;border-radius:11px;background:#080808}
+.symbol{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#103b25;color:#27e879;font-size:18px;font-weight:700;line-height:1}
+.check.bad .symbol{background:#401717;color:#ff6666}
+.check-title{font-size:15px;font-weight:600;line-height:1.2}
+.check-location{font-size:12px;color:#aaa;margin-top:3px}
+.check-explain{font-size:13px;color:#c5c5c5;margin-top:5px;line-height:1.35}
+.actions{width:min(100%,220px);display:grid;gap:10px;margin-top:23px}
+button,.back{height:44px;width:100%;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:#fff;color:#000;font:600 16px "Fredoka",ui-rounded,system-ui,sans-serif;text-decoration:none;cursor:pointer}
 button:disabled{opacity:.6;cursor:wait}
-#alerts{width:100%;display:grid;gap:7px;margin-top:18px;text-align:left}
-.alert{padding:10px 12px;border:1px solid #383838;border-radius:9px;background:#090909;color:#ddd;font-size:13px;overflow-wrap:anywhere}
-.alert.error{border-color:#8e3838}
-.alert.warning{border-color:#555}
+#note{font-size:12px;color:#777;line-height:1.4;margin:17px 4px 0}
 [hidden]{display:none!important}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <main>
 <div class="status-mark" id="mark" aria-hidden="true">
-<svg viewBox="0 0 72 72" fill="none"><path d="M14 37.5 29 52 59 20" stroke="#18d66b" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg id="markIcon" viewBox="0 0 54 54" fill="none"><path d="m10 28 11 11L45 13" stroke="#18d66b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </div>
 <h1>Swiper Status</h1>
-<div class="rule"></div>
 <p id="headline" role="status" aria-live="polite">Checking status…</p>
-<p id="detail">Please wait.</p>
+<p id="detail">Checking game features.</p>
+<section id="checks" aria-label="Feature checks"></section>
 <div class="actions">
 <button id="scan" type="button">Check Again</button>
 <a class="back" href="./">Back to Game</a>
 </div>
-<section id="alerts" aria-label="Status alerts" hidden></section>
+<p id="note">These checks inspect the published game code. They do not guarantee that live multiplayer servers or database services are responding.</p>
 </main>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-const addAlert=(kind,message)=>{
- const el=document.createElement("div");
- el.className="alert "+kind;
- el.textContent=message;
- $("alerts").append(el);
-};
+function renderCheck(item){
+ const card=document.createElement("article");
+ card.className="check"+(item.ok?"":" bad");
+ const symbol=document.createElement("div");
+ symbol.className="symbol";
+ symbol.textContent=item.ok?"✓":"×";
+ const body=document.createElement("div");
+ const title=document.createElement("div");
+ title.className="check-title";
+ title.textContent=item.name;
+ const location=document.createElement("div");
+ location.className="check-location";
+ location.textContent="Location: "+item.location;
+ const explanation=document.createElement("div");
+ explanation.className="check-explain";
+ explanation.textContent=item.ok?item.success:item.problem;
+ body.append(title,location,explanation);
+ card.append(symbol,body);
+ $("checks").append(card);
+}
 async function scan(){
  const button=$("scan");
  button.disabled=true;
  button.textContent="Checking…";
  $("headline").textContent="Checking status…";
- $("detail").textContent="Please wait.";
- $("alerts").replaceChildren();
- $("alerts").hidden=true;
+ $("detail").textContent="Reading the published game code.";
+ $("checks").replaceChildren();
  $("mark").style.borderColor="#777";
+ $("markIcon").innerHTML='<circle cx="27" cy="27" r="16" stroke="#aaa" stroke-width="5"/>';
  try{
   const response=await fetch("./index.html?status="+Date.now(),{cache:"no-store"});
-  if(!response.ok)throw new Error("Game source returned HTTP "+response.status);
+  if(!response.ok)throw new Error("The game page returned HTTP "+response.status+". The website may be unavailable or the page path may have changed.");
   const source=await response.text();
-  const arrows=[...source.matchAll(/[←→↑↓↔↕↖↗↘↙⇐⇒⇑⇓➜➤➔⟵⟶]/g)];
-  const alertCalls=[...source.matchAll(/\balert\s*\(/g)];
-  const checks=[
-   ["Leaderboard tabs",/data-board-mode="practice"[\s\S]*data-board-mode="bot"[\s\S]*data-board-mode="all"[\s\S]*data-board-mode="quick"/.test(source)],
-   ["Bot obstacle AI",/function updateBotAI\(/.test(source)],
-   ["Name tag ellipsis",/text-overflow:ellipsis/.test(source)],
-   ["Password recovery",/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(source)]
+  const tests=[
+   {name:"Bot Play",location:"Main Menu → Bot Play → game engine",ok:/function updateBotAI\(/.test(source)&&/easy:[\s\S]{0,100}normal:[\s\S]{0,100}hard:[\s\S]{0,100}expert:[\s\S]{0,100}impossible:/.test(source),success:"Bot obstacle prediction and all five difficulty levels were found.",problem:"The bot AI or one of its difficulty settings is missing. Check updateBotAI() and the difficulty tuning table in index.html."},
+   {name:"Online Play",location:"Main Menu → Quick Play → team selection",ok:/id="menuQuick"/.test(source)&&/id="matchStatus"/.test(source)&&/showScreen\("match"\)/.test(source),success:"Quick Play entry and team-selection screen code were found.",problem:"Quick Play's menu button or team-selection screen could not be found. Check menuQuick and the match screen markup."},
+   {name:"Online Lobbies",location:"Main Menu → More → Online Lobbies",ok:/id="menuOnline"/.test(source)&&/showScreen\("online"\)/.test(source),success:"Online Lobbies menu entry and screen navigation were found.",problem:"The Online Lobbies button or its screen navigation is missing. Check menuOnline and the online screen handlers."},
+   {name:"Leaderboard",location:"Main Menu → Leaderboard",ok:/data-board-mode="practice"/.test(source)&&/data-board-mode="bot"/.test(source)&&/data-board-mode="all"/.test(source)&&/data-board-mode="quick"/.test(source),success:"Practice, Bot Play, All, and Online leaderboard tabs were found.",problem:"One or more leaderboard categories are missing. Check the leaderboard tab markup and data-board-mode values."},
+   {name:"Score saving",location:"Game over → swipe_scores",ok:/from\("swipe_scores"\)\.insert/.test(source),success:"Game score submission code was found.",problem:"No swipe_scores insert was found. Check the game-over score-saving function and Supabase table permissions."},
+   {name:"Account & password reset",location:"More → Account → Forgot Password",ok:/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(source),success:"Supabase password-reset request code was found.",problem:"The password-reset request is missing or changed. Check the forgot-password handler and Supabase Authentication URL settings."},
+   {name:"Player name tags",location:"Game screen → player name tag",ok:/text-overflow:ellipsis/.test(source)&&/data-tag/.test(source),success:"Name tags are configured to shorten long names with an ellipsis.",problem:"The name-tag shortening style or data-tag attribute is missing. Check the runner name-tag CSS and player label setup."},
+   {name:"Database connection setup",location:"Game startup → Supabase client",ok:/createClient\(/.test(source)&&/auth:\s*\{[^}]*persistSession\s*:\s*true/.test(source),success:"Supabase client initialization and persistent login settings were found.",problem:"The expected Supabase client or persistent-session setting was not found. Check the database client initialization near the top of index.html."}
   ];
-  const failed=checks.filter(item=>!item[1]);
+  tests.forEach(renderCheck);
+  const failed=tests.filter(test=>!test.ok);
   if(failed.length){
    $("mark").style.borderColor="#ff5555";
-   $("headline").textContent="Issues Detected";
-   $("detail").textContent="Some checks need attention.";
-   failed.forEach(item=>addAlert("error",item[0]+" check failed"));
+   $("markIcon").innerHTML='<path d="M16 16 38 38M38 16 16 38" stroke="#ff6666" stroke-width="6" stroke-linecap="round"/>';
+   $("headline").textContent=failed.length+" Problem"+(failed.length===1?"":"s")+" Found";
+   $("detail").textContent="The items marked × need attention.";
   }else{
    $("mark").style.borderColor="#18d66b";
+   $("markIcon").innerHTML='<path d="m10 28 11 11L45 13" stroke="#18d66b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>';
    $("headline").textContent="All Systems Online!";
-   $("detail").textContent="Everything is working properly.";
+   $("detail").textContent="All "+tests.length+" code checks passed.";
   }
-  for(const match of arrows.slice(0,30)){
-   const line=source.slice(0,match.index).split("\n").length;
-   addAlert("warning","Arrow "+match[0]+" · line "+line);
-  }
-  for(const match of alertCalls.slice(0,30)){
-   const line=source.slice(0,match.index).split("\n").length;
-   addAlert("warning","alert() call · line "+line);
-  }
-  if(arrows.length>30)addAlert("warning",(arrows.length-30)+" more arrow matches");
-  if(alertCalls.length>30)addAlert("warning",(alertCalls.length-30)+" more alert() calls");
-  $("alerts").hidden=!$("alerts").children.length;
  }catch(error){
   $("mark").style.borderColor="#ff5555";
-  $("headline").textContent="Status Unavailable";
-  $("detail").textContent="The status check could not finish.";
-  addAlert("error",error.message);
-  $("alerts").hidden=false;
+  $("markIcon").innerHTML='<path d="M16 16 38 38M38 16 16 38" stroke="#ff6666" stroke-width="6" stroke-linecap="round"/>';
+  $("headline").textContent="Website Check Failed";
+  $("detail").textContent="Location: Status page → game page request";
+  renderCheck({name:"Game page could not be checked",location:"./index.html",ok:false,problem:error.message});
  }finally{
   button.disabled=false;
   button.textContent="Check Again";
