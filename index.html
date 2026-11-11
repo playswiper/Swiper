@@ -911,7 +911,7 @@ setInterval(()=>{if(user){pollSwiperCalls();pollSwiperMessageNotifications()}},2
 document.addEventListener("visibilitychange",()=>{const v=$("arenaVideo");if(document.visibilityState==="visible"&&running&&!paused&&v&&!v.classList.contains("hidden")&&v.src){v.muted=true;v.play().catch(()=>{if($("arenaVideoStatus"))$("arenaVideoStatus").textContent="Tap the game screen to resume background video playback."})}});
 /* Smooth transition overlay for settings changes and mode/game navigation. */
 (function installTransitionLoader(){
-  let overlay=null,hideTimer=0,tickTimer=0,startedAt=0,active=false;
+  let overlay=null,hideTimer=0,midpointTimer=0,tickTimer=0,startedAt=0,active=false,pendingNavigation=null;
   const loadingLabels=["Loading.","Loading..","Loading…"];
   function ensureOverlay(){
     if(overlay&&overlay.isConnected)return overlay;
@@ -919,13 +919,13 @@ document.addEventListener("visibilitychange",()=>{const v=$("arenaVideo");if(doc
     overlay.id="swiperTransitionLoader";
     overlay.setAttribute("role","status");
     overlay.setAttribute("aria-live","polite");
-    overlay.innerHTML='<div class="swiper-transition-card"><img class="swiper-transition-logo" src="IMG_2287.jpeg" alt="Swiper"><div class="swiper-transition-line"><span class="swiper-transition-word">Loading.</span><span class="swiper-transition-time">(0s)</span></div></div>';
+    overlay.innerHTML='<div class="swiper-transition-card"><img class="swiper-transition-logo" src="IMG_2287.jpeg" alt="Swiper"><div class="swiper-transition-line"><span class="swiper-transition-word">Loading.</span><span class="swiper-transition-time">0s</span></div></div>';
     document.body.appendChild(overlay);
     return overlay;
   }
-  function showTransitionLoading(){
-    if(active)return;
-    active=true;
+  function showTransitionLoading(onMidpoint){
+    if(active){if(typeof onMidpoint==="function")pendingNavigation=onMidpoint;return}
+    active=true;pendingNavigation=typeof onMidpoint==="function"?onMidpoint:null;
     const el=ensureOverlay(),word=el.querySelector(".swiper-transition-word"),time=el.querySelector(".swiper-transition-time");
     startedAt=performance.now();
     el.classList.remove("swiper-transition-exit","swiper-transition-visible");
@@ -933,22 +933,31 @@ document.addEventListener("visibilitychange",()=>{const v=$("arenaVideo");if(doc
     el.classList.add("swiper-transition-visible");
     const update=()=>{
       const elapsed=Math.max(0,(performance.now()-startedAt)/1000);
-      word.textContent=loadingLabels[Math.floor(elapsed*2.2)%loadingLabels.length];
-      time.textContent="("+Math.floor(elapsed)+"s)";
+      word.textContent=loadingLabels[Math.floor(elapsed*2.5)%loadingLabels.length];
+      time.textContent=Math.floor(elapsed)+"s";
     };
-    update();tickTimer=setInterval(update,100);clearTimeout(hideTimer);
+    update();tickTimer=setInterval(update,80);
+    clearTimeout(hideTimer);clearTimeout(midpointTimer);
+    midpointTimer=setTimeout(()=>{
+      const navigate=pendingNavigation;pendingNavigation=null;
+      if(navigate)navigate();
+    },600);
     hideTimer=setTimeout(()=>{
       el.classList.remove("swiper-transition-visible");el.classList.add("swiper-transition-exit");clearInterval(tickTimer);
-      setTimeout(()=>{el.classList.remove("swiper-transition-exit");active=false},950);
-    },2600);
+      setTimeout(()=>{el.classList.remove("swiper-transition-exit");active=false;pendingNavigation=null},420);
+    },1200);
   }
   const originalShowScreen=showScreen;
   showScreen=function(name){
-    if((name==="settings"||name==="game"||name==="match"||name==="online")&&name!==screen)showTransitionLoading();
+    if(name!==screen&&(name==="menu"||name==="settings"||name==="game"||name==="match"||name==="online")){
+      const args=arguments;
+      showTransitionLoading(()=>originalShowScreen.apply(this,args));
+      return;
+    }
     return originalShowScreen.apply(this,arguments);
   };
   const originalChooseMode=chooseMode;
-  chooseMode=function(nextMode){if(nextMode!==mode)showTransitionLoading();return originalChooseMode.apply(this,arguments)};
+  chooseMode=function(nextMode){if(nextMode!==mode){showTransitionLoading(()=>originalChooseMode.apply(this,arguments));return}return originalChooseMode.apply(this,arguments)};
   document.addEventListener("change",event=>{if(event.target&&event.target.closest&&event.target.closest("#settingsPanel"))showTransitionLoading()},true);
   document.addEventListener("click",event=>{const button=event.target&&event.target.closest?event.target.closest("#settingsPanel button"):null;if(button&&!button.matches("[data-back],#settingsPanel .nav-back"))showTransitionLoading()},true);
 })();
@@ -959,9 +968,9 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
 };
 </script>
 <style id="swiper-transition-loader-style">
-#swiperTransitionLoader{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:24px;background:#858585;opacity:0;visibility:hidden;pointer-events:none;transform:translate3d(0,100%,0);transition:transform .9s cubic-bezier(.22,.75,.18,1),opacity .8s ease,visibility .9s ease}
-#swiperTransitionLoader.swiper-transition-visible{opacity:1;visibility:visible;transform:translate3d(0,0,0)}
-#swiperTransitionLoader.swiper-transition-exit{opacity:0;visibility:hidden;transform:translate3d(0,100%,0)}
+#swiperTransitionLoader{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:24px;background:#484a47;opacity:0;visibility:hidden;pointer-events:none;transform:translate3d(0,100%,0);transition:transform .38s cubic-bezier(.22,.75,.18,1),opacity .34s ease,visibility .38s ease}
+#swiperTransitionLoader.swiper-transition-visible{opacity:1;visibility:visible;pointer-events:auto;transform:translate3d(0,0,0)}
+#swiperTransitionLoader.swiper-transition-exit{opacity:0;visibility:hidden;pointer-events:none;transform:translate3d(0,100%,0)}
 .swiper-transition-card{display:flex;flex-direction:column;align-items:center;gap:20px;min-width:180px;text-align:center;color:#fff;text-shadow:0 2px 12px #0008}
 .swiper-transition-logo{display:block;width:clamp(104px,24vw,148px);height:clamp(104px,24vw,148px);object-fit:cover;border-radius:25%;box-shadow:0 12px 38px #0005,0 0 24px #ffffff30;animation:swiperTransitionLogoIn .55s cubic-bezier(.16,1,.3,1) both}
 .swiper-transition-line{display:flex;align-items:baseline;justify-content:center;gap:9px;font:600 clamp(17px,4vw,22px)/1.2 "Fredoka",sans-serif;letter-spacing:.02em}
