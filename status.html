@@ -5,61 +5,110 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#000000">
 <title>Swiper Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-:root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#000;color:#fff}
-body{margin:0;min-height:100vh;background:#000;color:#fff}
-main{width:min(100% - 32px,760px);margin:0 auto;padding:28px 0 60px}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
-h1{margin:0;font-size:19px;font-weight:800;letter-spacing:.14em}
-button{appearance:none;border:0;border-radius:9px;background:#fff;color:#000;font-size:13px;font-weight:800;padding:11px 17px;cursor:pointer}
-button:disabled{opacity:.55;cursor:wait}
-#summary{margin:14px 0;padding:14px 15px;border:1px solid #333;border-radius:10px;background:#090909;font-size:14px}
-#alerts{display:grid;gap:8px}
-.alert{padding:12px 14px;border:1px solid #454545;border-left:3px solid #fff;border-radius:8px;background:#0b0b0b;font-size:13px;overflow-wrap:anywhere}
-.alert.ok{border-left-color:#fff}
-.alert.warning{border-left-color:#aaa}
-.alert.error{border-left-color:#fff}
-footer{margin-top:18px;color:#777;font-size:11px}
+:root{color-scheme:dark;font-family:"Fredoka",ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif;background:#000;color:#fff}
+html,body{margin:0;min-height:100%;background:#000;color:#fff}
+body{min-height:100svh;display:grid;place-items:center;padding:28px 18px}
+main{width:min(100%,440px);display:flex;flex-direction:column;align-items:center;text-align:center}
+.status-mark{width:116px;height:116px;border:6px solid #18d66b;border-radius:50%;display:grid;place-items:center;margin-bottom:13px}
+.status-mark svg{width:72px;height:72px;display:block}
+h1{font-size:clamp(29px,7vw,40px);line-height:1.05;font-weight:700;margin:0;letter-spacing:-.8px}
+.rule{width:44px;height:2px;border-radius:2px;background:#555;margin:17px 0 14px}
+#headline{font-size:19px;font-weight:600;line-height:1.2;margin:0}
+#detail{font-size:15px;font-weight:400;color:#aaa;margin:6px 0 0}
+.actions{width:min(100%,204px);display:grid;gap:10px;margin-top:28px}
+button,.back{height:44px;width:100%;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:#fff;color:#000;font:600 16px "Fredoka",ui-rounded,system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:transform .15s ease,opacity .15s ease}
+button:active,.back:active{transform:scale(.98)}
+button:disabled{opacity:.6;cursor:wait}
+#alerts{width:100%;display:grid;gap:7px;margin-top:18px;text-align:left}
+.alert{padding:10px 12px;border:1px solid #383838;border-radius:9px;background:#090909;color:#ddd;font-size:13px;overflow-wrap:anywhere}
+.alert.error{border-color:#8e3838}
+.alert.warning{border-color:#555}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <main>
-<header><h1>SWIPER STATUS</h1><button id="scan" type="button">SCAN</button></header>
-<div id="summary" role="status" aria-live="polite">CHECKING…</div>
-<section id="alerts" aria-label="Alerts"></section>
-
+<div class="status-mark" id="mark" aria-hidden="true">
+<svg viewBox="0 0 72 72" fill="none"><path d="M14 37.5 29 52 59 20" stroke="#18d66b" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</div>
+<h1>Swiper Status</h1>
+<div class="rule"></div>
+<p id="headline" role="status" aria-live="polite">Checking status…</p>
+<p id="detail">Please wait.</p>
+<div class="actions">
+<button id="scan" type="button">Check Again</button>
+<a class="back" href="./">Back to Game</a>
+</div>
+<section id="alerts" aria-label="Status alerts" hidden></section>
 </main>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-const addAlert=(kind,message)=>{const el=document.createElement("div");el.className="alert "+kind;el.textContent=message;$("alerts").append(el)};
+const addAlert=(kind,message)=>{
+ const el=document.createElement("div");
+ el.className="alert "+kind;
+ el.textContent=message;
+ $("alerts").append(el);
+};
 async function scan(){
-const button=$("scan");button.disabled=true;button.textContent="SCANNING";
-$("summary").textContent="CHECKING…";$("alerts").replaceChildren();
-try{
-const response=await fetch("./index.html?status="+Date.now(),{cache:"no-store"});
-if(!response.ok)throw new Error("Game source returned HTTP "+response.status);
-const source=await response.text();
-const arrows=[...source.matchAll(/[←→↑↓↔↕↖↗↘↙⇐⇒⇑⇓➜➤➔⟵⟶]/g)];
-const alerts=[...source.matchAll(/\balert\s*\(/g)];
-const checks=[
-["Leaderboard tabs",/data-board-mode="practice"[\s\S]*data-board-mode="bot"[\s\S]*data-board-mode="all"[\s\S]*data-board-mode="quick"/.test(source)],
-["Bot obstacle AI",/function updateBotAI\(/.test(source)],
-["Name tag ellipsis",/text-overflow:ellipsis/.test(source)],
-["Password recovery",/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(source)]
-];
-for(const [label,pass] of checks)if(!pass)addAlert("error",label+" check failed");
-for(const match of arrows.slice(0,80)){const line=source.slice(0,match.index).split("\n").length;addAlert("warning","Arrow "+match[0]+" · line "+line)}
-for(const match of alerts.slice(0,80)){const line=source.slice(0,match.index).split("\n").length;addAlert("warning","alert() call · line "+line)}
-if(arrows.length>80)addAlert("warning",(arrows.length-80)+" more arrow matches");
-if(alerts.length>80)addAlert("warning",(alerts.length-80)+" more alert() calls");
-const failed=checks.filter(x=>!x[1]).length;
-if(!arrows.length&&!alerts.length&&!failed)addAlert("ok","No alerts found");
-$("summary").textContent=failed?failed+" CHECK(S) FAILED":arrows.length||alerts.length?arrows.length+" ARROWS · "+alerts.length+" ALERT CALLS":"ALL CHECKS PASSED";
-}catch(error){$("summary").textContent="SCAN FAILED";addAlert("error",error.message)}
-
-button.disabled=false;button.textContent="SCAN";
+ const button=$("scan");
+ button.disabled=true;
+ button.textContent="Checking…";
+ $("headline").textContent="Checking status…";
+ $("detail").textContent="Please wait.";
+ $("alerts").replaceChildren();
+ $("alerts").hidden=true;
+ $("mark").style.borderColor="#777";
+ try{
+  const response=await fetch("./index.html?status="+Date.now(),{cache:"no-store"});
+  if(!response.ok)throw new Error("Game source returned HTTP "+response.status);
+  const source=await response.text();
+  const arrows=[...source.matchAll(/[←→↑↓↔↕↖↗↘↙⇐⇒⇑⇓➜➤➔⟵⟶]/g)];
+  const alertCalls=[...source.matchAll(/\balert\s*\(/g)];
+  const checks=[
+   ["Leaderboard tabs",/data-board-mode="practice"[\s\S]*data-board-mode="bot"[\s\S]*data-board-mode="all"[\s\S]*data-board-mode="quick"/.test(source)],
+   ["Bot obstacle AI",/function updateBotAI\(/.test(source)],
+   ["Name tag ellipsis",/text-overflow:ellipsis/.test(source)],
+   ["Password recovery",/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(source)]
+  ];
+  const failed=checks.filter(item=>!item[1]);
+  if(failed.length){
+   $("mark").style.borderColor="#ff5555";
+   $("headline").textContent="Issues Detected";
+   $("detail").textContent="Some checks need attention.";
+   failed.forEach(item=>addAlert("error",item[0]+" check failed"));
+  }else{
+   $("mark").style.borderColor="#18d66b";
+   $("headline").textContent="All Systems Online!";
+   $("detail").textContent="Everything is working properly.";
+  }
+  for(const match of arrows.slice(0,30)){
+   const line=source.slice(0,match.index).split("\n").length;
+   addAlert("warning","Arrow "+match[0]+" · line "+line);
+  }
+  for(const match of alertCalls.slice(0,30)){
+   const line=source.slice(0,match.index).split("\n").length;
+   addAlert("warning","alert() call · line "+line);
+  }
+  if(arrows.length>30)addAlert("warning",(arrows.length-30)+" more arrow matches");
+  if(alertCalls.length>30)addAlert("warning",(alertCalls.length-30)+" more alert() calls");
+  $("alerts").hidden=!$("alerts").children.length;
+ }catch(error){
+  $("mark").style.borderColor="#ff5555";
+  $("headline").textContent="Status Unavailable";
+  $("detail").textContent="The status check could not finish.";
+  addAlert("error",error.message);
+  $("alerts").hidden=false;
+ }finally{
+  button.disabled=false;
+  button.textContent="Check Again";
+ }
 }
 $("scan").addEventListener("click",scan);
 scan();
