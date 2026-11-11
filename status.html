@@ -55,8 +55,6 @@ button:disabled{opacity:.6;cursor:wait}
 .error-message{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
 .error-empty{border:1px solid #292929;background:#080808;border-radius:10px;padding:12px;color:#aaa;font-size:13px}
 
-.dev-panel{width:100%;margin:0 0 20px}.dev-panel h2{font-size:17px;margin:0 0 5px}.dev-intro{font-size:12px;color:#888;line-height:1.45;margin:0 0 12px}.dev-summary{font-size:13px;color:#bbb;margin:0 0 10px}.dev-findings{display:grid;gap:8px}.dev-finding{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px;border:1px solid #252525;border-radius:12px;background:#080808}.dev-finding.issue{border-color:#552525;background:#100808}.dev-finding.warn{border-color:#55451e;background:#100e08}.dev-finding.pass{border-color:#252525;background:#080808}.dev-finding .symbol{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#103b25;color:#27e879;font-size:18px;font-weight:700}.dev-finding.issue .symbol{background:#401717;color:#ff6666}.dev-finding.warn .symbol{background:#382d12;color:#f0c56a}.dev-finding strong{display:block;font-size:14px;margin:1px 0 3px}.dev-finding p{font-size:12px;color:#aaa;line-height:1.45;margin:0;overflow-wrap:anywhere}.dev-finding .state{align-self:start}.dev-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.dev-tools button{min-height:36px;padding:0 14px;font-size:12px}[hidden]{display:none!important}
-.deep-summary{width:100%;border:1px solid #292929;border-radius:12px;background:#080808;padding:13px;margin:12px 0}.deep-summary h3,.database-audit h3{font-size:15px;margin:0 0 7px}.deep-summary p,.database-audit p{font-size:12px;color:#aaa;line-height:1.5;margin:0}.deep-stats{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.deep-stat{font-size:11px;color:#ddd;border:1px solid #292929;border-radius:20px;padding:5px 9px}.deep-stat.error{color:#ff8585;border-color:#552525}.deep-stat.warning{color:#f0c56a;border-color:#55451e}.deep-stat.pass{color:#58df91;border-color:#21452f}.database-audit{width:100%;margin:12px 0 0;border:1px solid #292929;border-radius:12px;background:#080808;padding:13px}.database-audit .audit-stamp{font-size:11px;color:#777;margin:0 0 10px}.audit-row{display:grid;grid-template-columns:25px minmax(0,1fr) auto;gap:9px;align-items:start;padding:10px 0;border-top:1px solid #222}.audit-row:first-of-type{border-top:0}.audit-icon{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#103b25;color:#27e879;font-size:14px;font-weight:700}.audit-row.warn .audit-icon{background:#382d12;color:#f0c56a}.audit-row.issue .audit-icon{background:#401717;color:#ff6666}.audit-row strong{font-size:13px;display:block}.audit-row p{font-size:11px;color:#aaa;line-height:1.45;margin:3px 0 0;overflow-wrap:anywhere}.audit-state{font-size:10px;letter-spacing:.04em;font-weight:700;color:#35db7b}.audit-row.warn .audit-state{color:#f0c56a}.audit-row.issue .audit-state{color:#ff7777}.audit-details{border-top:1px solid #222;padding:9px 0}.audit-details summary{font-size:12px;color:#ddd;cursor:pointer}.audit-details p{font-size:11px;color:#999;line-height:1.5;margin:7px 0 0;overflow-wrap:anywhere}.audit-note{font-size:11px;color:#777;line-height:1.45;margin-top:10px!important}
 @media(max-width:390px){.actions{grid-template-columns:1fr}.check{grid-template-columns:30px minmax(0,1fr)}.state{grid-column:2;justify-self:start}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -76,7 +74,6 @@ button:disabled{opacity:.6;cursor:wait}
 <button id="scan" type="button">Check Again</button>
 <a class="back" href="./">Back to Game</a>
 </div>
-<section class="dev-panel" id="devPanel" hidden><h2>Developer Diagnostics</h2><p class="dev-intro">Deep inspection of the published game source, page structure, controls, accessibility, security patterns, network resources, and browser runtime. Checks are read-only. Warnings are review suggestions; they do not automatically mean the game is broken.</p><p class="dev-summary" id="devSummary">Preparing extended diagnostics…</p><section class="deep-summary" aria-live="polite"><h3>Deep Scan Summary</h3><p id="deepSummaryText">The scan summary will appear after diagnostics finish.</p><div class="deep-stats" id="deepSummaryStats"></div></section><section class="database-audit" aria-label="Database safety audit"><h3>Database Safety</h3><p class="audit-stamp">Latest authorized project audit · November 11, 2026 · PostgreSQL 17.11</p><div id="databaseAuditRows"></div><div id="databaseAuditDetails"></div><p class="audit-note">This is a verified administrator-level audit snapshot, not a live browser query. The public status page intentionally does not contain database-owner credentials or secret keys. Run a fresh authorized project audit to update these results. A warning means a configuration needs review, not that a breach has been confirmed.</p></section><div class="dev-findings" id="devFindings"></div><div class="dev-tools"><button id="devRescan" type="button">Run Deep Scan Again</button></div></section>
 <div id="checks" aria-label="System checks"></div>
 <p id="scanTime"></p>
 </main>
@@ -168,140 +165,6 @@ const groups=[
 
 ];
 
-const DEV_MODE=new URLSearchParams(location.search).has("dev");
-const devRuntimeFindings=[];
-if(DEV_MODE){$("devPanel").hidden=false;renderDatabaseAudit();window.addEventListener("error",event=>{devRuntimeFindings.push({level:"issue",name:"Browser runtime error",detail:(event.message||"Unknown script error")+(event.filename?" — "+event.filename.split("/").pop():"")+(event.lineno?":"+event.lineno:"")});renderDevFindings()});window.addEventListener("unhandledrejection",event=>{const reason=event.reason;devRuntimeFindings.push({level:"issue",name:"Unhandled promise rejection",detail:reason?.message||String(reason||"Unknown rejection")});renderDevFindings()});window.addEventListener("unhandledrejection",()=>{});}
-const DATABASE_AUDIT={
- tables:24,rlsEnabled:24,policies:48,anonPolicies:6,securityDefinerCallable:30,securityDefinerTotal:46,missingSearchPath:0,leakedPasswordProtection:false,unusedIndexes:24,healthFindings:0,functions:[
- "swipe_ack_login_message","swipe_admin_moderate_uuid","swipe_admin_search_uuid","swipe_archive_guest_before_signout","swipe_cleanup_challenges","swipe_conversation_member_names","swipe_find_match","swipe_find_team_match","swipe_get_conversation_members","swipe_group_call_create","swipe_group_call_join","swipe_group_call_leave","swipe_is_conversation_member","swipe_leave_conversation","swipe_leave_match","swipe_lobby_create","swipe_lobby_join","swipe_lobby_list","swipe_match_heartbeat","swipe_match_status","swipe_my_auth_ban_status","swipe_my_profile_private_state","swipe_record_game","swipe_respond_challenge","swipe_respond_friend_request","swipe_send_challenge","swipe_set_verified","swipe_start_conversation","swipe_submit_match_score","swipe_update_match_lane"
- ],anonymousTargets:["cron.job","cron.job_run_details","public.swipe_blocks","public.swipe_call_requests","public.swipe_call_sessions","public.swipe_challenges","public.swipe_conversation_members","public.swipe_conversations","public.swipe_friend_requests","public.swipe_guest_archive","public.swipe_profiles","public.swipe_reports","public.swipe_room_players","public.swipe_rooms","public.swipe_titles","public.swipe_tournament_entries","public.swipe_tournaments","public.swipe_user_titles","realtime.messages"]
-};
-function renderDatabaseAudit(){
- const rows=$("databaseAuditRows"),details=$("databaseAuditDetails");if(!rows||!details)return;rows.replaceChildren();details.replaceChildren();
- const entries=[
-  {level:"pass",name:"Row-level security (RLS)",detail:"All "+DATABASE_AUDIT.rlsEnabled+" of "+DATABASE_AUDIT.tables+" public tables have RLS enabled. This is the row-access gate; the policies still need correct ownership and membership rules."},
-  {level:"pass",name:"Policy coverage",detail:DATABASE_AUDIT.policies+" public RLS policies were detected. "+DATABASE_AUDIT.anonPolicies+" explicitly include the anon database role; inspect each policy's USING and WITH CHECK conditions to ensure guest access is intentional and restricted."},
-  {level:"warn",name:"SECURITY DEFINER RPC exposure",detail:DATABASE_AUDIT.securityDefinerCallable+" functions can be executed by signed-in users with SECURITY DEFINER privileges. This can bypass normal caller permissions. SECURITY DEFINER runs with the function owner's database privileges, so verify every function checks auth.uid() and resource ownership. Prioritize swipe_admin_moderate_uuid and swipe_admin_search_uuid. This is a review warning, not proof of unauthorized access."},
-  {level:"pass",name:"SECURITY DEFINER search_path",detail:DATABASE_AUDIT.missingSearchPath+" SECURITY DEFINER functions were found without an explicit search_path setting in the catalog check."},
-  {level:"warn",name:"Leaked-password protection",detail:"The Auth setting that checks new passwords against known compromised-password lists is disabled. Enable it in the authentication security settings if supported by the project's plan."},
-  {level:"warn",name:"Unused indexes",detail:DATABASE_AUDIT.unusedIndexes+" indexes were reported as unused. Do not delete them automatically; review query patterns, foreign keys, and rare maintenance workloads first."},
-  {level:"pass",name:"Database health advisor",detail:DATABASE_AUDIT.healthFindings+" health-advisor findings were returned in this audit."}
- ];
- for(const item of entries){const row=document.createElement("div");row.className="audit-row "+item.level;const icon=document.createElement("span");icon.className="audit-icon";icon.textContent=item.level==="pass"?"✓":"!";const body=document.createElement("div");const title=document.createElement("strong");title.textContent=item.name;const p=document.createElement("p");p.textContent=item.detail;body.append(title,p);const state=document.createElement("span");state.className="audit-state";state.textContent=item.level==="pass"?"PASS":"REVIEW";row.append(icon,body,state);rows.append(row)}
- const makeDetails=(label,text)=>{const d=document.createElement("details");d.className="audit-details";const summary=document.createElement("summary");summary.textContent=label;const p=document.createElement("p");p.textContent=text;d.append(summary,p);details.append(d)};
- makeDetails("View all 30 SECURITY DEFINER functions",DATABASE_AUDIT.functions.join(", "));
- makeDetails("View all 19 anonymous-access policy targets",DATABASE_AUDIT.anonymousTargets.join(", "));
-}
-function renderDeepScanSummary(all){
- const box=$("deepSummaryText"),stats=$("deepSummaryStats");if(!box||!stats)return;
- const issue=all.filter(x=>x.level==="issue").length,warn=all.filter(x=>x.level==="warn").length,pass=all.filter(x=>x.level==="pass").length,total=all.length;
- box.textContent=issue?("The deep scan completed "+total+" checks. It found "+issue+" error(s), "+warn+" warning(s), and "+pass+" passing checks. Fix errors first, then review warnings. The database audit also identified "+DATABASE_AUDIT.securityDefinerCallable+" privileged RPC functions for authorization review and disabled leaked-password protection."):warn?("The deep scan completed "+total+" checks with "+warn+" warning(s), "+pass+" passing checks, and no detected errors. The biggest items to review are the database's exposed SECURITY DEFINER functions, anonymous-access policies, and password protection setting."):("The deep scan completed "+total+" checks with no detected errors or warnings. The database audit snapshot is shown below; static checks cannot prove every permission path is safe.");
- stats.replaceChildren();for(const [label,value,kind] of [["Errors",issue,"error"],["Warnings",warn,"warning"],["Passed",pass,"pass"],["Total",total,""]]){const chip=document.createElement("span");chip.className="deep-stat "+kind;chip.textContent=label+": "+value;stats.append(chip)}
-}
-let latestDevFindings=[];
-function renderDevFindings(findings=null){
- const list=$("devFindings");if(!list)return;list.replaceChildren();
- if(Array.isArray(findings))latestDevFindings=findings;
- const all=[...latestDevFindings,...devRuntimeFindings];renderDeepScanSummary(all);const counts={issue:all.filter(x=>x.level==="issue").length,warn:all.filter(x=>x.level==="warn").length,pass:all.filter(x=>x.level==="pass").length};
- $("devSummary").textContent=counts.issue+" errors · "+counts.warn+" warnings · "+counts.pass+" checks passed · "+all.length+" total";
- for(const item of all){const card=document.createElement("article");card.className="dev-finding "+item.level;const symbol=document.createElement("div");symbol.className="symbol";symbol.textContent=item.level==="issue"?"×":item.level==="warn"?"!":"✓";const body=document.createElement("div");const title=document.createElement("strong");title.textContent=item.name;const detail=document.createElement("p");detail.textContent=item.detail;body.append(title,detail);const state=document.createElement("span");state.className="state";state.textContent=item.level==="issue"?"ERROR":item.level==="warn"?"WARNING":"PASS";card.append(symbol,body,state);list.append(card)}
- if(!all.length){const card=document.createElement("article");card.className="dev-finding pass";card.textContent="No problems detected by the extended checks.";list.append(card)}
-}
-async function runDevDiagnostics(source){
- if(!DEV_MODE)return;
- const findings=[];const add=(level,name,detail)=>findings.push({level,name,detail});
- const check=(condition,name,okText,warningText,level="warn")=>add(condition?"pass":level,name,condition?okText:warningText);
- try{
-  const parsed=new DOMParser().parseFromString(source,"text/html");
-  const ids=[...parsed.querySelectorAll("[id]")].map(x=>x.id),duplicates=ids.filter((id,i)=>ids.indexOf(id)!==i);
-  check(!duplicates.length,"Duplicate HTML IDs", "No duplicate id attributes were found.",[...new Set(duplicates)].slice(0,20).join(", "));
-  const brokenLinks=[...parsed.querySelectorAll('a[href]')].map(a=>a.getAttribute("href")).filter(h=>h&&h.startsWith("#")&&!parsed.getElementById(decodeURIComponent(h.slice(1))));
-  check(!brokenLinks.length,"Broken in-page links","All local # links point to an existing element.",[...new Set(brokenLinks)].slice(0,15).join(", "));
-  const idRefs=[...source.matchAll(/(?:\$\(|getElementById\s*\()\s*["']([A-Za-z][\w:-]*)["']\s*\)/g)].map(x=>x[1]);
-  const missingRefs=[...new Set(idRefs.filter(id=>!ids.includes(id)))];
-  check(!missingRefs.length,"JavaScript element references","All statically referenced element IDs exist in the published HTML.",missingRefs.slice(0,20).join(", ")+" — dynamic IDs may be intentional; review these references.");
-  const scripts=[...parsed.querySelectorAll("script:not([src])")];let syntaxErrors=0;
-  scripts.forEach((script,i)=>{const code=script.textContent.trim();if(!code)return;try{new Function(code)}catch(e){syntaxErrors++;add("issue","Inline JavaScript syntax #"+(i+1),e.message)}});
-  check(!syntaxErrors,"Inline JavaScript syntax",scripts.length+" inline script block(s) parsed without syntax errors.","One or more inline scripts failed syntax parsing.","issue");
-  const missingAssets=[];
-  for(const el of parsed.querySelectorAll('script[src],link[rel="stylesheet"][href],img[src],source[src]')){
-   const raw=el.getAttribute(el.hasAttribute("src")?"src":"href");if(!raw||/^(data:|blob:|javascript:)/i.test(raw))continue;
-   let url;try{url=new URL(raw,location.href)}catch(e){missingAssets.push(raw+" (invalid URL)");continue}
-   if(url.origin!==location.origin)continue;
-   try{const response=await fetch(url.href,{method:"HEAD",cache:"no-store"});if(!response.ok)missingAssets.push(raw+" (HTTP "+response.status+")")}catch(e){missingAssets.push(raw+" (request failed)")}
-  }
-  check(!missingAssets.length,"Same-origin asset availability","All checked local scripts, stylesheets, images, and media sources responded successfully.",missingAssets.slice(0,15).join("; "));
-  const emptyButtons=[...parsed.querySelectorAll("button")].filter(b=>!b.textContent.trim()&&!b.getAttribute("aria-label")&&!b.getAttribute("title"));
-  check(!emptyButtons.length,"Accessible button names","Every button has visible text or an accessible label.",emptyButtons.length+" button(s) have no text, aria-label, or title.");
-  const images=[...parsed.querySelectorAll("img")],missingAlt=images.filter(img=>!img.hasAttribute("alt"));
-  check(!missingAlt.length,"Image alternative text","All "+images.length+" image(s) declare an alt attribute.",missingAlt.length+" image(s) are missing alt attributes.");
-  const forms=[...parsed.querySelectorAll("input,select,textarea")].filter(el=>!["hidden","submit","button","reset"].includes((el.type||"").toLowerCase()));
-  const unlabeled=forms.filter(el=>!el.labels?.length&&!el.getAttribute("aria-label")&&!el.getAttribute("aria-labelledby"));
-  check(!unlabeled.length,"Form control labels","All "+forms.length+" form controls have a programmatic label.",unlabeled.length+" form control(s) have no associated label or aria label.");
-  const externalBlank=[...parsed.querySelectorAll('a[target="_blank"]')].filter(a=>!/\bnoopener\b/.test(a.rel));
-  check(!externalBlank.length,"External link isolation","New-tab links include rel=noopener.",externalBlank.length+" target=_blank link(s) do not include rel=noopener.");
-  check(parsed.documentElement.lang?.trim().length>0,"Document language","The HTML root declares lang="+(parsed.documentElement.lang||"")+".","The HTML root has no lang attribute.");
-  check(!!parsed.querySelector('meta[name="viewport"]'),"Mobile viewport","A viewport meta tag is present.","No viewport meta tag was found.");
-  check(!!parsed.querySelector('meta[name="description"]'),"Search description","A meta description is present.","The page has no meta description.");
-  check(!!parsed.querySelector('link[rel="canonical"]'),"Canonical URL","A canonical URL is declared.","No canonical link was found.");
-  check(!!parsed.querySelector("title")&&!!parsed.querySelector("title").textContent.trim(),"Page title","A non-empty document title is present.","The document title is missing or empty.","issue");
-  const headings=[...parsed.querySelectorAll("h1")];
-  check(headings.length===1,"Main heading structure","Exactly one H1 heading was found.","Found "+headings.length+" H1 headings; check the page's heading hierarchy.");
-  const inlineHandlers=[...parsed.querySelectorAll("*")].filter(el=>[...el.attributes].some(a=>/^on/i.test(a.name)));
-  add(inlineHandlers.length?"warn":"pass","Inline event-handler markup",inlineHandlers.length+" element(s) use inline event-handler attributes; review CSP and maintainability.","No inline HTML event-handler attributes were found.");
-  const risky=[{re:/\beval\s*\(/g,name:"Dynamic eval usage",detail:"Review eval() calls; dynamic code execution increases injection risk."},{re:/new\s+Function\s*\(/g,name:"Dynamic Function construction",detail:"Review dynamically constructed functions; ensure input cannot reach executable code."},{re:/innerHTML\s*\+?=/g,name:"HTML string insertion",detail:"Review innerHTML assignments for untrusted data. Prefer textContent or safe DOM construction for user content."},{re:/document\.write\s*\(/g,name:"document.write usage",detail:"document.write can replace page content or create injection risks."}];
-  for(const item of risky){const matches=source.match(item.re)||[];add(matches.length?"warn":"pass",item.name,matches.length?matches.length+" occurrence(s). "+item.detail:"No occurrences found.");}
-  const secretPatterns=[/service_role/i,/sb_secret_[A-Za-z0-9_-]{12,}/,/-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/];
-  const secretFound=secretPatterns.some(re=>re.test(source));
-  add(secretFound?"issue":"pass","Secret-key exposure scan",secretFound?"A service-role, secret API key, or private-key pattern was found in the published HTML. Remove it immediately and rotate the credential.":"No service-role key, secret API key, or private-key block pattern was detected.");
-  const consoleErrors=(source.match(/console\.error\s*\(/g)||[]).length;
-  add(consoleErrors?"warn":"pass","Console error statements",consoleErrors?consoleErrors+" console.error() call(s) exist in source. These may be intentional diagnostics; inspect their conditions.":"No console.error() calls were found.");
-  const debug=(source.match(/\bdebugger\s*;/g)||[]).length;
-  add(debug?"warn":"pass","Debugger statements",debug?debug+" debugger statement(s) found. Remove production breakpoints if they are not intentional.":"No debugger statements were found.");
-  const todo=(source.match(/\b(?:TODO|FIXME|XXX)\b/g)||[]).length;
-  add(todo?"warn":"pass","Unfinished-code markers",todo?todo+" TODO/FIXME/XXX marker(s) found. Review whether any are unfinished production work.":"No TODO/FIXME/XXX markers were found.");
-  const fetchCalls=(source.match(/\bfetch\s*\(/g)||[]).length,catchCalls=(source.match(/\.catch\s*\(/g)||[]).length;
-  add(fetchCalls&&!catchCalls?"warn":"pass","Network error handling",fetchCalls+" fetch() call(s) and "+catchCalls+" chained .catch() call(s) found. Review async/await paths too; this is a source-level estimate, not proof every request is handled.");
-  const asyncFns=(source.match(/\basync\s+function\b/g)||[]).length,promiseFns=(source.match(/\bnew\s+Promise\s*\(/g)||[]).length;
-  add("pass","Asynchronous code inventory",asyncFns+" async function(s) and "+promiseFns+" explicit Promise constructor(s) detected.");
-  const intervals=(source.match(/setInterval\s*\(/g)||[]).length,clearIntervals=(source.match(/clearInterval\s*\(/g)||[]).length;
-  add(intervals>clearIntervals?"warn":"pass","Repeating timer cleanup",intervals+" setInterval() call(s), "+clearIntervals+" clearInterval() call(s). Review that every long-lived timer is cleared when its screen or session ends.");
-  const listeners=(source.match(/addEventListener\s*\(/g)||[]).length,removers=(source.match(/removeEventListener\s*\(/g)||[]).length;
-  add("pass","Event listener inventory",listeners+" addEventListener() call(s), "+removers+" removeEventListener() call(s). Review listeners attached to short-lived UI or game sessions.");
-  const mediaQueries=(source.match(/@media\b/g)||[]).length;
-  add(mediaQueries?"pass":"warn","Responsive CSS",mediaQueries?mediaQueries+" media query block(s) found.":"No CSS media queries were detected.");
-  check(/prefers-reduced-motion/.test(source),"Reduced-motion support","A prefers-reduced-motion rule was found.","No prefers-reduced-motion rule was detected.");
-  check(/visibilitychange/.test(source),"Tab visibility handling","The game listens for browser tab visibility changes.","No visibilitychange handler was found; background-tab behavior should be reviewed.");
-  const externalScripts=[...parsed.querySelectorAll("script[src]")].filter(el=>{try{return new URL(el.src,location.href).origin!==location.origin}catch(e){return false}});
-  add("pass","External script dependencies",externalScripts.length+" external script source(s) detected. Verify provider availability and fallback behavior.");
-  const resources=[...performance.getEntriesByType("resource")].filter(x=>x.duration>3000);
-  add(resources.length?"warn":"pass","Slow status-page resources",resources.length?resources.slice(0,10).map(x=>x.name.split("/").pop()+" ("+Math.round(x.duration)+" ms)").join("; "):"No resource taking over three seconds was recorded while loading this diagnostics page.");
-  const pageBytes=new Blob([source]).size;
-  add(pageBytes>2_000_000?"warn":"pass","Published HTML size",(pageBytes/1024).toFixed(1)+" KB of HTML downloaded for inspection.");
-  const cssBlocks=[...parsed.querySelectorAll("style")].map(x=>x.textContent).join("\n");
-  const openBraces=(cssBlocks.match(/\{/g)||[]).length,closeBraces=(cssBlocks.match(/\}/g)||[]).length;
-  check(openBraces===closeBraces,"CSS brace balance","Embedded CSS has matching opening and closing braces.","Embedded CSS brace counts differ ("+openBraces+" opening / "+closeBraces+" closing).","issue");
-  const gameFeatures=[
-   ["Spike engine","function spawnSpike\s*\(","Spike spawning function is present.","spawnSpike() was not found."],
-   ["Game loop","requestAnimationFrame\s*\(","Animation-frame scheduling is present.","No requestAnimationFrame() call was found."],
-   ["Practice mode","chooseMode\s*\(\s*[\"']practice[\"']\s*\)","Practice-mode selection is present.","Practice-mode selection was not found."],
-   ["Bot AI","function updateBotAI\s*\(","Bot AI update function is present.","updateBotAI() was not found."],
-   ["Quick Play matchmaking","swipe_find_team_match","Quick Play matchmaking RPC reference is present.","Quick Play matchmaking RPC reference is missing."],
-   ["Online lobbies","function refreshOnlineLobbies\s*\(","Online lobby refresh function is present.","refreshOnlineLobbies() was not found."],
-   ["Realtime presence","renderOnlinePresence","Online presence renderer is present.","Online presence renderer was not found."],
-   ["Score submission","function sendScore\s*\(","Score submission function is present.","sendScore() was not found."],
-   ["Profile synchronization","function syncAccount\s*\(","Account synchronization function is present.","syncAccount() was not found."],
-   ["Friend challenges","function sendFriendChallenge\s*\(","Friend challenge function is present.","sendFriendChallenge() was not found."],
-   ["Voice calls","function joinGroupVoiceChat\s*\(","Group voice-call join function is present.","joinGroupVoiceChat() was not found."],
-   ["Community levels","function loadCommunityLevels\s*\(","Community level loader is present.","loadCommunityLevels() was not found."],
-   ["Startup recovery","function boot\s*\([\s\S]*function loadNextSource\s*\(","Startup boot and fallback loader were found.","Startup boot or fallback loader was not found."]
-  ];
-  for(const [name,pattern,okText,badText] of gameFeatures)check(new RegExp(pattern).test(source),"Game feature: "+name,okText,badText);
-  const runtimeErrors=devRuntimeFindings.length;
-  add(runtimeErrors?"issue":"pass","Browser runtime events",runtimeErrors?runtimeErrors+" browser error or unhandled rejection event(s) have been captured since this diagnostics page opened.":"No browser error or unhandled rejection events have been captured on this status page since it opened.");
- }catch(error){add("issue","Deep scan failure",error?.message||String(error))}
- renderDevFindings(findings);
-}
 const ERROR_LOG_KEY="swiper-client-errors-v1";
 function readRecentErrors(){
  const cutoff=Date.now()-90*24*60*60*1000;
@@ -353,7 +216,6 @@ async function scan(){
   const response=await fetch("./index.html?status="+Date.now(),{cache:"no-store"});
   if(!response.ok)throw new Error("Game page returned HTTP "+response.status+". The website may be unavailable.");
   const source=await response.text();
-  await runDevDiagnostics(source);
   for(const group of groups){
    const results=group.items.map(item=>({item,ok:!!item.test(source)}));
    all.push(...results);renderGroup(group,results);
@@ -391,7 +253,7 @@ async function scan(){
   $("scanTime").textContent="Last checked: "+new Date().toLocaleString();
  }
 }
-$("scan").addEventListener("click",scan);if(DEV_MODE)$("devRescan").addEventListener("click",scan);scan();
+$("scan").addEventListener("click",scan);scan();
 })();
 </script>
 </body>
