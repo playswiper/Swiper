@@ -1034,7 +1034,7 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
   for(const x of (outages.data||[])){const d=document.createElement("div");d.className="swiper-live-notice outage";const b=document.createElement("strong");b.textContent="Known outage: "+x.title;const p=document.createElement("div");p.textContent=(x.details?x.details+" · ":"")+"Started "+escDate(x.started_at);d.append(b,p);entries.push(["outage:"+x.id,d])}
   if(issues.data?.length){const d=document.createElement("div");d.className="swiper-live-notice community";d.textContent="An issue has been spotted by viewers.";entries.push(["community",d])}
   const latest=(announcements.data||[]).find(x=>new Date(x.expires_at).getTime()>Date.now());
-  if(latest){const d=document.createElement("div");d.className="swiper-live-notice announcement";d.textContent="admin: "+latest.message;entries.push(["announcement:"+latest.id,d])}
+  if(latest){const d=document.createElement("div");d.className="swiper-live-notice announcement";d.textContent="admin: "+latest.message;entries.push(["announcement:"+latest.id,d]);if(noticeExpiryTimer)clearTimeout(noticeExpiryTimer);noticeExpiryTimer=setTimeout(()=>refreshNotices().catch(()=>{}),Math.max(250,new Date(latest.expires_at).getTime()-Date.now()+100))}
   notices.replaceChildren(...entries.map(x=>x[1]));
  }
  function addMenuButton(id,label,after){
@@ -1077,8 +1077,15 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
  });
  const syncControls=()=>{const admin=!!user&&isSwiperAdmin(),registered=!!user&&!isSwiperGuestSession();if(adminButton)adminButton.classList.toggle("hidden",!admin);if(reportButton)reportButton.classList.toggle("hidden",!registered)};
  syncControls();
+ let noticeExpiryTimer=null;
+ const noticesChannel=db.channel("swiper-live-service-notices")
+  .on("postgres_changes",{event:"*",schema:"public",table:"swiper_known_outages"},()=>refreshNotices().catch(()=>{}))
+  .on("postgres_changes",{event:"*",schema:"public",table:"swiper_community_issues"},()=>refreshNotices().catch(()=>{}))
+  .on("postgres_changes",{event:"*",schema:"public",table:"swiper_admin_announcements"},()=>refreshNotices().catch(()=>{}))
+  .subscribe();
  refreshNotices().catch(e=>console.warn("Swiper notices refresh failed:",e));
- setInterval(()=>{syncControls();refreshNotices().catch(e=>console.warn("Swiper notices refresh failed:",e))},2000);
+ setInterval(()=>{syncControls()},3000);
+ setInterval(()=>refreshNotices().catch(e=>console.warn("Swiper notices refresh failed:",e)),30000);
  setInterval(()=>{if(adminRoot.classList.contains("open")&&isSwiperAdmin())refreshOutages().catch(()=>{})},15000);
 })();
 })();
