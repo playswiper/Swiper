@@ -93,6 +93,30 @@ const groups=[
   {name:"Score saving",location:"Game Over → swipe_scores",test:s=>/from\("swipe_scores"\)\.insert/.test(s)&&/swipe_record_game/.test(s),success:"Score submission and game-recording code were found.",problem:"Score saving code is missing. Check the game-over submit handler, swipe_scores, and swipe_record_game."},
   {name:"Name tags",location:"Game screen → player name tags",test:s=>/text-overflow:\s*ellipsis/.test(s)&&/data-tag/.test(s),success:"Long player names are configured to shorten with an ellipsis.",problem:"Name-tag truncation is missing. Check the runner label CSS and data-tag attribute."}
  ]}
+ ,
+ {title:"Reliability & Recovery",items:[
+  {name:"Game pause & resume",location:"Game screen → Pause / Resume",test:s=>/function\\s+pauseGame\\s*\\(/.test(s)&&/pauseGame\\s*\\(/.test(s),success:"Pause handling and its call sites were found.",problem:"Pause handling could be missing. Check pauseGame() and the pause/resume controls."},
+  {name:"Run cleanup",location:"Game engine → stopRun()",test:s=>/function\\s+stopRun\\s*\\(/.test(s)&&/function\\s+clearObjects\\s*\\(/.test(s),success:"Run shutdown and obstacle cleanup functions were found.",problem:"Run shutdown or cleanup code is missing. Check stopRun() and clearObjects()."},
+  {name:"Quick Play cancellation",location:"Quick Play → Cancel Search",test:s=>/function\\s+cancelQuickMatch\\s*\\(/.test(s)&&/function\\s+stopMatchPoll\\s*\\(/.test(s),success:"Match cancellation and polling shutdown code were found.",problem:"Quick Play cancellation or polling cleanup is missing. Check cancelQuickMatch() and stopMatchPoll()."},
+  {name:"Startup recovery",location:"Game startup → boot() / fallback",test:s=>/function\\s+boot\\s*\\(/.test(s)&&/function\\s+loadFallback\\s*\\(/.test(s),success:"Startup and fallback loading functions were found.",problem:"Startup recovery code was not found. Check boot() and loadFallback()."},
+  {name:"Realtime channel cleanup",location:"Online services → Supabase realtime",test:s=>(s.match(/removeChannel\\s*\\(/g)||[]).length>=2,success:"Multiple realtime channel cleanup calls were found.",problem:"Realtime channel cleanup may be incomplete. Check that channels are removed when chats, calls, or presence sessions end."},
+  {name:"Browser tab lifecycle",location:"Game runtime → tab visibility",test:s=>/visibilitychange/.test(s),success:"The game listens for browser tab visibility changes.",problem:"No visibilitychange handler was found. Check behavior when players switch tabs or return to the game."}
+ ]},
+ {title:"Controls & Accessibility",items:[
+  {name:"Keyboard controls",location:"Game screen → keyboard input",test:s=>/addEventListener\\(\\s*["']keydown["']/.test(s),success:"A keyboard input handler was found.",problem:"The keyboard input handler was not found. Check keydown controls for desktop players."},
+  {name:"Pointer controls",location:"Game screen → pointer input",test:s=>/addEventListener\\(\\s*["']pointerdown["']/.test(s),success:"Pointer input handling was found.",problem:"Pointer input handling was not found. Check mouse, stylus, and touch pointer support."},
+  {name:"Accessible labels",location:"Website UI → accessible controls",test:s=>(s.match(/aria-label\\s*=/g)||[]).length>=10,success:"Accessible labels are present on multiple controls.",problem:"Too few aria-label attributes were found. Check names for icon-only buttons and interactive controls."},
+  {name:"Reduced-motion support",location:"Website UI → motion preferences",test:s=>/prefers-reduced-motion/.test(s),success:"Reduced-motion preference handling is present.",problem:"Reduced-motion support was not found. Check animations and transitions for motion-sensitive players."}
+ ]},
+ {title:"Profiles, Content & Customization",items:[
+  {name:"Avatar application",location:"Account → Avatar Editor",test:s=>/function\\s+applyAvatar\\s*\\(/.test(s)&&/effectiveAvatarPreset/.test(s),success:"Avatar selection and application logic were found.",problem:"Avatar application logic is missing. Check applyAvatar() and effectiveAvatarPreset()."},
+  {name:"Theme preferences",location:"Settings → Theme",test:s=>/function\\s+applySwiperTheme\\s*\\(/.test(s)&&/localStorage/.test(s),success:"Theme application and browser preference storage were found.",problem:"Theme application or preference persistence is missing. Check applySwiperTheme() and its saved settings."},
+  {name:"Community level loading",location:"Community → Browse Levels",test:s=>/function\\s+loadCommunityLevels\\s*\\(/.test(s),success:"Community level loading code was found.",problem:"Community level loading was not found. Check loadCommunityLevels()."},
+  {name:"Community level publishing",location:"Community → Publish Level",test:s=>/function\\s+publishCommunityLevel\\s*\\(/.test(s)&&/function\\s+validLevelTitle\\s*\\(/.test(s),success:"Level publishing and title validation code were found.",problem:"Level publishing or title validation is missing. Check publishCommunityLevel() and validLevelTitle()."},
+  {name:"Tutorial controls",location:"Help → Gameplay Tutorial",test:s=>/function\\s+openTutorial\\s*\\(/.test(s)&&/function\\s+closeTutorial\\s*\\(/.test(s),success:"Tutorial open and close controls were found.",problem:"Tutorial controls are missing. Check openTutorial() and closeTutorial()."},
+  {name:"Login notice handling",location:"Account → Login Message",test:s=>/function\\s+showLoginMessage\\s*\\(/.test(s)&&/swipe_profiles/.test(s),success:"The one-time profile login notice handler was found.",problem:"The login notice handler or profile integration is missing. Check showLoginMessage() and its profile flag handling."}
+ ]}
+
 ];
 function render(item,ok){
  const card=document.createElement("article");card.className="check"+(ok?"":" bad");
