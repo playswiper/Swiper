@@ -40,6 +40,15 @@ button:disabled{opacity:.6;cursor:wait}
 .check.bad .state{color:#ff7777;background:#321313}
 #scanTime{font-size:11px;color:#666;text-align:center;margin:2px 0 0}
 #checks{width:100%}
+.outage-section{width:100%;margin:0 0 20px}
+.outage-section[hidden]{display:none}
+.outage-list{display:grid;gap:9px}
+.outage-card{border:1px solid #713333;background:#170909;border-radius:12px;padding:13px}
+.outage-card-title{font-size:16px;font-weight:700;color:#ff7777}
+.outage-card-details{font-size:13px;line-height:1.45;color:#ddd;margin-top:5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.outage-card-time{font-size:11px;color:#a99;margin-top:8px}
+.outage-empty,.outage-error{border:1px solid #292929;background:#080808;border-radius:11px;padding:12px;color:#aaa;font-size:13px;line-height:1.4}
+.outage-error{border-color:#553030;color:#ffaaaa}
 
 .summary{width:100%;border:1px solid #303030;border-radius:14px;background:#090909;padding:14px;margin:18px 0 0}
 .summary h2{font-size:16px;margin:0 0 7px}
@@ -74,6 +83,10 @@ button:disabled{opacity:.6;cursor:wait}
 <button id="scan" type="button">Check Again</button>
 <a class="back" href="./">Back to Game</a>
 </div>
+<section class="outage-section" id="knownOutages" aria-live="polite" hidden>
+ <div class="section-head"><h2>Known Outages</h2><span class="section-count" id="outageCount"></span></div>
+ <div class="outage-list" id="outageList"></div>
+</section>
 <div id="checks" aria-label="System checks"></div>
 <p id="scanTime"></p>
 </main>
@@ -206,6 +219,39 @@ function renderGroup(group,results){
  results.forEach(x=>list.append(render(x.item,x.ok)));
  section.append(head,list);$("checks").append(section);
 }
+function renderKnownOutages(rows,errorText=""){
+ const section=$("knownOutages"),list=$("outageList"),count=$("outageCount");
+ section.hidden=false;list.replaceChildren();
+ if(errorText){
+  count.textContent="Unavailable";
+  const note=document.createElement("div");note.className="outage-error";note.textContent="Known outages could not be loaded. "+errorText;list.append(note);
+  return {item:{name:"Known outage feed",location:"Status page → live outage records",success:"",problem:"The outage feed could not be loaded. "+errorText},ok:false};
+ }
+ if(!rows.length){
+  count.textContent="0 active";
+  const note=document.createElement("div");note.className="outage-empty";note.textContent="No known active outages. All reported service notices are clear.";list.append(note);
+  return {item:{name:"Known outages",location:"Status page → active outage records",success:"No unresolved outages are currently listed.",problem:"An unresolved outage is listed."},ok:true};
+ }
+ count.textContent=rows.length+" active";
+ rows.forEach(row=>{
+  const card=document.createElement("article");card.className="outage-card";
+  const title=document.createElement("div");title.className="outage-card-title";title.textContent=row.title||"Service outage";
+  card.append(title);
+  if(row.details){const details=document.createElement("div");details.className="outage-card-details";details.textContent=row.details;card.append(details)}
+  if(row.started_at){const time=document.createElement("div");time.className="outage-card-time";const date=new Date(row.started_at);time.textContent="Started: "+(Number.isNaN(date.getTime())?"Time unavailable":date.toLocaleString());card.append(time)}
+  list.append(card);
+ });
+ return {item:{name:"Known outages",location:"Status page → active outage records",success:"No unresolved outages are currently listed.",problem:rows.length+" known outage"+(rows.length===1?"":"s")+" currently listed. Review the details above."},ok:false};
+}
+async function fetchKnownOutages(config){
+ const base=config.url.endsWith("/")?config.url.slice(0,-1):config.url;
+ const endpoint=base+"/rest/v1/swiper_known_outages?select=id,title,details,started_at&resolved_at=is.null&order=started_at.asc";
+ const response=await fetch(endpoint,{method:"GET",headers:{apikey:config.key,Authorization:"Bearer "+config.key},cache:"no-store"});
+ if(!response.ok)throw new Error("The outage endpoint returned HTTP "+response.status+".");
+ const rows=await response.json();
+ if(!Array.isArray(rows))throw new Error("The outage endpoint returned an unexpected response.");
+ return rows;
+}
 async function scan(){
  const button=$("scan");button.disabled=true;button.textContent="Scanning…";
  $("headline").textContent="Checking systems…";$("detail").textContent="Testing game features and service connection.";
@@ -233,6 +279,14 @@ async function scan(){
    }catch(e){live.item.problem="Could not reach online service from this browser. Check internet access, browser privacy settings, and the online service project URL."}
    }else{live.item.problem="Swiper could not read the service URL and public key from index.html. Check that both constants exist and are quoted."}
   const liveGroup={title:"Live Services",items:[live.item]};renderGroup(liveGroup,[live]);all.push(live);
+  let outageResult;
+  if(config){
+   try{outageResult=renderKnownOutages(await fetchKnownOutages(config))}
+   catch(e){outageResult=renderKnownOutages([],e.message)}
+  }else{
+   outageResult=renderKnownOutages([],"The service URL or public key is missing from index.html.");
+  }
+  all.push(outageResult);
   updateSummary(all);
   const failed=all.filter(x=>!x.ok).length,passed=all.length-failed;
   if(failed){
