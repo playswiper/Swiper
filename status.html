@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#000000">
+<title>Swiper Status</title>
+<style>
+*{box-sizing:border-box}
+:root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#000;color:#fff}
+body{margin:0;min-height:100vh;background:#000;color:#fff}
+main{width:min(100% - 32px,760px);margin:0 auto;padding:28px 0 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{margin:0;font-size:19px;font-weight:800;letter-spacing:.14em}
+button{appearance:none;border:0;border-radius:9px;background:#fff;color:#000;font-size:13px;font-weight:800;padding:11px 17px;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+#summary{margin:14px 0;padding:14px 15px;border:1px solid #333;border-radius:10px;background:#090909;font-size:14px}
+#alerts{display:grid;gap:8px}
+.alert{padding:12px 14px;border:1px solid #454545;border-left:3px solid #fff;border-radius:8px;background:#0b0b0b;font-size:13px;overflow-wrap:anywhere}
+.alert.ok{border-left-color:#fff}
+.alert.warning{border-left-color:#aaa}
+.alert.error{border-left-color:#fff}
+footer{margin-top:18px;color:#777;font-size:11px}
+</style>
+</head>
+<body>
+<main>
+<header><h1>SWIPER STATUS</h1><button id="scan" type="button">SCAN</button></header>
+<div id="summary" role="status" aria-live="polite">CHECKING…</div>
+<section id="alerts" aria-label="Alerts"></section>
+<footer id="updated"></footer>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const addAlert=(kind,message)=>{const el=document.createElement("div");el.className="alert "+kind;el.textContent=message;$("alerts").append(el)};
+async function scan(){
+const button=$("scan");button.disabled=true;button.textContent="SCANNING";
+$("summary").textContent="CHECKING…";$("alerts").replaceChildren();
+try{
+const response=await fetch("./index.html?status="+Date.now(),{cache:"no-store"});
+if(!response.ok)throw new Error("Game source returned HTTP "+response.status);
+const source=await response.text();
+const arrows=[...source.matchAll(/[←→↑↓↔↕↖↗↘↙⇐⇒⇑⇓➜➤➔⟵⟶]/g)];
+const alerts=[...source.matchAll(/\balert\s*\(/g)];
+const checks=[
+["Leaderboard tabs",/data-board-mode="practice"[\s\S]*data-board-mode="bot"[\s\S]*data-board-mode="all"[\s\S]*data-board-mode="quick"/.test(source)],
+["Bot obstacle AI",/function updateBotAI\(/.test(source)],
+["Name tag ellipsis",/text-overflow:ellipsis/.test(source)],
+["Password recovery",/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(source)]
+];
+for(const [label,pass] of checks)if(!pass)addAlert("error",label+" check failed");
+for(const match of arrows.slice(0,80)){const line=source.slice(0,match.index).split("\n").length;addAlert("warning","Arrow "+match[0]+" · line "+line)}
+for(const match of alerts.slice(0,80)){const line=source.slice(0,match.index).split("\n").length;addAlert("warning","alert() call · line "+line)}
+if(arrows.length>80)addAlert("warning",(arrows.length-80)+" more arrow matches");
+if(alerts.length>80)addAlert("warning",(alerts.length-80)+" more alert() calls");
+const failed=checks.filter(x=>!x[1]).length;
+if(!arrows.length&&!alerts.length&&!failed)addAlert("ok","No alerts found");
+$("summary").textContent=failed?failed+" CHECK(S) FAILED":arrows.length||alerts.length?arrows.length+" ARROWS · "+alerts.length+" ALERT CALLS":"ALL CHECKS PASSED";
+}catch(error){$("summary").textContent="SCAN FAILED";addAlert("error",error.message)}
+$("updated").textContent="LAST SCAN · "+new Date().toLocaleString();
+button.disabled=false;button.textContent="SCAN";
+}
+$("scan").addEventListener("click",scan);
+scan();
+})();
+</script>
+</body>
+</html>
