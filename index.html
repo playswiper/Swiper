@@ -484,6 +484,7 @@ const swiperSafeStorage=(()=>{
 })();
 const SUPABASE_URL="https://upghyzhawctughyojwpo.supabase.co";
 const SUPABASE_KEY="sb_publishable_z70GOIzu3F_xdxdJiVa48A_SqvrA6-b";
+const SUPABASE_STATUS_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwZ2h5emhhd2N0dWdoeW9qd3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNTkzOTEsImV4cCI6MjEwNzczNTM5MX0._7am4UC2wFhuO9vMqJb3_hoOVQIM_5GKa9TpfCAbEbk";
 const SWIPER_ERROR_LOG_KEY="swiper-client-errors-v1";
 function recordSwiperClientError(type,message,source,line){
  try{
@@ -980,4 +981,24 @@ body.owner-credit> :not(#ownerCreditScreen){display:none!important}
   observer.observe(home,{attributes:true,attributeFilter:["hidden"]});
 })();
 </script>
+
+(function(){
+ if(window.__swiperSupabaseNoticeStarted)return;window.__swiperSupabaseNoticeStarted=true;
+ function show(message){
+  if(document.getElementById("swiper-service-notice"))return;
+  const box=document.createElement("div");box.id="swiper-service-notice";
+  box.setAttribute("role","alert");box.style.cssText="position:fixed;z-index:999999;top:12px;left:12px;right:12px;max-width:680px;margin:auto;background:#171717;color:#fff;border:1px solid #a33;border-radius:13px;padding:13px 15px;box-shadow:0 8px 35px #0009;font:14px Fredoka,Arial,sans-serif;display:flex;gap:12px;align-items:flex-start";
+  const msg=document.createElement("div");msg.style.cssText="flex:1;line-height:1.45";msg.textContent="Swiper detected a service issue: "+message+" Open Status for details.";
+  const close=document.createElement("button");close.type="button";close.textContent="×";close.setAttribute("aria-label","Dismiss notification");close.style.cssText="background:#fff;color:#111;border:0;border-radius:8px;font-size:20px;width:30px;height:30px;cursor:pointer";close.onclick=()=>box.remove();
+  const link=document.createElement("a");link.href="/status.html";link.textContent="Status";link.style.cssText="color:#fff;text-decoration:underline;white-space:nowrap;align-self:center";
+  box.append(msg,link,close);document.body.append(box);
+ }
+ setTimeout(async()=>{
+  try{
+   const res=await fetch(SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/",{headers:{apikey:SUPABASE_STATUS_KEY,Authorization:"Bearer "+SUPABASE_STATUS_KEY},cache:"no-store"});
+   if(!res.ok)show("Supabase API returned HTTP "+res.status+".");
+  }catch(e){show("Supabase API could not be reached from this browser.");}
+ },1800);
+})();
+
 </body></html>
