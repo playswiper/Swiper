@@ -114,7 +114,7 @@ const groups=[
   {name:"Game pause & resume",location:"Game screen → Pause / Resume",test:s=>/function\s+pauseGame\s*\(/.test(s)&&/pauseGame\s*\(/.test(s),success:"Pause handling and its call sites were found.",problem:"Pause handling could be missing. Check pauseGame() and the pause/resume controls."},
   {name:"Run cleanup",location:"Game engine → stopRun()",test:s=>/function\s+stopRun\s*\(/.test(s)&&/function\s+clearObjects\s*\(/.test(s),success:"Run shutdown and obstacle cleanup functions were found.",problem:"Run shutdown or cleanup code is missing. Check stopRun() and clearObjects()."},
   {name:"Quick Play cancellation",location:"Quick Play → Cancel Search",test:s=>/function\s+cancelQuickMatch\s*\(/.test(s)&&/function\s+stopMatchPoll\s*\(/.test(s),success:"Match cancellation and polling shutdown code were found.",problem:"Quick Play cancellation or polling cleanup is missing. Check cancelQuickMatch() and stopMatchPoll()."},
-  {name:"Startup recovery",location:"Game startup → boot() / fallback",test:s=>/function\s+boot\s*\(/.test(s)&&/function\s+loadFallback\s*\(/.test(s),success:"Startup and fallback loading functions were found.",problem:"Startup recovery code was not found. Check boot() and loadFallback()."},
+  {name:"Startup recovery",location:"Game startup → boot() / fallback",test:s=>/function\s+boot\s*\(/.test(s)&&/function\s+loadNextSource\s*\(/.test(s),success:"Startup and fallback loading functions were found.",problem:"Startup recovery code was not found. Check boot() and loadFallback()."},
   {name:"Realtime channel cleanup",location:"Online services → online service realtime",test:s=>(s.match(/removeChannel\s*\(/g)||[]).length>=2,success:"Multiple realtime channel cleanup calls were found.",problem:"Realtime channel cleanup may be incomplete. Check that channels are removed when chats, calls, or presence sessions end."},
   {name:"Browser tab lifecycle",location:"Game runtime → tab visibility",test:s=>/visibilitychange/.test(s),success:"The game listens for browser tab visibility changes.",problem:"No visibilitychange handler was found. Check behavior when players switch tabs or return to the game."}
  ]},
@@ -221,8 +221,8 @@ async function scan(){
    const results=group.items.map(item=>({item,ok:!!item.test(source)}));
    all.push(...results);renderGroup(group,results);
   }
-  const urlMatch=source.match(/const\s+online service_URL\s*=\s*["'](https?:\/\/[^"']+)["']/);
-   const keyMatch=source.match(/const\s+online service_STATUS_KEY\s*=\s*["']([^"']+)["']/)||source.match(/const\s+online service_KEY\s*=\s*["']([^"']+)["']/);
+  const urlMatch=source.match(/const\s+SUPABASE_URL\s*=\s*["'](https?:\/\/[^"']+)["']/);
+   const keyMatch=source.match(/const\s+SUPABASE_STATUS_KEY\s*=\s*["']([^"']+)["']/)||source.match(/const\s+SUPABASE_KEY\s*=\s*["']([^"']+)["']/);
   const config=urlMatch&&keyMatch?{url:urlMatch[1],key:keyMatch[1]}:null;
   let live={item:{name:"Live API connection",location:"Live service → health endpoint",success:"The service health endpoint responded successfully.",problem:"The service health endpoint did not respond. Check the project status, API URL, network, and public key."},ok:false};
   if(config){
