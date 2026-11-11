@@ -1014,4 +1014,38 @@ button:not(:disabled):focus-visible,.mode:focus-visible{outline:2px solid var(--
 @media(prefers-reduced-motion:reduce){.menu-screen,.quick-play-screen,.layout.view-game>main,.layout.view-account>aside,.layout.view-leaderboard>aside,.layout.view-avatar>aside,.layout.view-friends>aside,#friendsPage,#communityPage,.tutorial-card,.settings-page,.shop-page,.menu-buttons button,.leader-row,.layout.view-game .arena,.layout.view-game .scorebox{animation:none!important}button,.mode,.level-card,.friend-card,.leader-row,.shop-item,.panel{transition:none!important}}
 </style>
 
+
+<style id="swiper-smooth-motion-v2">
+/* Deeper, softer motion system across every Swiper screen */
+@keyframes swScreenBloom{0%{opacity:0;transform:translate3d(0,22px,0) scale(.975);filter:blur(7px)}65%{opacity:1;filter:blur(0)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes swAmbientDrift{0%,100%{transform:translate3d(-2%,0,0) scale(1)}50%{transform:translate3d(2%,1%,0) scale(1.08)}}
+@keyframes swOverlayIn{0%{opacity:0}100%{opacity:1}}
+@keyframes swCardIn{0%{opacity:0;transform:translateY(14px) scale(.985)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes swButtonRipple{0%{box-shadow:0 0 0 0 #70eee255}100%{box-shadow:0 0 0 13px #70eee200}}
+@keyframes swShimmer{0%{background-position:180% 0}100%{background-position:-180% 0}}
+@keyframes swRunnerAura{0%,100%{filter:drop-shadow(0 0 5px #70eee244)}50%{filter:drop-shadow(0 0 13px #70eee288)}}
+.layout.view-account>aside,.layout.view-leaderboard>aside,.layout.view-avatar>aside,.layout.view-friends>aside,.layout.view-community>aside,.layout.view-settings>aside,.layout.view-shop>aside,.layout.view-song>aside,.layout.view-messages>aside,.layout.view-game>main,.layout.view-menu>main{animation:swScreenBloom .58s cubic-bezier(.16,1,.3,1) both}
+#mainMenu,.menu-screen,.quick-play-screen{will-change:transform,opacity}
+#mainMenu:not(.hidden),#matchScreen:not(.hidden),#onlineLobbyScreen:not(.hidden){animation:swScreenBloom .55s cubic-bezier(.16,1,.3,1) both}
+.panel,.level-card,.friend-card,.shop-item,.leader-row,.tutorial-card,.settings-card{transition:transform .38s cubic-bezier(.2,.8,.2,1),border-color .3s ease,box-shadow .38s ease,background-color .3s ease}
+.panel:hover{transform:translateY(-1px)}
+button:not(:disabled){transition:transform .28s cubic-bezier(.2,.8,.2,1),filter .25s ease,box-shadow .3s ease}
+button:not(:disabled):active{transform:scale(.965);filter:brightness(1.12)}
+button.primary:not(:disabled):active{animation:swButtonRipple .65s ease-out}
+.overlay:not([hidden]){animation:swOverlayIn .24s ease both}
+.overlay:not([hidden]) .overlay-inner{animation:swCardIn .42s cubic-bezier(.16,1,.3,1) both}
+.match-spinner{will-change:transform;filter:drop-shadow(0 0 9px #70eee255)}
+.layout.view-game .runner:not(.hidden){animation:swRunnerAura 2.6s ease-in-out infinite}
+.layout.view-game .arena{isolation:isolate}
+.layout.view-game .arena:after{content:"";position:absolute;inset:-20%;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#70eee20b,transparent 58%);animation:swAmbientDrift 12s ease-in-out infinite}
+.leader-row,.level-card,.friend-card,.shop-item{will-change:transform}
+.leader-row:nth-child(2n),.level-card:nth-child(2n),.friend-card:nth-child(2n){animation-delay:.035s}
+.empty{animation:swCardIn .38s cubic-bezier(.16,1,.3,1) both}
+input,select,textarea{transition:border-color .22s ease,box-shadow .22s ease,background-color .22s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#70eee2!important;box-shadow:0 0 0 3px #70eee21c}
+a{transition:color .2s ease,opacity .2s ease}
+@media(hover:hover){button:not(:disabled):hover{box-shadow:0 8px 22px #0003}.level-card:hover,.friend-card:hover,.shop-item:hover{transform:translateY(-3px) scale(1.008);box-shadow:0 12px 28px #0004}}
+@media(prefers-reduced-motion:reduce){#mainMenu:not(.hidden),#matchScreen:not(.hidden),#onlineLobbyScreen:not(.hidden),.layout.view-account>aside,.layout.view-leaderboard>aside,.layout.view-avatar>aside,.layout.view-friends>aside,.layout.view-community>aside,.layout.view-settings>aside,.layout.view-shop>aside,.layout.view-song>aside,.layout.view-messages>aside,.layout.view-game>main,.overlay:not([hidden]),.overlay:not([hidden]) .overlay-inner,.layout.view-game .runner:not(.hidden),.layout.view-game .arena:after,.empty{animation:none!important}button,.panel,.level-card,.friend-card,.shop-item,.leader-row,input,select,textarea,a{transition:none!important}}
+</style>
+
 </body></html>
