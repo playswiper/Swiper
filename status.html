@@ -96,8 +96,8 @@ const groups=[
   {name:"Matchmaking controls",location:"Quick Play → Search / Cancel",test:s=>/swipe_find_team_match/.test(s)&&/swipe_leave_match/.test(s)&&/swipe_match_status/.test(s),success:"Search, match-status, and leave-match requests were found.",problem:"A matchmaking RPC is missing. Check swipe_find_team_match, swipe_match_status, and swipe_leave_match."}
  ]},
  {title:"Accounts & Community",items:[
-  {name:"Sign-in session",location:"Game startup → Supabase Auth",test:s=>/createClient\(/.test(s)&&/persistSession\s*:\s*true/.test(s)&&/detectSessionInUrl\s*:\s*true/.test(s),success:"Supabase Auth and persistent login configuration were found.",problem:"The auth client or session settings are missing. Check createClient() and its auth options."},
-  {name:"Password recovery",location:"More → Account → Forgot Password",test:s=>/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(s),success:"The password-reset email request was found.",problem:"The password-reset request is missing or changed. Check the forgot-password handler and Supabase redirect URL allowlist."},
+  {name:"Sign-in session",location:"Game startup → online service Auth",test:s=>/createClient\(/.test(s)&&/persistSession\s*:\s*true/.test(s)&&/detectSessionInUrl\s*:\s*true/.test(s),success:"online service Auth and persistent login configuration were found.",problem:"The auth client or session settings are missing. Check createClient() and its auth options."},
+  {name:"Password recovery",location:"More → Account → Forgot Password",test:s=>/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(s),success:"The password-reset email request was found.",problem:"The password-reset request is missing or changed. Check the forgot-password handler and online service redirect URL allowlist."},
   {name:"Friends",location:"More → Friends",test:s=>/id="friendsPage"/.test(s)&&/id="friendSearch"/.test(s)&&/swipe_friend_requests/.test(s),success:"Friends page, friend search, and friend-request data calls were found.",problem:"A friends feature is missing. Check friendsPage, friendSearch, and swipe_friend_requests."},
   {name:"Chat & messages",location:"Friends → Chat",test:s=>/id="chatMessages"/.test(s)&&/id="sendChatMessage"/.test(s)&&/swipe_messages/.test(s),success:"Chat interface and message sending code were found.",problem:"Chat UI or message database calls are missing. Check chatMessages, sendChatMessage, and swipe_messages."},
   {name:"Community Levels",location:"Main Menu → Community Levels",test:s=>/id="menuCommunity"/.test(s)&&/swiper_levels/.test(s),success:"Community Levels menu and level database calls were found.",problem:"Community Levels menu or database calls were not found. Check menuCommunity and swiper_levels."},
@@ -115,7 +115,7 @@ const groups=[
   {name:"Run cleanup",location:"Game engine → stopRun()",test:s=>/function\s+stopRun\s*\(/.test(s)&&/function\s+clearObjects\s*\(/.test(s),success:"Run shutdown and obstacle cleanup functions were found.",problem:"Run shutdown or cleanup code is missing. Check stopRun() and clearObjects()."},
   {name:"Quick Play cancellation",location:"Quick Play → Cancel Search",test:s=>/function\s+cancelQuickMatch\s*\(/.test(s)&&/function\s+stopMatchPoll\s*\(/.test(s),success:"Match cancellation and polling shutdown code were found.",problem:"Quick Play cancellation or polling cleanup is missing. Check cancelQuickMatch() and stopMatchPoll()."},
   {name:"Startup recovery",location:"Game startup → boot() / fallback",test:s=>/function\s+boot\s*\(/.test(s)&&/function\s+loadFallback\s*\(/.test(s),success:"Startup and fallback loading functions were found.",problem:"Startup recovery code was not found. Check boot() and loadFallback()."},
-  {name:"Realtime channel cleanup",location:"Online services → Supabase realtime",test:s=>(s.match(/removeChannel\s*\(/g)||[]).length>=2,success:"Multiple realtime channel cleanup calls were found.",problem:"Realtime channel cleanup may be incomplete. Check that channels are removed when chats, calls, or presence sessions end."},
+  {name:"Realtime channel cleanup",location:"Online services → online service realtime",test:s=>(s.match(/removeChannel\s*\(/g)||[]).length>=2,success:"Multiple realtime channel cleanup calls were found.",problem:"Realtime channel cleanup may be incomplete. Check that channels are removed when chats, calls, or presence sessions end."},
   {name:"Browser tab lifecycle",location:"Game runtime → tab visibility",test:s=>/visibilitychange/.test(s),success:"The game listens for browser tab visibility changes.",problem:"No visibilitychange handler was found. Check behavior when players switch tabs or return to the game."}
  ]},
  {title:"Controls & Accessibility",items:[
@@ -174,39 +174,15 @@ function readRecentErrors(){
   return Array.isArray(raw)?raw.filter(x=>x&&Number(x.time)>=cutoff).sort((a,b)=>b.time-a.time):[];
  }catch(e){return []}
 }
-function renderRecentErrors(){
- const old=$("recentErrors");if(old)old.remove();
- const errors=readRecentErrors();
- const panel=document.createElement("section");panel.id="recentErrors";panel.className="error-panel";
- const title=document.createElement("h2");title.textContent="Recent Browser Errors — Past 90 Days";
- const note=document.createElement("p");note.className="error-note";note.textContent="Errors recorded by this browser on playswiper.com. Collection starts when the updated game is loaded; this is not a retroactive server log.";
- panel.append(title,note);
- if(!errors.length){const empty=document.createElement("div");empty.className="error-empty";empty.textContent="No browser errors have been captured in this browser during the last 90 days.";panel.append(empty)}
- else{
-  const list=document.createElement("div");list.className="error-list";
-  errors.slice(0,20).forEach(e=>{
-   const card=document.createElement("article");card.className="error-item";
-   const meta=document.createElement("div");meta.className="error-meta";
-   meta.textContent=(e.type||"error").toUpperCase()+" · "+new Date(Number(e.time)).toLocaleString()+(e.source?" · "+e.source:"")+(e.line?" · line "+e.line:"");
-   const message=document.createElement("div");message.className="error-message";message.textContent=String(e.message||"Unknown error");
-   card.append(meta,message);list.append(card);
-  });
-  panel.append(list);
- }
- $("checks").append(panel);
- return errors;
-}
-function updateSummary(all,errors){
+function updateSummary(all){
  const failed=all.filter(x=>!x.ok),box=$("summary"),list=$("summaryIssues");
- box.classList.toggle("good",failed.length===0&&!errors.length);
+ box.classList.toggle("good",failed.length===0);
  list.replaceChildren();
  const notes=[];
  if(failed.length)notes.push(failed.length+" feature/service check"+(failed.length===1?"":"s")+" need attention.");
- if(errors.length)notes.push(errors.length+" browser error"+(errors.length===1?"":"s")+" recorded in the past 90 days on this device.");
- if(!failed.length&&!errors.length)notes.push("No code checks failed and no recent browser errors were recorded.");
+ if(!failed.length)notes.push("All feature and service checks passed.");
  $("summaryText").textContent=notes.join(" ");
  failed.slice(0,12).forEach(x=>{const li=document.createElement("li");li.textContent=x.item.name+" — "+x.item.problem;list.append(li)});
- if(errors.length){const li=document.createElement("li");li.textContent="Most recent browser error: "+String(errors[0].message||"Unknown error").slice(0,180);list.append(li)}
  if(failed.length>12){const li=document.createElement("li");li.textContent="And "+(failed.length-12)+" more failed checks below.";list.append(li)}
 }
 
@@ -245,8 +221,8 @@ async function scan(){
    const results=group.items.map(item=>({item,ok:!!item.test(source)}));
    all.push(...results);renderGroup(group,results);
   }
-  const urlMatch=source.match(/const\s+SUPABASE_URL\s*=\s*["'](https?:\/\/[^"']+)["']/);
-   const keyMatch=source.match(/const\s+SUPABASE_STATUS_KEY\s*=\s*["']([^"']+)["']/)||source.match(/const\s+SUPABASE_KEY\s*=\s*["']([^"']+)["']/);
+  const urlMatch=source.match(/const\s+online service_URL\s*=\s*["'](https?:\/\/[^"']+)["']/);
+   const keyMatch=source.match(/const\s+online service_STATUS_KEY\s*=\s*["']([^"']+)["']/)||source.match(/const\s+online service_KEY\s*=\s*["']([^"']+)["']/);
   const config=urlMatch&&keyMatch?{url:urlMatch[1],key:keyMatch[1]}:null;
   let live={item:{name:"Supabase API connection",location:"Live service → Supabase health endpoint",success:"The Supabase health endpoint responded successfully.",problem:"The Supabase health endpoint did not respond. Check the project status, API URL, network, and anon key."},ok:false};
   if(config){
@@ -258,7 +234,7 @@ async function scan(){
    }catch(e){live.item.problem="Could not reach Supabase from this browser. Check internet access, browser privacy settings, and the Supabase project URL."}
    }else{live.item.problem="Swiper could not read SUPABASE_URL and SUPABASE_KEY from index.html. Check that both constants exist and are quoted."}
   const liveGroup={title:"Live Services",items:[live.item]};renderGroup(liveGroup,[live]);all.push(live);
-  const recentErrors=renderRecentErrors();updateSummary(all,recentErrors);
+  updateSummary(all);
   const failed=all.filter(x=>!x.ok).length,passed=all.length-failed;
   if(failed){
    $("mark").style.borderColor="#ff5555";$("markIcon").innerHTML='<path d="M16 16 38 38M38 16 16 38" stroke="#ff6666" stroke-width="6" stroke-linecap="round"/>';
