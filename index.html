@@ -484,6 +484,27 @@ const swiperSafeStorage=(()=>{
 })();
 const SUPABASE_URL="https://upghyzhawctughyojwpo.supabase.co";
 const SUPABASE_KEY="sb_publishable_z70GOIzu3F_xdxdJiVa48A_SqvrA6-b";
+const SWIPER_ERROR_LOG_KEY="swiper-client-errors-v1";
+function recordSwiperClientError(type,message,source,line){
+ try{
+  const now=Date.now(),cutoff=now-90*24*60*60*1000;
+  let entries=[];try{entries=JSON.parse(localStorage.getItem(SWIPER_ERROR_LOG_KEY)||"[]")}catch(e){}
+  if(!Array.isArray(entries))entries=[];
+  entries=entries.filter(x=>x&&Number(x.time)>=cutoff);
+  const clean=String(message||"Unknown error").slice(0,500);
+  const file=String(source||"").split("?")[0].split("/").pop().slice(0,100);
+  const duplicate=entries.some(x=>x.type===type&&x.message===clean&&now-Number(x.time)<60000);
+  if(!duplicate)entries.push({time:now,type,message:clean,source:file,line:Number(line)||0});
+  localStorage.setItem(SWIPER_ERROR_LOG_KEY,JSON.stringify(entries.slice(-250)));
+ }catch(e){}
+}
+window.addEventListener("error",e=>{
+ if(e.target&&e.target!==window){recordSwiperClientError("resource",e.target.src||e.target.href||e.target.tagName, "",0);return}
+ recordSwiperClientError("javascript",e.message,e.filename,e.lineno);
+});
+window.addEventListener("unhandledrejection",e=>{
+ const r=e.reason;recordSwiperClientError("promise",r&&r.message?r.message:String(r||"Unknown rejected promise"),"",0);
+});
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true,flowType:"pkce"}});
 const $=id=>document.getElementById(id), arena=$("arena"), player=$("player"), bot=$("bot"), overlay=$("overlay");
 let onlinePresenceChannel=null;function renderOnlinePresence(){const output=$("onlineCountText"),list=$("onlinePlayerList");if(!onlinePresenceChannel){if(output)output.textContent="Players online: connecting…";if(list)list.textContent="Connecting…";return}const state=onlinePresenceChannel.presenceState(),players=[];for(const key of Object.keys(state)){for(const entry of (Array.isArray(state[key])?state[key]:[state[key]])){const n=String(entry?.username||"Player")+(entry?.mod?" [MOD]":"");if(!players.includes(n))players.push(n)}}if(output)output.textContent="Players online: "+players.length;if(list)list.textContent=players.length?players.join(" · "):"No players online yet."}function startOnlinePresence(){const output=$("onlineCountText");if(!output||onlinePresenceChannel)return;const sessionKey="online-"+Math.random().toString(36).slice(2)+Date.now().toString(36);onlinePresenceChannel=db.channel("swiper-online-presence",{config:{presence:{key:sessionKey}}}).on("presence",{event:"sync"},renderOnlinePresence).subscribe(async status=>{if(status==="SUBSCRIBED"){try{await onlinePresenceChannel.track({userId:user?.id||null,username:profile?.display_name||profile?.username||"Guest",mod:!!profile?.mod_badge,online_at:new Date().toISOString()});renderOnlinePresence()}catch(e){if(output)output.textContent="Players online: unavailable"}}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){if(output)output.textContent="Players online: unavailable";const list=$("onlinePlayerList");if(list)list.textContent="Could not load online players."}})}async function refreshOnlinePresence(){const b=$("refreshOnline");if(b){b.disabled=true;b.textContent="…"}try{if(onlinePresenceChannel){await db.removeChannel(onlinePresenceChannel);onlinePresenceChannel=null}const o=$("onlineCountText"),l=$("onlinePlayerList");if(o)o.textContent="Players online: refreshing…";if(l)l.textContent="Refreshing…";startOnlinePresence()}finally{setTimeout(()=>{const b=$("refreshOnline");if(b){b.disabled=false;b.textContent="↻"}},700)}}
