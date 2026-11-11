@@ -996,7 +996,7 @@ body.owner-credit> :not(#ownerCreditScreen){display:none!important}
  }
  setTimeout(async()=>{
   try{
-   const res=await fetch(SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/",{headers:{apikey:SUPABASE_STATUS_KEY,Authorization:"Bearer "+SUPABASE_STATUS_KEY},cache:"no-store"});
+   const res=await fetch(SUPABASE_URL.replace(/\/$/,"")+"/auth/v1/health",{headers:{apikey:SUPABASE_STATUS_KEY,Authorization:"Bearer "+SUPABASE_STATUS_KEY},cache:"no-store"});
    if(!res.ok)show("Supabase API returned HTTP "+res.status+".");
   }catch(e){show("Supabase API could not be reached from this browser.");}
  },1800);
