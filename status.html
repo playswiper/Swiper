@@ -12,115 +12,153 @@
 *{box-sizing:border-box}
 :root{color-scheme:dark;font-family:"Fredoka",ui-rounded,"Arial Rounded MT Bold",system-ui,sans-serif;background:#000;color:#fff}
 html,body{margin:0;min-height:100%;background:#000;color:#fff}
-body{min-height:100svh;padding:30px 18px 48px}
-main{width:min(100%,510px);margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center}
-.status-mark{width:86px;height:86px;border:5px solid #18d66b;border-radius:50%;display:grid;place-items:center;margin:8px 0 12px}
-.status-mark svg{width:54px;height:54px}
-h1{font-size:clamp(29px,7vw,39px);line-height:1.05;font-weight:700;margin:0;letter-spacing:-.7px}
-#headline{font-size:19px;font-weight:600;margin:15px 0 0}
+body{min-height:100svh;padding:28px 16px 55px}
+main{width:min(100%,560px);margin:0 auto;display:flex;flex-direction:column;align-items:center}
+.hero{text-align:center;width:100%;padding:10px 0 0}
+.status-mark{width:82px;height:82px;border:5px solid #18d66b;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;transition:border-color .2s}
+.status-mark svg{width:52px;height:52px}
+h1{font-size:clamp(30px,7vw,40px);line-height:1.05;font-weight:700;margin:0;letter-spacing:-.8px}
+#headline{font-size:20px;font-weight:600;margin:12px 0 0}
 #detail{font-size:14px;color:#999;margin:5px 0 0}
-#checks{width:100%;display:grid;gap:9px;margin-top:25px;text-align:left}
-.check{display:grid;grid-template-columns:34px minmax(0,1fr);gap:11px;align-items:start;padding:12px;border:1px solid #292929;border-radius:11px;background:#080808}
+.actions{width:min(100%,330px);display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px auto 25px}
+button,.back{min-height:46px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:#fff;color:#000;font:600 15px "Fredoka",ui-rounded,system-ui,sans-serif;text-decoration:none;cursor:pointer;transition:transform .15s ease,opacity .15s ease}
+button:active,.back:active{transform:scale(.98)}
+button:disabled{opacity:.6;cursor:wait}
+.section{width:100%;margin:0 0 19px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 2px 9px;border-bottom:1px solid #292929;margin-bottom:9px}
+.section-head h2{font-size:16px;font-weight:600;margin:0}
+.section-count{font-size:12px;color:#888}
+.checks{display:grid;gap:8px}
+.check{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px;border:1px solid #252525;border-radius:12px;background:#080808}
 .symbol{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#103b25;color:#27e879;font-size:18px;font-weight:700;line-height:1}
+.check.bad{border-color:#552525;background:#100808}
 .check.bad .symbol{background:#401717;color:#ff6666}
 .check-title{font-size:15px;font-weight:600;line-height:1.2}
-.check-location{font-size:12px;color:#aaa;margin-top:3px}
-.check-explain{font-size:13px;color:#c5c5c5;margin-top:5px;line-height:1.35}
-.actions{width:min(100%,220px);display:grid;gap:10px;margin-top:23px}
-button,.back{height:44px;width:100%;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:#fff;color:#000;font:600 16px "Fredoka",ui-rounded,system-ui,sans-serif;text-decoration:none;cursor:pointer}
-button:disabled{opacity:.6;cursor:wait}
-#note{font-size:12px;color:#777;line-height:1.4;margin:17px 4px 0}
+.check-location{font-size:12px;color:#888;margin-top:3px}
+.check-explain{font-size:13px;color:#c5c5c5;margin-top:5px;line-height:1.4}
+.state{font-size:10px;letter-spacing:.04em;font-weight:700;color:#35db7b;padding:4px 7px;border-radius:20px;background:#0d2819}
+.check.bad .state{color:#ff7777;background:#321313}
+#scanTime{font-size:11px;color:#666;text-align:center;margin:2px 0 0}
+#checks{width:100%}
 [hidden]{display:none!important}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+@media(max-width:390px){.actions{grid-template-columns:1fr}.check{grid-template-columns:30px minmax(0,1fr)}.state{grid-column:2;justify-self:start}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <main>
+<header class="hero">
 <div class="status-mark" id="mark" aria-hidden="true">
 <svg id="markIcon" viewBox="0 0 54 54" fill="none"><path d="m10 28 11 11L45 13" stroke="#18d66b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </div>
 <h1>Swiper Status</h1>
 <p id="headline" role="status" aria-live="polite">Checking status…</p>
-<p id="detail">Checking game features.</p>
-<section id="checks" aria-label="Feature checks"></section>
+<p id="detail">Running system checks.</p>
+</header>
 <div class="actions">
 <button id="scan" type="button">Check Again</button>
 <a class="back" href="./">Back to Game</a>
 </div>
-<p id="note">These checks inspect the published game code. They do not guarantee that live multiplayer servers or database services are responding.</p>
+<div id="checks" aria-label="System checks"></div>
+<p id="scanTime"></p>
 </main>
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-function renderCheck(item){
- const card=document.createElement("article");
- card.className="check"+(item.ok?"":" bad");
- const symbol=document.createElement("div");
- symbol.className="symbol";
- symbol.textContent=item.ok?"✓":"×";
+const groups=[
+ {title:"Game & Gameplay",items:[
+  {name:"Game engine",location:"Main Game → game loop",test:s=>/function\s+loop\s*\(/.test(s)||/requestAnimationFrame\(/.test(s),success:"The animation/game loop code is present.",problem:"The expected game loop was not found. Check the main animation function and requestAnimationFrame call."},
+  {name:"Practice Mode",location:"Main Menu → Practice",test:s=>/id="menuPractice"/.test(s)&&/chooseMode\("practice"\)/.test(s),success:"Practice Mode entry and mode selection were found.",problem:"Practice Mode's menu entry or mode selection is missing. Check menuPractice and its click handler."},
+  {name:"Bot Play",location:"Main Menu → Bot Play → game engine",test:s=>/function updateBotAI\(/.test(s)&&/easy:[\s\S]{0,100}normal:[\s\S]{0,100}hard:[\s\S]{0,100}expert:[\s\S]{0,100}impossible:/.test(s),success:"Predictive bot AI and all five difficulty levels were found.",problem:"Bot AI or a difficulty setting is missing. Check updateBotAI() and its easy-to-impossible tuning table."},
+  {name:"Spike spawning",location:"Game engine → spawnSpike()",test:s=>/function spawnSpike\(/.test(s),success:"The spike-spawning function was found.",problem:"spawnSpike() was not found. The game may not be able to create obstacles; check the obstacle spawn function."},
+  {name:"Game start & restart",location:"Game screen → Start / Restart",test:s=>/function\s+startGame\s*\(/.test(s)&&/startGame\s*\(/.test(s),success:"The game start function and its call sites were found.",problem:"The start-game function could not be found. Check the start button and game initialization code."}
+ ]},
+ {title:"Online & Multiplayer",items:[
+  {name:"Quick Play",location:"Main Menu → Quick Play → team selection",test:s=>/id="menuQuick"/.test(s)&&/id="matchStatus"/.test(s)&&/showScreen\("match"\)/.test(s),success:"Quick Play and its matchmaking screen were found.",problem:"Quick Play or its matchmaking screen is missing. Check menuQuick, matchScreen, and the team-selection flow."},
+  {name:"Online Lobbies",location:"Main Menu → More → Online Lobbies",test:s=>/id="menuOnline"/.test(s)&&/function\s+createOnlineLobby\(/.test(s)&&/swipe_lobby_list/.test(s)&&/swipe_lobby_create/.test(s),success:"Lobby menu, lobby creation, and lobby-list requests were found.",problem:"A lobby feature is missing. Check menuOnline, createOnlineLobby(), and the swipe_lobby_list / swipe_lobby_create RPC calls."},
+  {name:"Live player presence",location:"Online Play → player count",test:s=>/onlinePresenceChannel/.test(s)&&/presence/.test(s)&&/renderOnlinePresence/.test(s),success:"Realtime presence tracking code was found.",problem:"The realtime presence code was not found. Check the online presence channel and player-count renderer."},
+  {name:"Matchmaking controls",location:"Quick Play → Search / Cancel",test:s=>/swipe_find_team_match/.test(s)&&/swipe_leave_match/.test(s)&&/swipe_match_status/.test(s),success:"Search, match-status, and leave-match requests were found.",problem:"A matchmaking RPC is missing. Check swipe_find_team_match, swipe_match_status, and swipe_leave_match."}
+ ]},
+ {title:"Accounts & Community",items:[
+  {name:"Sign-in session",location:"Game startup → Supabase Auth",test:s=>/createClient\(/.test(s)&&/persistSession\s*:\s*true/.test(s)&&/detectSessionInUrl\s*:\s*true/.test(s),success:"Supabase Auth and persistent login configuration were found.",problem:"The auth client or session settings are missing. Check createClient() and its auth options."},
+  {name:"Password recovery",location:"More → Account → Forgot Password",test:s=>/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(s),success:"The password-reset email request was found.",problem:"The password-reset request is missing or changed. Check the forgot-password handler and Supabase redirect URL allowlist."},
+  {name:"Friends",location:"More → Friends",test:s=>/id="friendsPage"/.test(s)&&/id="friendSearch"/.test(s)&&/swipe_friend_requests/.test(s),success:"Friends page, friend search, and friend-request data calls were found.",problem:"A friends feature is missing. Check friendsPage, friendSearch, and swipe_friend_requests."},
+  {name:"Chat & messages",location:"Friends → Chat",test:s=>/id="chatMessages"/.test(s)&&/id="sendChatMessage"/.test(s)&&/swipe_messages/.test(s),success:"Chat interface and message sending code were found.",problem:"Chat UI or message database calls are missing. Check chatMessages, sendChatMessage, and swipe_messages."},
+  {name:"Community Levels",location:"Main Menu → Community Levels",test:s=>/id="menuCommunity"/.test(s)&&/swiper_levels/.test(s),success:"Community Levels menu and level database calls were found.",problem:"Community Levels menu or database calls were not found. Check menuCommunity and swiper_levels."},
+  {name:"Player profiles & avatars",location:"More → Account / Avatar Editor",test:s=>/swipe_profiles/.test(s)&&/id="avatarPanel"/.test(s)&&/id="saveAvatar"/.test(s),success:"Profile data and avatar editor controls were found.",problem:"Profile or avatar editor code is missing. Check swipe_profiles, avatarPanel, and saveAvatar."},
+  {name:"Reports & safety",location:"More → Report / Feedback",test:s=>/swipe_reports/.test(s)&&/id="menuFeedback"/.test(s),success:"Report storage and feedback entry points were found.",problem:"Report or feedback code was not found. Check swipe_reports and the feedback menu."}
+ ]},
+ {title:"Scores & Website",items:[
+  {name:"Leaderboard",location:"Main Menu → Leaderboard",test:s=>["practice","bot","all","quick"].every(x=>s.includes('data-board-mode="'+x+'"')),success:"Practice, Bot Play, All, and Online leaderboard tabs were found.",problem:"A leaderboard category is missing. Check the data-board-mode tab values."},
+  {name:"Score saving",location:"Game Over → swipe_scores",test:s=>/from\("swipe_scores"\)\.insert/.test(s)&&/swipe_record_game/.test(s),success:"Score submission and game-recording code were found.",problem:"Score saving code is missing. Check the game-over submit handler, swipe_scores, and swipe_record_game."},
+  {name:"Name tags",location:"Game screen → player name tags",test:s=>/text-overflow:\s*ellipsis/.test(s)&&/data-tag/.test(s),success:"Long player names are configured to shorten with an ellipsis.",problem:"Name-tag truncation is missing. Check the runner label CSS and data-tag attribute."}
+ ]}
+];
+function render(item,ok){
+ const card=document.createElement("article");card.className="check"+(ok?"":" bad");
+ const symbol=document.createElement("div");symbol.className="symbol";symbol.textContent=ok?"✓":"×";
  const body=document.createElement("div");
- const title=document.createElement("div");
- title.className="check-title";
- title.textContent=item.name;
- const location=document.createElement("div");
- location.className="check-location";
- location.textContent="Location: "+item.location;
- const explanation=document.createElement("div");
- explanation.className="check-explain";
- explanation.textContent=item.ok?item.success:item.problem;
- body.append(title,location,explanation);
- card.append(symbol,body);
- $("checks").append(card);
+ const title=document.createElement("div");title.className="check-title";title.textContent=item.name;
+ const location=document.createElement("div");location.className="check-location";location.textContent="Location: "+item.location;
+ const explanation=document.createElement("div");explanation.className="check-explain";explanation.textContent=ok?item.success:item.problem;
+ const state=document.createElement("div");state.className="state";state.textContent=ok?"PASS":"ISSUE";
+ body.append(title,location,explanation);card.append(symbol,body,state);return card;
+}
+function renderGroup(group,results){
+ const section=document.createElement("section");section.className="section";
+ const head=document.createElement("div");head.className="section-head";
+ const title=document.createElement("h2");title.textContent=group.title;
+ const count=document.createElement("span");count.className="section-count";
+ const passed=results.filter(x=>x.ok).length;count.textContent=passed+"/"+results.length+" passed";
+ head.append(title,count);
+ const list=document.createElement("div");list.className="checks";
+ results.forEach(x=>list.append(render(x.item,x.ok)));
+ section.append(head,list);$("checks").append(section);
 }
 async function scan(){
- const button=$("scan");
- button.disabled=true;
- button.textContent="Checking…";
- $("headline").textContent="Checking status…";
- $("detail").textContent="Reading the published game code.";
- $("checks").replaceChildren();
- $("mark").style.borderColor="#777";
- $("markIcon").innerHTML='<circle cx="27" cy="27" r="16" stroke="#aaa" stroke-width="5"/>';
+ const button=$("scan");button.disabled=true;button.textContent="Scanning…";
+ $("headline").textContent="Checking systems…";$("detail").textContent="Testing game features and service connection.";
+ $("checks").replaceChildren();$("scanTime").textContent="";
+ $("mark").style.borderColor="#777";$("markIcon").innerHTML='<circle cx="27" cy="27" r="16" stroke="#aaa" stroke-width="5"/>';
+ let all=[];
  try{
   const response=await fetch("./index.html?status="+Date.now(),{cache:"no-store"});
-  if(!response.ok)throw new Error("The game page returned HTTP "+response.status+". The website may be unavailable or the page path may have changed.");
+  if(!response.ok)throw new Error("Game page returned HTTP "+response.status+". The website may be unavailable.");
   const source=await response.text();
-  const tests=[
-   {name:"Bot Play",location:"Main Menu → Bot Play → game engine",ok:/function updateBotAI\(/.test(source)&&/easy:[\s\S]{0,100}normal:[\s\S]{0,100}hard:[\s\S]{0,100}expert:[\s\S]{0,100}impossible:/.test(source),success:"Bot obstacle prediction and all five difficulty levels were found.",problem:"The bot AI or one of its difficulty settings is missing. Check updateBotAI() and the difficulty tuning table in index.html."},
-   {name:"Online Play",location:"Main Menu → Quick Play → team selection",ok:/id="menuQuick"/.test(source)&&/id="matchStatus"/.test(source)&&/showScreen\("match"\)/.test(source),success:"Quick Play entry and team-selection screen code were found.",problem:"Quick Play's menu button or team-selection screen could not be found. Check menuQuick and the match screen markup."},
-   {name:"Online Lobbies",location:"Main Menu → More → Online Lobbies",ok:/id="menuOnline"/.test(source)&&/showScreen\("online"\)/.test(source),success:"Online Lobbies menu entry and screen navigation were found.",problem:"The Online Lobbies button or its screen navigation is missing. Check menuOnline and the online screen handlers."},
-   {name:"Leaderboard",location:"Main Menu → Leaderboard",ok:/data-board-mode="practice"/.test(source)&&/data-board-mode="bot"/.test(source)&&/data-board-mode="all"/.test(source)&&/data-board-mode="quick"/.test(source),success:"Practice, Bot Play, All, and Online leaderboard tabs were found.",problem:"One or more leaderboard categories are missing. Check the leaderboard tab markup and data-board-mode values."},
-   {name:"Score saving",location:"Game over → swipe_scores",ok:/from\("swipe_scores"\)\.insert/.test(source),success:"Game score submission code was found.",problem:"No swipe_scores insert was found. Check the game-over score-saving function and Supabase table permissions."},
-   {name:"Account & password reset",location:"More → Account → Forgot Password",ok:/resetPasswordForEmail\(email,\{redirectTo\}\)/.test(source),success:"Supabase password-reset request code was found.",problem:"The password-reset request is missing or changed. Check the forgot-password handler and Supabase Authentication URL settings."},
-   {name:"Player name tags",location:"Game screen → player name tag",ok:/text-overflow:ellipsis/.test(source)&&/data-tag/.test(source),success:"Name tags are configured to shorten long names with an ellipsis.",problem:"The name-tag shortening style or data-tag attribute is missing. Check the runner name-tag CSS and player label setup."},
-   {name:"Database connection setup",location:"Game startup → Supabase client",ok:/createClient\(/.test(source)&&/auth:\s*\{[^}]*persistSession\s*:\s*true/.test(source),success:"Supabase client initialization and persistent login settings were found.",problem:"The expected Supabase client or persistent-session setting was not found. Check the database client initialization near the top of index.html."}
-  ];
-  tests.forEach(renderCheck);
-  const failed=tests.filter(test=>!test.ok);
-  if(failed.length){
-   $("mark").style.borderColor="#ff5555";
-   $("markIcon").innerHTML='<path d="M16 16 38 38M38 16 16 38" stroke="#ff6666" stroke-width="6" stroke-linecap="round"/>';
-   $("headline").textContent=failed.length+" Problem"+(failed.length===1?"":"s")+" Found";
-   $("detail").textContent="The items marked × need attention.";
+  for(const group of groups){
+   const results=group.items.map(item=>({item,ok:!!item.test(source)}));
+   all.push(...results);renderGroup(group,results);
+  }
+  const config=source.match(/createClient\(\s*["']([^"']+)["']\s*,\s*["']([^"']+)["']/);
+  let live={item:{name:"Supabase API connection",location:"Live service → Supabase REST API",success:"The Supabase API responded successfully.",problem:"The Supabase API did not respond successfully. Check the project status, API URL, network, and anon key."},ok:false};
+  if(config){
+   try{
+    const ping=await fetch(config[1].replace(/\/$/,"")+"/rest/v1/",{method:"GET",headers:{apikey:config[2],Authorization:"Bearer "+config[2]},cache:"no-store"});
+    live.ok=ping.ok;
+    if(!ping.ok)live.item.problem="Supabase responded with HTTP "+ping.status+". Check project availability and API configuration. This check does not test user-specific table permissions.";
+   }catch(e){live.item.problem="Could not reach Supabase from this browser. Check internet access, browser privacy settings, and the Supabase project URL."}
+  }else{live.item.problem="The Supabase URL and public key could not be read from the game's client setup."}
+  const liveGroup={title:"Live Services",items:[live.item]};renderGroup(liveGroup,[live]);all.push(live);
+  const failed=all.filter(x=>!x.ok).length,passed=all.length-failed;
+  if(failed){
+   $("mark").style.borderColor="#ff5555";$("markIcon").innerHTML='<path d="M16 16 38 38M38 16 16 38" stroke="#ff6666" stroke-width="6" stroke-linecap="round"/>';
+   $("headline").textContent=failed+" Issue"+(failed===1?"":"s")+" Found";
+   $("detail").textContent=passed+" of "+all.length+" checks passed. See the items marked × below.";
   }else{
-   $("mark").style.borderColor="#18d66b";
-   $("markIcon").innerHTML='<path d="m10 28 11 11L45 13" stroke="#18d66b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>';
-   $("headline").textContent="All Systems Online!";
-   $("detail").textContent="All "+tests.length+" code checks passed.";
+   $("mark").style.borderColor="#18d66b";$("markIcon").innerHTML='<path d="m10 28 11 11L45 13" stroke="#18d66b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>';
+   $("headline").textContent="All Systems Online!";$("detail").textContent="All "+all.length+" checks passed.";
   }
  }catch(error){
-  $("mark").style.borderColor="#ff5555";
-  $("markIcon").innerHTML='<path d="M16 16 38 38M38 16 16 38" stroke="#ff6666" stroke-width="6" stroke-linecap="round"/>';
-  $("headline").textContent="Website Check Failed";
-  $("detail").textContent="Location: Status page → game page request";
-  renderCheck({name:"Game page could not be checked",location:"./index.html",ok:false,problem:error.message});
+  $("mark").style.borderColor="#ff5555";$("markIcon").innerHTML='<path d="M16 16 38 38M38 16 16 38" stroke="#ff6666" stroke-width="6" stroke-linecap="round"/>';
+  $("headline").textContent="Status Check Failed";$("detail").textContent=error.message;
+  const group={title:"Website",items:[{name:"Game page request",location:"Status page → index.html",success:"",problem:error.message}]};
+  renderGroup(group,[{item:group.items[0],ok:false}]);
  }finally{
-  button.disabled=false;
-  button.textContent="Check Again";
+  button.disabled=false;button.textContent="Check Again";
+  $("scanTime").textContent="Last checked: "+new Date().toLocaleString();
  }
 }
-$("scan").addEventListener("click",scan);
-scan();
+$("scan").addEventListener("click",scan);scan();
 })();
 </script>
 </body>
