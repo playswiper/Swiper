@@ -964,6 +964,123 @@ document.addEventListener("visibilitychange",()=>{const v=$("arenaVideo");if(doc
 showScreen("menu");
 const loadingEl=$("swiperLoading");setTimeout(()=>{loadingEl?.classList.add("fade-out");setTimeout(()=>loadingEl?.remove(),750)},5000);
 syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.search).get("playLevel");if(requestedLevel&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedLevel)){const {data:targetLevel,error:targetError}=await db.from("swiper_levels").select("id,user_id,creator_name,title,difficulty,pattern,preview_image,video_background,created_at").eq("id",requestedLevel).maybeSingle();if(targetError){console.error("Community level lookup failed:",targetError);return}if(targetLevel)playCommunityLevel(targetLevel);}}).catch(e=>{console.error("Initial Swiper setup failed:",e);msg("authMessage","Swiper setup failed: "+(e?.message||String(e)),"error");loadBoard()});
+
+/* Live service notices, registered-account issue reports, and admin controls. */
+(function(){
+ const style=document.createElement("style");
+ style.textContent=`
+ #swiperLiveNotices{position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:50%;transform:translateX(-50%);z-index:2147482000;width:min(760px,calc(100vw - 20px));display:grid;gap:7px;pointer-events:none;font-family:"Fredoka",sans-serif}
+ .swiper-live-notice{pointer-events:auto;padding:10px 15px;border:1px solid #405064;border-radius:13px;background:#151b27f5;color:#f4f7ff;box-shadow:0 12px 36px #0008;font:500 14px/1.35 "Fredoka",sans-serif;overflow-wrap:anywhere;animation:swiperNoticeIn .22s ease-out}
+ .swiper-live-notice.announcement{border-color:#70eee2;text-align:center;font-size:16px;font-weight:600}
+ .swiper-live-notice.outage{border-color:#ffb86c}
+ .swiper-live-notice.community{border-color:#9a8cff;text-align:center}
+ @keyframes swiperNoticeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+ #swiperAdminTools{position:fixed;inset:0;z-index:2147482100;background:#05080dcc;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:calc(env(safe-area-inset-top) + 18px) 12px calc(env(safe-area-inset-bottom) + 18px);font-family:"Fredoka",sans-serif}
+ #swiperAdminTools.open{display:flex}
+ .swiper-admin-card{width:min(720px,100%);max-height:none;background:#151b27;border:1px solid #39465b;border-radius:18px;padding:18px;color:#f4f7ff;box-shadow:0 24px 80px #0009}
+ .swiper-admin-card h2,.swiper-admin-card h3{font-family:"Fredoka",sans-serif;margin:0 0 10px}
+ .swiper-admin-card h2{font-size:23px}.swiper-admin-card h3{font-size:17px;margin-top:18px}
+ .swiper-admin-card label{display:grid;gap:5px;margin:9px 0;color:#b9c6d8;font-size:12px}
+ .swiper-admin-card input,.swiper-admin-card textarea{width:100%;box-sizing:border-box;border:1px solid #35445a;border-radius:9px;background:#0c121c;color:#f4f7ff;padding:10px;font:14px "Fredoka",sans-serif}
+ .swiper-admin-card textarea{min-height:72px;resize:vertical}
+ .swiper-admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+ .swiper-admin-actions button,.swiper-admin-row button{font:600 13px "Fredoka",sans-serif;border:1px solid #3b4b61;border-radius:9px;padding:9px 12px;background:#263247;color:#fff}
+ .swiper-admin-actions .primary{background:#70eee2;color:#071516;border:0}
+ .swiper-admin-row{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:11px 0;border-top:1px solid #2b3547}
+ .swiper-admin-row>div{min-width:0;overflow-wrap:anywhere}.swiper-admin-row small{display:block;color:#9aa8bd;margin-top:4px}
+ .swiper-admin-status{min-height:20px;color:#70eee2;font-size:12px;margin-top:8px}
+ @media(prefers-reduced-motion:reduce){.swiper-live-notice{animation:none}}
+ `;
+ document.head.appendChild(style);
+ const notices=document.createElement("div");notices.id="swiperLiveNotices";notices.setAttribute("aria-live","polite");notices.setAttribute("aria-atomic","false");document.body.appendChild(notices);
+ const adminRoot=document.createElement("div");adminRoot.id="swiperAdminTools";
+ adminRoot.innerHTML=`<section class="swiper-admin-card" role="dialog" aria-modal="true" aria-labelledby="swiperAdminTitle">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 id="swiperAdminTitle">Swiper Admin</h2><button type="button" id="swiperAdminClose">Close</button></div>
+  <h3>Known outages</h3>
+  <label>Outage title<input id="swiperOutageTitle" maxlength="120" placeholder="Example: Multiplayer matchmaking unavailable"></label>
+  <label>What is affected?<textarea id="swiperOutageDetails" maxlength="1200" placeholder="Describe what users may experience and any known details."></textarea></label>
+  <label>Started at<input id="swiperOutageStarted" type="datetime-local"></label>
+  <div class="swiper-admin-actions"><button class="primary" id="swiperOutageCreate">Publish outage</button><button id="swiperOutageRefresh">Refresh outages</button></div>
+  <div id="swiperOutageList"></div>
+  <h3>Admin announcement</h3>
+  <label>Announcement text<input id="swiperAnnouncementText" maxlength="240" placeholder="Your announcement text"></label>
+  <div class="swiper-admin-actions"><button class="primary" id="swiperAnnouncementSend">Show announcement for 10 seconds</button></div>
+  <div class="swiper-admin-status" id="swiperAdminStatus" role="status"></div>
+ </section>`;
+ document.body.appendChild(adminRoot);
+ const setAdminStatus=(v,bad=false)=>{const el=document.getElementById("swiperAdminStatus");if(el){el.textContent=v||"";el.style.color=bad?"#ff9daf":"#70eee2"}};
+ const escDate=v=>{try{return new Date(v).toLocaleString()}catch(e){return "Unknown time"}};
+ const row=(title,detail,buttons)=>{const el=document.createElement("div");el.className="swiper-admin-row";const d=document.createElement("div"),strong=document.createElement("strong"),small=document.createElement("small");strong.textContent=title;small.textContent=detail||"";d.append(strong,small);el.append(d,buttons);return el};
+ async function refreshOutages(){
+  const list=document.getElementById("swiperOutageList");if(!list)return;list.textContent="Loading outages…";
+  const {data,error}=await db.from("swiper_known_outages").select("*").order("started_at",{ascending:false}).limit(30);
+  if(error){list.textContent="Could not load outages: "+error.message;return}
+  list.replaceChildren();
+  if(!data?.length){list.textContent="No outages have been recorded.";return}
+  for(const item of data){
+   const actions=document.createElement("div");actions.className="swiper-admin-actions";
+   if(!item.resolved_at){const fixed=document.createElement("button");fixed.textContent="Mark fixed";fixed.onclick=async()=>{const {error:e}=await db.from("swiper_known_outages").update({resolved_at:new Date().toISOString()}).eq("id",item.id);if(e)setAdminStatus("Could not mark fixed: "+e.message,true);else{setAdminStatus("Outage marked fixed.");refreshOutages();refreshNotices()}};actions.append(fixed)}
+   const del=document.createElement("button");del.textContent="Delete";del.onclick=async()=>{if(!confirm("Delete this outage record?"))return;const {error:e}=await db.from("swiper_known_outages").delete().eq("id",item.id);if(e)setAdminStatus("Could not delete outage: "+e.message,true);else{setAdminStatus("Outage record deleted.");refreshOutages();refreshNotices()}};actions.append(del);
+   list.append(row(item.title,(item.resolved_at?"FIXED · ":"ACTIVE · ")+escDate(item.started_at)+(item.details?" · "+item.details:""),actions));
+  }
+ }
+ async function refreshNotices(){
+  const now=Date.now(),entries=[];
+  const [outages,issues,announcements]=await Promise.all([
+   db.from("swiper_known_outages").select("id,title,details,started_at").is("resolved_at",null).order("started_at",{ascending:true}).limit(3),
+   db.from("swiper_community_issues").select("id,expires_at").gt("expires_at",new Date(now).toISOString()).limit(1),
+   db.from("swiper_admin_announcements").select("id,message,created_at,expires_at").gt("expires_at",new Date(now).toISOString()).order("created_at",{ascending:false}).limit(3)
+  ]);
+  for(const x of (outages.data||[])){const d=document.createElement("div");d.className="swiper-live-notice outage";const b=document.createElement("strong");b.textContent="Known outage: "+x.title;const p=document.createElement("div");p.textContent=(x.details?x.details+" · ":"")+"Started "+escDate(x.started_at);d.append(b,p);entries.push(["outage:"+x.id,d])}
+  if(issues.data?.length){const d=document.createElement("div");d.className="swiper-live-notice community";d.textContent="An issue has been spotted by viewers.";entries.push(["community",d])}
+  const latest=(announcements.data||[]).find(x=>new Date(x.expires_at).getTime()>Date.now());
+  if(latest){const d=document.createElement("div");d.className="swiper-live-notice announcement";d.textContent="admin: "+latest.message;entries.push(["announcement:"+latest.id,d])}
+  notices.replaceChildren(...entries.map(x=>x[1]));
+ }
+ function addMenuButton(id,label,after){
+  if(document.getElementById(id)||!after?.parentNode)return null;
+  const b=document.createElement("button");b.type="button";b.className="secondary";b.id=id;b.textContent=label;after.parentNode.insertBefore(b,after.nextSibling);return b;
+ }
+ const feedbackButton=document.getElementById("menuFeedback");
+ const reportButton=addMenuButton("menuReportIssue","Report an issue",feedbackButton);
+ reportButton?.addEventListener("click",async()=>{
+  if(!user||isSwiperGuestSession()){msg("menuStatus","Sign in with a registered account to report an issue.","error");showScreen("account");return}
+  const title=prompt("Briefly describe the issue. Other players must use the same wording for reports to be grouped.");
+  if(title===null)return;
+  const clean=title.trim();if(clean.length<4||clean.length>120){msg("menuStatus","Issue descriptions must be 4–120 characters.","error");return}
+  reportButton.disabled=true;
+  try{const {data,error}=await db.rpc("swiper_submit_community_issue_report",{p_title:clean});if(error)throw error;msg("menuStatus",data?.message||"Report received. Thank you.","good");await refreshNotices()}
+  catch(e){msg("menuStatus",e.message||"Could not submit the issue report.","error")}
+  finally{reportButton.disabled=false}
+ });
+ const adminButton=addMenuButton("menuAdminTools","Admin tools",feedbackButton);
+ adminButton?.addEventListener("click",async()=>{if(!isSwiperAdmin())return;adminRoot.classList.add("open");await refreshOutages()});
+ document.getElementById("swiperAdminClose").addEventListener("click",()=>adminRoot.classList.remove("open"));
+ adminRoot.addEventListener("click",e=>{if(e.target===adminRoot)adminRoot.classList.remove("open")});
+ document.getElementById("swiperOutageRefresh").addEventListener("click",refreshOutages);
+ document.getElementById("swiperOutageCreate").addEventListener("click",async()=>{
+  if(!isSwiperAdmin()||!user)return;
+  const title=document.getElementById("swiperOutageTitle").value.trim(),details=document.getElementById("swiperOutageDetails").value.trim(),raw=document.getElementById("swiperOutageStarted").value;
+  if(title.length<3){setAdminStatus("Enter an outage title with at least 3 characters.",true);return}
+  const started=raw?new Date(raw):new Date();if(Number.isNaN(started.getTime())||started.getTime()>Date.now()+60000){setAdminStatus("Enter a valid start time that is not in the future.",true);return}
+  const {error}=await db.from("swiper_known_outages").insert({title,details,started_at:started.toISOString(),created_by:user.id});
+  if(error){setAdminStatus("Could not publish outage: "+error.message,true);return}
+  document.getElementById("swiperOutageTitle").value="";document.getElementById("swiperOutageDetails").value="";document.getElementById("swiperOutageStarted").value="";
+  setAdminStatus("Known outage published.");await refreshOutages();await refreshNotices();
+ });
+ document.getElementById("swiperAnnouncementSend").addEventListener("click",async()=>{
+  if(!isSwiperAdmin()||!user)return;
+  const message=document.getElementById("swiperAnnouncementText").value.trim();if(!message||message.length>240){setAdminStatus("Enter announcement text (1–240 characters).",true);return}
+  const {error}=await db.from("swiper_admin_announcements").insert({message,created_by:user.id});
+  if(error){setAdminStatus("Could not publish announcement: "+error.message,true);return}
+  document.getElementById("swiperAnnouncementText").value="";setAdminStatus("Announcement published for 10 seconds.");await refreshNotices();
+ });
+ const syncControls=()=>{const admin=!!user&&isSwiperAdmin(),registered=!!user&&!isSwiperGuestSession();if(adminButton)adminButton.classList.toggle("hidden",!admin);if(reportButton)reportButton.classList.toggle("hidden",!registered)};
+ syncControls();
+ refreshNotices().catch(e=>console.warn("Swiper notices refresh failed:",e));
+ setInterval(()=>{syncControls();refreshNotices().catch(e=>console.warn("Swiper notices refresh failed:",e))},2000);
+ setInterval(()=>{if(adminRoot.classList.contains("open")&&isSwiperAdmin())refreshOutages().catch(()=>{})},15000);
+})();
 })();
 };
 </script>
