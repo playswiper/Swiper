@@ -257,6 +257,7 @@ async function scan(){
    }catch(e){live.item.problem="Could not reach Supabase from this browser. Check internet access, browser privacy settings, and the Supabase project URL."}
   }else{live.item.problem="The expected SUPABASE_URL and SUPABASE_KEY constants were not found near the top of index.html."}
   const liveGroup={title:"Live Services",items:[live.item]};renderGroup(liveGroup,[live]);all.push(live);
+  const recentErrors=renderRecentErrors();updateSummary(all,recentErrors);
   const failed=all.filter(x=>!x.ok).length,passed=all.length-failed;
   if(failed){
    $("mark").style.borderColor="#ff5555";$("markIcon").innerHTML='<path d="M16 16 38 38M38 16 16 38" stroke="#ff6666" stroke-width="6" stroke-linecap="round"/>';
