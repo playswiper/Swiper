@@ -252,8 +252,9 @@ async function scan(){
   if(config){
    try{
     const ping=await fetch(config.url.replace(/\/$/,"")+"/auth/v1/health",{method:"GET",headers:{apikey:config.key,Authorization:"Bearer "+config.key},cache:"no-store"});
-    live.ok=ping.ok;
-    if(!ping.ok)live.item.problem="Supabase responded with HTTP "+ping.status+". Check project availability and API configuration. This check does not test user-specific table permissions.";
+    live.ok=ping.status<500;
+    if(ping.status>=500)live.item.problem="Supabase Auth returned HTTP "+ping.status+". The service endpoint is responding, but Auth may be temporarily unavailable.";
+    else if(!ping.ok)live.item.success="Supabase is reachable (HTTP "+ping.status+"). This response is not a service outage; this check does not test user-specific table permissions.";
    }catch(e){live.item.problem="Could not reach Supabase from this browser. Check internet access, browser privacy settings, and the Supabase project URL."}
    }else{live.item.problem="Swiper could not read SUPABASE_URL and SUPABASE_KEY from index.html. Check that both constants exist and are quoted."}
   const liveGroup={title:"Live Services",items:[live.item]};renderGroup(liveGroup,[live]);all.push(live);
