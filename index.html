@@ -363,9 +363,7 @@ body.cursed-practice .arena:before{content:"";position:absolute;inset:0;pointer-
 
 .leaderboard-swipe-hint{margin:8px 0 14px;opacity:.72;font-size:12px}.leader-list.board-fade{animation:leaderboardFadeIn .34s ease both;will-change:opacity,transform}@keyframes leaderboardFadeIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.leader-list.board-fade{animation:none}}.avatar-preset-buttons .avatar-preset{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.25}.avatar-preview,.mini-avatar,.menu-profile-avatar,.runner.tomato-avatar{display:grid;place-items:center;text-align:center;line-height:1}.runner[data-tag]:before{display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;max-width:180px}.runner:not(.tomato-avatar){text-align:center;line-height:24px}
 .turnstile-wrap{display:flex;justify-content:center;min-height:0;margin:12px 0;overflow:hidden}.turnstile-wrap:empty{display:none}.turnstile-wrap iframe{max-width:100%}
-/* Practice-only lock mode: all navigation is disabled except Practice and gameplay controls. */
-.practice-only-top-button{position:fixed;top:max(10px,env(safe-area-inset-top));right:12px;z-index:2147482000;border:1px solid #ffffff55;border-radius:999px;padding:9px 14px;background:#171717;color:#fff;font:600 12px "Fredoka",sans-serif;box-shadow:0 5px 20px #0008}
-.practice-only-top-button:active{transform:scale(.97)}
+/* Practice-only lock mode is applied only by the N2Q4KP7 startup-error recovery screen. */
 body.swiper-practice-only .wrap button:not(#menuPractice):not(#start):not(#overlayStart):not(#pause):not(#moveLaneUp):not(#moveLaneDown),
 body.swiper-practice-only .wrap a,
 body.swiper-practice-only .wrap input,
@@ -379,7 +377,6 @@ body.swiper-practice-only #pause,
 body.swiper-practice-only #moveLaneUp,
 body.swiper-practice-only #moveLaneDown{filter:none!important;opacity:1!important;pointer-events:auto!important;cursor:pointer!important}
 body.swiper-practice-only #mainMenu .menu-buttons button:not(#menuPractice){filter:grayscale(1)!important;opacity:.18!important}
-body.swiper-practice-only .practice-only-top-button{display:none!important}
 body.swiper-practice-only .wrap>header,
 body.swiper-practice-only #mainMenu>.menu-profile,
 body.swiper-practice-only #mainMenu>.menu-logo,
@@ -394,7 +391,7 @@ body.swiper-practice-only .home-info{display:none!important}
 </head>
 <body>
 <div id="restrictedScreen" class="restricted-screen hidden" role="alert"><div class="restricted-card"><div class="restricted-mark">S</div><p class="eyebrow">SWIPER ACCOUNT STATUS</p><h1 id="restrictedTitle">Account restricted</h1><p id="restrictedText">This account cannot access Swiper right now.</p><p id="restrictedDetail" class="small"></p><a class="restrictedContact" href="mailto:messageswiper@gmail.com?subject=Swiper%20ban%20appeal">If you think this is a mistake, contact messageswiper@gmail.com</a><button id="restrictedLogout" class="primary">Sign out</button></div></div><audio id="swiperBgMusic" preload="auto" loop playsinline crossorigin="anonymous" aria-label="Swiper background music"><source src="https://raw.githubusercontent.com/Mystarnight-Extras/Swiper/main/1%20Hour%20Of%20Relaxed%20Scene-%5BAudioTrimmer.com%5D.mp3" type="audio/mpeg"></audio><div id="swiperLoading" role="status" aria-live="polite"><div class="swiper-loading-card"><div class="loading-brand">SWIPER</div><div class="loading-progress" role="img" aria-label="Loading animation"><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span></div><div class="loading-caption" id="swiperLoadingCaption">LOADING...</div><div id="swiperFirstVisitCheck" class="swiper-first-visit-check" hidden><p>Quick security check — complete this once to enter Swiper.</p><div id="swiperFirstVisitTurnstile"></div><button class="primary" id="swiperFirstVisitContinue" type="button" disabled>Continue to Swiper</button></div><a class="swiper-status-link" href="https://status.playswiper.com/" target="_blank" rel="noopener noreferrer">Visit the status page</a></div></div><div id="swiperOfflineOverlay" role="dialog" aria-modal="true" aria-labelledby="swiperOfflineTitle" hidden><div class="swiper-offline-card"><div class="loading-brand">SWIPER</div><h2 id="swiperOfflineTitle">Connection problem</h2><p>Online features are unavailable. Switch to local Practice Offline to keep playing.</p><button class="primary" id="practiceOfflineButton" type="button">Practice Offline</button></div></div><div class="wrap">
-<header class="top"><div class="brand"><img class="mark mark-image" src="IMG_2286.jpeg" alt="Swiper logo"><div><h1>SWIPER</h1><p>One move can save your run.</p></div></div><div class="status" id="accountStatus">Guest mode<br>Scores stay on this device</div><button type="button" id="practiceOnlyTopButton" class="practice-only-top-button">Practice Only</button></header>
+<header class="top"><div class="brand"><img class="mark mark-image" src="IMG_2286.jpeg" alt="Swiper logo"><div><h1>SWIPER</h1><p>One move can save your run.</p></div></div><div class="status" id="accountStatus">Guest mode<br>Scores stay on this device</div></header>
 <section class="menu-screen" id="mainMenu"><div class="menu-profile" id="menuProfileCard"><div class="menu-profile-avatar" id="menuProfileAvatar">S</div><div class="menu-profile-copy"><div class="menu-profile-name" id="menuProfileName">Guest player</div><div class="menu-profile-username" id="menuProfileUsername">@sign-in-to-save</div><div class="menu-profile-rank" id="menuProfileRank">Games played: 0 total</div></div><button type="button" class="secondary menu-profile-edit" id="menuProfileEdit">Profile</button></div><div class="menu-tag"></div><div class="menu-logo">SWIPER</div><p></p><div class="menu-buttons"><button class="primary" id="menuPractice">Practice</button><button class="secondary" id="menuBot">Bot Play</button><button class="primary" id="menuQuick">Quick Play</button><button class="primary" id="menuCommunity">Community Levels</button><button class="primary" id="menuScores">Leaderboard</button><details class="menu-more"><summary>More</summary><div class="menu-more-items"><button class="secondary" id="menuOnline">Online Lobbies</button><button class="secondary" id="menuAccount">Account</button><button class="secondary" id="menuAvatar">Avatar Editor</button><button class="secondary" id="menuFriends">Friends</button><button class="secondary" id="menuMessages">Messages</button><button class="secondary" id="menuShop">Shop</button><button class="secondary" id="menuSong">Song</button><button class="secondary" id="menuSettings">Settings</button><button class="secondary" id="menuFeedback">Send feedback</button><a class="secondary menu-contact" id="menuContact" href="mailto:messageswiper@gmail.com?subject=Contact%20Swiper">Contact</a></div></details></div><div class="online-counter" id="onlineCounter" role="status" aria-live="polite"><span id="onlineCountText">Players online: checking…</span><button type="button" class="online-refresh" id="refreshOnline" aria-label="Refresh online players" title="Refresh online players">↻</button></div><div class="online-player-list" id="onlinePlayerList" aria-live="polite">Checking who is online…</div><p class="small" id="menuStatus">Create an account or sign in before playing.</p></section>
 
 <section class="home-info" aria-labelledby="homeInfoTitle">
@@ -716,25 +713,6 @@ function cursedPracticeTime(ms){const days=Math.floor(ms/86400000),hours=Math.fl
 function enterCursedPractice(){cursedPracticeActive=true;document.body.classList.add("cursed-practice");$("boulderHorror").hidden=true;document.body.style.overflow="";songLevelMode=false;chooseMode("practice");$("modeTitle").textContent="Cursed Practice";$("runNote").textContent="Practice as usual: dodge the spikes and survive. The arena itself is cursed.";showScreen("game");ready("Cursed Practice","Same Practice game. Cursed arena effects only—no story or cutscene.");}
 $("menuPractice").addEventListener("click",()=>{cursedPracticeActive=false;document.body.classList.remove("cursed-practice");songLevelMode=false;chooseMode("practice");showScreen("game")});
 
-/* Practice Only can be enabled manually from the top button or automatically 10 seconds after Swiper boots. */
-let swiperPracticeOnlyActivated=false;
-function activateSwiperPracticeOnly(){
- if(swiperPracticeOnlyActivated)return;
- swiperPracticeOnlyActivated=true;
- document.body.classList.add("swiper-practice-only");
- try{
-  if(typeof stopMatch==="function")stopMatch();
-  if(typeof stopMatchPoll==="function")stopMatchPoll();
-  if(typeof matchSearchGeneration!=="undefined")matchSearchGeneration++;
-  if(typeof matchRoomId!=="undefined")matchRoomId=null;
-  if(typeof quickGameStarted!=="undefined")quickGameStarted=false;
-  if(typeof quickFinished!=="undefined")quickFinished=false;
- }catch(e){console.warn("Practice-only mode cleanup:",e)}
- try{showScreen("menu")}catch(e){}
- const status=$("menuStatus");if(status)status.textContent="Practice Only is enabled. Online and other modes are unavailable.";
-}
-$("practiceOnlyTopButton")?.addEventListener("click",activateSwiperPracticeOnly);
-setTimeout(activateSwiperPracticeOnly,10000);
 function showSwiperOfflineMode(){if(document.hidden)return;running=false;paused=false;cancelAnimationFrame(raf);if(typeof stopMatch==="function")stopMatch();if(typeof stopMatchPoll==="function")stopMatchPoll();if(typeof matchSearchGeneration!=="undefined")matchSearchGeneration++;if(typeof matchRoomId!=="undefined")matchRoomId=null;if(typeof quickGameStarted!=="undefined")quickGameStarted=false;if(typeof quickFinished!=="undefined")quickFinished=false;try{showScreen("menu")}catch{}const panel=$("swiperOfflineOverlay");if(panel)panel.hidden=false}
 $("practiceOfflineButton")?.addEventListener("click",()=>{const panel=$("swiperOfflineOverlay");if(panel)panel.hidden=true;document.body.classList.add("swiper-offline-mode");showScreen("menu");setTimeout(()=>$("menuPractice")?.click(),750)});
 window.addEventListener("offline",showSwiperOfflineMode);
@@ -1114,6 +1092,30 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
     const detailLine=document.createElement("p");detailLine.textContent=String(detail||"No additional details were provided.").slice(0,500);detailLine.style.cssText="overflow-wrap:anywhere;color:#ffe3e8";
     const instruction=document.createElement("p");instruction.textContent="If this keeps happening, contact mystarsnight@gmail.com and include the 7-character error code.";
     const retry=document.createElement("button");retry.textContent="Try again";retry.style.cssText="margin:12px 8px 0;padding:12px 20px;border:0;border-radius:9px;background:#ffffff;color:#8f1026;font-weight:800";retry.onclick=()=>location.reload();
+    if(code==="N2Q4KP7"){
+      const practiceWrap=document.createElement("div");practiceWrap.style.cssText="position:sticky;top:0;z-index:5;margin:0 0 16px;padding:8px 0;background:#8f1026";
+      const practiceButton=document.createElement("button");practiceButton.type="button";practiceButton.textContent="Continue to Practice Only";practiceButton.style.cssText="padding:13px 22px;border:0;border-radius:999px;background:#fff;color:#8f1026;font-weight:900;font-size:15px;cursor:pointer";
+      const practiceTimer=document.createElement("p");practiceTimer.textContent="Opening Practice Only in 10 seconds…";practiceTimer.style.cssText="margin:8px 0 0;font-size:13px;color:#fff";
+      let practiceStarted=false;
+      const enterPracticeOnly=()=>{
+        if(practiceStarted)return;practiceStarted=true;clearInterval(practiceCountdown);
+        if(!window.__swiperBooted||!document.getElementById("menuPractice")){
+          practiceTimer.textContent="Practice is unavailable because Swiper did not finish loading. Please try again.";
+          practiceButton.disabled=true;practiceButton.style.opacity=".5";return;
+        }
+        document.body.classList.add("swiper-practice-only");
+        l.classList.add("fade-out");setTimeout(()=>{l.remove();document.getElementById("menuPractice")?.click()},750);
+      };
+      practiceButton.addEventListener("click",enterPracticeOnly);
+      practiceWrap.append(practiceButton,practiceTimer);
+      box.insertBefore(practiceWrap,box.firstChild);
+      let secondsLeft=10;
+      const practiceCountdown=setInterval(()=>{
+        secondsLeft--;
+        if(secondsLeft<=0){practiceTimer.textContent="Opening Practice Only…";enterPracticeOnly()}
+        else practiceTimer.textContent="Opening Practice Only in "+secondsLeft+" seconds…";
+      },1000);
+    }
     box.append(brand,heading,codeLine,detailLine,instruction,retry);l.append(box);
   }
   function boot(){
