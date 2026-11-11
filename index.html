@@ -912,11 +912,16 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
   const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   function makeErrorCode(){
     const bytes=new Uint8Array(7);
-    try{crypto.getRandomValues(bytes)}catch(e){for(let i=0;i<7;i++)bytes[i]=Math.floor(Math.random()*256)}
+    try{window.crypto.getRandomValues(bytes)}catch(e){for(let i=0;i<7;i++)bytes[i]=Math.floor(Math.random()*256)}
     return Array.from(bytes,b=>alphabet[b%alphabet.length]).join("");
   }
-  let fallbackStarted=false,finished=false;
-  function showStartupError(_code,title,detail){
+  let finished=false,attempt=0,activeScript=null;
+  const sources=[
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    "https://unpkg.com/@supabase/supabase-js@2",
+    "https://esm.sh/@supabase/supabase-js@2"
+  ];
+  function showStartupError(title,detail){
     if(finished)return;
     finished=true;
     const code=makeErrorCode();
@@ -932,32 +937,55 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
     const retry=document.createElement("button");retry.textContent="Try again";retry.style.cssText="margin:12px 8px 0;padding:12px 20px;border:0;border-radius:9px;background:#ffffff;color:#8f1026;font-weight:800";retry.onclick=()=>location.reload();
     box.append(brand,heading,codeLine,detailLine,instruction,retry);l.append(box);
   }
-  window.addEventListener("error",function(e){if(window.__swiperBooted)showStartupError(null,"A JavaScript error occurred",(e.message||"Unknown script error")+" (line "+(e.lineno||"?")+")")});
-  window.addEventListener("unhandledrejection",function(e){if(window.__swiperBooted){const r=e.reason;showStartupError(null,"An app task failed",r&&r.message?r.message:String(r||"Unknown rejected task"))}});
   function boot(){
-    if(window.__swiperBooted||!window.supabase||typeof window.__bootSwiper!=="function")return false;
+    if(finished||window.__swiperBooted||!window.supabase||typeof window.__bootSwiper!=="function")return false;
     window.__swiperBooted=true;
     try{window.__bootSwiper();return true}
-    catch(e){showStartupError(null,"Swiper could not start",((e&&e.name)?e.name+": ":"")+(e&&e.message?e.message:String(e)));return false}
+    catch(e){window.__swiperBooted=false;showStartupError("Swiper could not start",(e&&e.name?e.name+": ":"")+(e&&e.message?e.message:String(e)));return false}
   }
-  function loadFallback(){
-    if(fallbackStarted||window.__swiperBooted)return;
-    fallbackStarted=true;
-    if(window.supabase){boot();return}
-    const fallback=document.createElement("script");
-    fallback.src="https://unpkg.com/@supabase/supabase-js@2";
-    fallback.onload=function(){if(!boot()&&!window.__swiperBooted)showStartupError(null,"Swiper could not finish starting","The app library loaded, but the game startup function was not ready. Reload the page and try again.")};
-    fallback.onerror=function(){showStartupError(null,"Could not connect to the app library","Swiper could not load its required app library from either available source. Check your connection or content blocker, then retry.")};
-    document.head.appendChild(fallback);
-    setTimeout(function(){if(!window.__swiperBooted&&!finished)showStartupError(null,"The app library did not respond","Swiper tried both available app-library sources, but neither finished loading. Check your connection, then retry.")},11000);
+  function loadNextSource(){
+    if(finished||window.__swiperBooted)return;
+    if(window.supabase&&boot())return;
+    if(activeScript){activeScript.remove();activeScript=null}
+    if(attempt>=sources.length){
+      showStartupError("Swiper could not load its required app library","Swiper tried three independent CDN sources, but none provided a working Supabase client. Check your internet connection, DNS, or content blocker, then retry.");
+      return;
+    }
+    const url=sources[attempt++];
+    const script=document.createElement("script");
+    activeScript=script;
+    let settled=false;
+    const timer=setTimeout(()=>{
+      if(settled||finished||window.__swiperBooted)return;
+      settled=true;script.remove();loadNextSource();
+    },6500);
+    script.onload=()=>{
+      if(settled||finished)return;
+      settled=true;clearTimeout(timer);
+      if(!boot())loadNextSource();
+    };
+    script.onerror=()=>{
+      if(settled||finished)return;
+      settled=true;clearTimeout(timer);script.remove();loadNextSource();
+    };
+    script.src=url;script.async=true;script.crossOrigin="anonymous";
+    document.head.appendChild(script);
   }
-  const primary=document.createElement("script");
-  primary.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
-  primary.onload=function(){if(!boot()&&!window.__swiperBooted)loadFallback()};
-  primary.onerror=loadFallback;
-  document.head.appendChild(primary);
-  /* A stalled CDN request must trigger the backup source, not a false generic boot timeout. */
-  setTimeout(function(){if(!window.__swiperBooted&&!finished)loadFallback()},7000);
+  window.addEventListener("error",e=>{
+    if(window.__swiperBooted&&!finished&&e.target===window)showStartupError("A JavaScript error interrupted Swiper",(e.message||"Unknown script error")+" (line "+(e.lineno||"?")+")");
+  });
+  window.addEventListener("unhandledrejection",e=>{
+    if(window.__swiperBooted&&!finished){const r=e.reason;showStartupError("An app task failed",r&&r.message?r.message:String(r||"Unknown rejected task"))}
+  });
+  /* Try immediately, then keep retrying if the browser delays script execution. */
+  loadNextSource();
+  const bootWatch=setInterval(()=>{
+    if(finished||window.__swiperBooted){clearInterval(bootWatch);return}
+    if(window.supabase&&typeof window.__bootSwiper==="function"){boot();clearInterval(bootWatch)}
+  },250);
+  setTimeout(()=>{
+    if(!finished&&!window.__swiperBooted)showStartupError("Swiper could not finish starting","The app did not become ready after trying three library sources. Reload the page. If it repeats, send the 7-character error code to support.");
+  },23000);
 })();
 </script>
 <div id="loginMessageOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="loginMessageTitle" aria-describedby="loginMessageBody"><div class="login-message-card"><div class="menu-tag">Account message</div><h2 id="loginMessageTitle">Message for you</h2><p id="loginMessageBody"></p><button type="button" class="primary" id="loginMessageOk">OK</button><p class="login-message-error" id="loginMessageError" role="status" aria-live="polite"></p></div></div>
