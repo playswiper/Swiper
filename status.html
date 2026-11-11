@@ -55,7 +55,7 @@ button:disabled{opacity:.6;cursor:wait}
 .error-message{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
 .error-empty{border:1px solid #292929;background:#080808;border-radius:10px;padding:12px;color:#aaa;font-size:13px}
 
-.dev-panel{width:100%;margin:0 0 20px;border:1px solid #3b3420;border-radius:14px;background:#0d0c08;padding:14px}.dev-panel h2{font-size:17px;margin:0 0 5px}.dev-intro{font-size:12px;color:#aaa;line-height:1.45;margin:0 0 12px}.dev-summary{font-size:13px;color:#ddd;margin:0 0 10px}.dev-findings{display:grid;gap:8px}.dev-finding{border:1px solid #353535;border-radius:10px;background:#090909;padding:10px}.dev-finding.issue{border-color:#552525;background:#100808}.dev-finding.warn{border-color:#55451e;background:#100e08}.dev-finding.pass{border-color:#21452f;background:#08100b}.dev-finding strong{display:block;font-size:13px;margin-bottom:4px}.dev-finding p{font-size:12px;color:#bbb;line-height:1.45;margin:0;overflow-wrap:anywhere}.dev-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.dev-tools button{min-height:36px;padding:0 14px;font-size:12px}[hidden]{display:none!important}
+.dev-panel{width:100%;margin:0 0 20px}.dev-panel h2{font-size:17px;margin:0 0 5px}.dev-intro{font-size:12px;color:#888;line-height:1.45;margin:0 0 12px}.dev-summary{font-size:13px;color:#bbb;margin:0 0 10px}.dev-findings{display:grid;gap:8px}.dev-finding{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px;border:1px solid #252525;border-radius:12px;background:#080808}.dev-finding.issue{border-color:#552525;background:#100808}.dev-finding.warn{border-color:#55451e;background:#100e08}.dev-finding.pass{border-color:#252525;background:#080808}.dev-finding .symbol{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#103b25;color:#27e879;font-size:18px;font-weight:700}.dev-finding.issue .symbol{background:#401717;color:#ff6666}.dev-finding.warn .symbol{background:#382d12;color:#f0c56a}.dev-finding strong{display:block;font-size:14px;margin:1px 0 3px}.dev-finding p{font-size:12px;color:#aaa;line-height:1.45;margin:0;overflow-wrap:anywhere}.dev-finding .state{align-self:start}.dev-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.dev-tools button{min-height:36px;padding:0 14px;font-size:12px}[hidden]{display:none!important}
 @media(max-width:390px){.actions{grid-template-columns:1fr}.check{grid-template-columns:30px minmax(0,1fr)}.state{grid-column:2;justify-self:start}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -75,7 +75,7 @@ button:disabled{opacity:.6;cursor:wait}
 <button id="scan" type="button">Check Again</button>
 <a class="back" href="./">Back to Game</a>
 </div>
-<section class="dev-panel" id="devPanel" hidden><h2>Developer Diagnostics</h2><p class="dev-intro">Extended static, syntax, markup, resource, and runtime checks. This diagnoses what the browser can inspect; it does not execute game actions or modify player data.</p><p class="dev-summary" id="devSummary">Preparing extended diagnostics…</p><div class="dev-findings" id="devFindings"></div><div class="dev-tools"><button id="devRescan" type="button">Run Deep Scan Again</button></div></section>
+<section class="dev-panel" id="devPanel" hidden><h2>Developer Diagnostics</h2><p class="dev-intro">Deep inspection of the published game source, page structure, controls, accessibility, security patterns, network resources, and browser runtime. Checks are read-only. Warnings are review suggestions; they do not automatically mean the game is broken.</p><p class="dev-summary" id="devSummary">Preparing extended diagnostics…</p><div class="dev-findings" id="devFindings"></div><div class="dev-tools"><button id="devRescan" type="button">Run Deep Scan Again</button></div></section>
 <div id="checks" aria-label="System checks"></div>
 <p id="scanTime"></p>
 </main>
@@ -169,44 +169,106 @@ const groups=[
 
 const DEV_MODE=new URLSearchParams(location.search).has("dev");
 const devRuntimeFindings=[];
-if(DEV_MODE){$("devPanel").hidden=false;window.addEventListener("error",event=>{devRuntimeFindings.push({level:"issue",name:"Browser runtime error",detail:(event.message||"Unknown script error")+(event.filename?" — "+event.filename.split("/").pop():"")+(event.lineno?":"+event.lineno:"")});renderDevFindings()});window.addEventListener("unhandledrejection",event=>{const reason=event.reason;devRuntimeFindings.push({level:"issue",name:"Unhandled promise rejection",detail:reason?.message||String(reason||"Unknown rejection")});renderDevFindings()});}
+if(DEV_MODE){$("devPanel").hidden=false;window.addEventListener("error",event=>{devRuntimeFindings.push({level:"issue",name:"Browser runtime error",detail:(event.message||"Unknown script error")+(event.filename?" — "+event.filename.split("/").pop():"")+(event.lineno?":"+event.lineno:"")});renderDevFindings()});window.addEventListener("unhandledrejection",event=>{const reason=event.reason;devRuntimeFindings.push({level:"issue",name:"Unhandled promise rejection",detail:reason?.message||String(reason||"Unknown rejection")});renderDevFindings()});window.addEventListener("unhandledrejection",()=>{});}
 function renderDevFindings(findings=[]){
  const list=$("devFindings");if(!list)return;list.replaceChildren();
  const all=[...findings,...devRuntimeFindings];const counts={issue:all.filter(x=>x.level==="issue").length,warn:all.filter(x=>x.level==="warn").length,pass:all.filter(x=>x.level==="pass").length};
- $("devSummary").textContent=counts.issue+" errors · "+counts.warn+" warnings · "+counts.pass+" checks passed";
- for(const item of all){const card=document.createElement("article");card.className="dev-finding "+item.level;const title=document.createElement("strong");title.textContent=(item.level==="issue"?"ERROR":item.level==="warn"?"WARNING":"PASS")+" — "+item.name;const detail=document.createElement("p");detail.textContent=item.detail;card.append(title,detail);list.append(card)}
+ $("devSummary").textContent=counts.issue+" errors · "+counts.warn+" warnings · "+counts.pass+" checks passed · "+all.length+" total";
+ for(const item of all){const card=document.createElement("article");card.className="dev-finding "+item.level;const symbol=document.createElement("div");symbol.className="symbol";symbol.textContent=item.level==="issue"?"×":item.level==="warn"?"!":"✓";const body=document.createElement("div");const title=document.createElement("strong");title.textContent=item.name;const detail=document.createElement("p");detail.textContent=item.detail;body.append(title,detail);const state=document.createElement("span");state.className="state";state.textContent=item.level==="issue"?"ERROR":item.level==="warn"?"WARNING":"PASS";card.append(symbol,body,state);list.append(card)}
  if(!all.length){const card=document.createElement("article");card.className="dev-finding pass";card.textContent="No problems detected by the extended checks.";list.append(card)}
 }
 async function runDevDiagnostics(source){
  if(!DEV_MODE)return;
- const findings=[];
- const add=(level,name,detail)=>findings.push({level,name,detail});
+ const findings=[];const add=(level,name,detail)=>findings.push({level,name,detail});
+ const check=(condition,name,okText,warningText,level="warn")=>add(condition?"pass":level,name,condition?okText:warningText);
  try{
   const parsed=new DOMParser().parseFromString(source,"text/html");
   const ids=[...parsed.querySelectorAll("[id]")].map(x=>x.id),duplicates=ids.filter((id,i)=>ids.indexOf(id)!==i);
-  if(duplicates.length)add("warn","Duplicate HTML IDs",[...new Set(duplicates)].slice(0,20).join(", "));else add("pass","HTML IDs","No duplicate id attributes were found.");
+  check(!duplicates.length,"Duplicate HTML IDs", "No duplicate id attributes were found.",[...new Set(duplicates)].slice(0,20).join(", "));
   const brokenLinks=[...parsed.querySelectorAll('a[href]')].map(a=>a.getAttribute("href")).filter(h=>h&&h.startsWith("#")&&!parsed.getElementById(decodeURIComponent(h.slice(1))));
-  if(brokenLinks.length)add("warn","Broken in-page links",[...new Set(brokenLinks)].slice(0,15).join(", "));else add("pass","In-page links","All local # links point to an existing element.");
+  check(!brokenLinks.length,"Broken in-page links","All local # links point to an existing element.",[...new Set(brokenLinks)].slice(0,15).join(", "));
+  const idRefs=[...source.matchAll(/(?:\$\(|getElementById\s*\()\s*["']([A-Za-z][\w:-]*)["']\s*\)/g)].map(x=>x[1]);
+  const missingRefs=[...new Set(idRefs.filter(id=>!ids.includes(id)))];
+  check(!missingRefs.length,"JavaScript element references","All statically referenced element IDs exist in the published HTML.",missingRefs.slice(0,20).join(", ")+" — dynamic IDs may be intentional; review these references.");
   const scripts=[...parsed.querySelectorAll("script:not([src])")];let syntaxErrors=0;
-  scripts.forEach((script,i)=>{const code=script.textContent.trim();if(!code)return;try{new Function(code)}catch(e){syntaxErrors++;add("issue","Inline script syntax #"+(i+1),e.message)}});
-  if(!syntaxErrors)add("pass","Inline JavaScript syntax",scripts.length+" inline script block(s) parsed without syntax errors.");
+  scripts.forEach((script,i)=>{const code=script.textContent.trim();if(!code)return;try{new Function(code)}catch(e){syntaxErrors++;add("issue","Inline JavaScript syntax #"+(i+1),e.message)}});
+  check(!syntaxErrors,"Inline JavaScript syntax",scripts.length+" inline script block(s) parsed without syntax errors.","One or more inline scripts failed syntax parsing.","issue");
   const missingAssets=[];
-  for(const el of parsed.querySelectorAll('script[src],link[rel="stylesheet"][href],img[src]')){
+  for(const el of parsed.querySelectorAll('script[src],link[rel="stylesheet"][href],img[src],source[src]')){
    const raw=el.getAttribute(el.hasAttribute("src")?"src":"href");if(!raw||/^(data:|blob:|javascript:)/i.test(raw))continue;
    let url;try{url=new URL(raw,location.href)}catch(e){missingAssets.push(raw+" (invalid URL)");continue}
    if(url.origin!==location.origin)continue;
    try{const response=await fetch(url.href,{method:"HEAD",cache:"no-store"});if(!response.ok)missingAssets.push(raw+" (HTTP "+response.status+")")}catch(e){missingAssets.push(raw+" (request failed)")}
   }
-  if(missingAssets.length)add("warn","Local asset requests",missingAssets.slice(0,12).join("; "));else add("pass","Local assets","All checked same-origin scripts, stylesheets, and images responded successfully.");
+  check(!missingAssets.length,"Same-origin asset availability","All checked local scripts, stylesheets, images, and media sources responded successfully.",missingAssets.slice(0,15).join("; "));
   const emptyButtons=[...parsed.querySelectorAll("button")].filter(b=>!b.textContent.trim()&&!b.getAttribute("aria-label")&&!b.getAttribute("title"));
-  if(emptyButtons.length)add("warn","Unlabelled buttons",emptyButtons.length+" button(s) have no text, aria-label, or title.");else add("pass","Button labels","All buttons have visible text or an accessible label.");
+  check(!emptyButtons.length,"Accessible button names","Every button has visible text or an accessible label.",emptyButtons.length+" button(s) have no text, aria-label, or title.");
+  const images=[...parsed.querySelectorAll("img")],missingAlt=images.filter(img=>!img.hasAttribute("alt"));
+  check(!missingAlt.length,"Image alternative text","All "+images.length+" image(s) declare an alt attribute.",missingAlt.length+" image(s) are missing alt attributes.");
+  const forms=[...parsed.querySelectorAll("input,select,textarea")].filter(el=>!["hidden","submit","button","reset"].includes((el.type||"").toLowerCase()));
+  const unlabeled=forms.filter(el=>!el.labels?.length&&!el.getAttribute("aria-label")&&!el.getAttribute("aria-labelledby"));
+  check(!unlabeled.length,"Form control labels","All "+forms.length+" form controls have a programmatic label.",unlabeled.length+" form control(s) have no associated label or aria label.");
+  const externalBlank=[...parsed.querySelectorAll('a[target="_blank"]')].filter(a=>!/\bnoopener\b/.test(a.rel));
+  check(!externalBlank.length,"External link isolation","New-tab links include rel=noopener.",externalBlank.length+" target=_blank link(s) do not include rel=noopener.");
+  check(parsed.documentElement.lang?.trim().length>0,"Document language","The HTML root declares lang="+(parsed.documentElement.lang||"")+".","The HTML root has no lang attribute.");
+  check(!!parsed.querySelector('meta[name="viewport"]'),"Mobile viewport","A viewport meta tag is present.","No viewport meta tag was found.");
+  check(!!parsed.querySelector('meta[name="description"]'),"Search description","A meta description is present.","The page has no meta description.");
+  check(!!parsed.querySelector('link[rel="canonical"]'),"Canonical URL","A canonical URL is declared.","No canonical link was found.");
+  check(!!parsed.querySelector("title")&&!!parsed.querySelector("title").textContent.trim(),"Page title","A non-empty document title is present.","The document title is missing or empty.","issue");
+  const headings=[...parsed.querySelectorAll("h1")];
+  check(headings.length===1,"Main heading structure","Exactly one H1 heading was found.","Found "+headings.length+" H1 headings; check the page's heading hierarchy.");
   const inlineHandlers=[...parsed.querySelectorAll("*")].filter(el=>[...el.attributes].some(a=>/^on/i.test(a.name)));
-  if(inlineHandlers.length)add("warn","Inline event handlers",inlineHandlers.length+" element(s) use inline event-handler attributes; review for CSP and maintainability.");
-  else add("pass","Event handler markup","No inline HTML event-handler attributes were found.");
-  const riskyPatterns=[{re:/console\.error\s*\(/g,name:"Explicit console.error calls"},{re:/TODO|FIXME|XXX/g,name:"TODO / FIXME markers"},{re:/debugger\s*;/g,name:"Debugger statements"}];
-  for(const item of riskyPatterns){const matches=source.match(item.re)||[];if(matches.length)add("warn",item.name,matches.length+" occurrence(s) found in source.");else add("pass",item.name,"No occurrences found.");}
-  const resources=[...performance.getEntriesByType("resource")].filter(x=>x.duration>5000);
-  if(resources.length)add("warn","Slow resources",resources.slice(0,8).map(x=>x.name.split("/").pop()+" ("+Math.round(x.duration)+" ms)").join("; "));else add("pass","Resource timing","No resource taking over five seconds was recorded in this page session.");
+  add(inlineHandlers.length?"warn":"pass","Inline event-handler markup",inlineHandlers.length+" element(s) use inline event-handler attributes; review CSP and maintainability.","No inline HTML event-handler attributes were found.");
+  const risky=[{re:/\beval\s*\(/g,name:"Dynamic eval usage",detail:"Review eval() calls; dynamic code execution increases injection risk."},{re:/new\s+Function\s*\(/g,name:"Dynamic Function construction",detail:"Review dynamically constructed functions; ensure input cannot reach executable code."},{re:/innerHTML\s*\+?=/g,name:"HTML string insertion",detail:"Review innerHTML assignments for untrusted data. Prefer textContent or safe DOM construction for user content."},{re:/document\.write\s*\(/g,name:"document.write usage",detail:"document.write can replace page content or create injection risks."}];
+  for(const item of risky){const matches=source.match(item.re)||[];add(matches.length?"warn":"pass",item.name,matches.length?matches.length+" occurrence(s). "+item.detail:"No occurrences found.");}
+  const secretPatterns=[/service_role/i,/sb_secret_[A-Za-z0-9_-]{12,}/,/-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/];
+  const secretFound=secretPatterns.some(re=>re.test(source));
+  add(secretFound?"issue":"pass","Secret-key exposure scan",secretFound?"A service-role, secret API key, or private-key pattern was found in the published HTML. Remove it immediately and rotate the credential.":"No service-role key, secret API key, or private-key block pattern was detected.");
+  const consoleErrors=(source.match(/console\.error\s*\(/g)||[]).length;
+  add(consoleErrors?"warn":"pass","Console error statements",consoleErrors?consoleErrors+" console.error() call(s) exist in source. These may be intentional diagnostics; inspect their conditions.":"No console.error() calls were found.");
+  const debug=(source.match(/\bdebugger\s*;/g)||[]).length;
+  add(debug?"warn":"pass","Debugger statements",debug?debug+" debugger statement(s) found. Remove production breakpoints if they are not intentional.":"No debugger statements were found.");
+  const todo=(source.match(/\b(?:TODO|FIXME|XXX)\b/g)||[]).length;
+  add(todo?"warn":"pass","Unfinished-code markers",todo?todo+" TODO/FIXME/XXX marker(s) found. Review whether any are unfinished production work.":"No TODO/FIXME/XXX markers were found.");
+  const fetchCalls=(source.match(/\bfetch\s*\(/g)||[]).length,catchCalls=(source.match(/\.catch\s*\(/g)||[]).length;
+  add(fetchCalls&&!catchCalls?"warn":"pass","Network error handling",fetchCalls+" fetch() call(s) and "+catchCalls+" chained .catch() call(s) found. Review async/await paths too; this is a source-level estimate, not proof every request is handled.");
+  const asyncFns=(source.match(/\basync\s+function\b/g)||[]).length,promiseFns=(source.match(/\bnew\s+Promise\s*\(/g)||[]).length;
+  add("pass","Asynchronous code inventory",asyncFns+" async function(s) and "+promiseFns+" explicit Promise constructor(s) detected.");
+  const intervals=(source.match(/setInterval\s*\(/g)||[]).length,clearIntervals=(source.match(/clearInterval\s*\(/g)||[]).length;
+  add(intervals>clearIntervals?"warn":"pass","Repeating timer cleanup",intervals+" setInterval() call(s), "+clearIntervals+" clearInterval() call(s). Review that every long-lived timer is cleared when its screen or session ends.");
+  const listeners=(source.match(/addEventListener\s*\(/g)||[]).length,removers=(source.match(/removeEventListener\s*\(/g)||[]).length;
+  add("pass","Event listener inventory",listeners+" addEventListener() call(s), "+removers+" removeEventListener() call(s). Review listeners attached to short-lived UI or game sessions.");
+  const mediaQueries=(source.match(/@media\b/g)||[]).length;
+  add(mediaQueries?"pass":"warn","Responsive CSS",mediaQueries?mediaQueries+" media query block(s) found.":"No CSS media queries were detected.");
+  check(/prefers-reduced-motion/.test(source),"Reduced-motion support","A prefers-reduced-motion rule was found.","No prefers-reduced-motion rule was detected.");
+  check(/visibilitychange/.test(source),"Tab visibility handling","The game listens for browser tab visibility changes.","No visibilitychange handler was found; background-tab behavior should be reviewed.");
+  const externalScripts=[...parsed.querySelectorAll("script[src]")].filter(el=>{try{return new URL(el.src,location.href).origin!==location.origin}catch(e){return false}});
+  add("pass","External script dependencies",externalScripts.length+" external script source(s) detected. Verify provider availability and fallback behavior.");
+  const resources=[...performance.getEntriesByType("resource")].filter(x=>x.duration>3000);
+  add(resources.length?"warn":"pass","Slow status-page resources",resources.length?resources.slice(0,10).map(x=>x.name.split("/").pop()+" ("+Math.round(x.duration)+" ms)").join("; "):"No resource taking over three seconds was recorded while loading this diagnostics page.");
+  const pageBytes=new Blob([source]).size;
+  add(pageBytes>2_000_000?"warn":"pass","Published HTML size",(pageBytes/1024).toFixed(1)+" KB of HTML downloaded for inspection.");
+  const cssBlocks=[...parsed.querySelectorAll("style")].map(x=>x.textContent).join("\n");
+  const openBraces=(cssBlocks.match(/\{/g)||[]).length,closeBraces=(cssBlocks.match(/\}/g)||[]).length;
+  check(openBraces===closeBraces,"CSS brace balance","Embedded CSS has matching opening and closing braces.","Embedded CSS brace counts differ ("+openBraces+" opening / "+closeBraces+" closing).","issue");
+  const gameFeatures=[
+   ["Spike engine","function spawnSpike\s*\(","Spike spawning function is present.","spawnSpike() was not found."],
+   ["Game loop","requestAnimationFrame\s*\(","Animation-frame scheduling is present.","No requestAnimationFrame() call was found."],
+   ["Practice mode","chooseMode\s*\(\s*[\"']practice[\"']\s*\)","Practice-mode selection is present.","Practice-mode selection was not found."],
+   ["Bot AI","function updateBotAI\s*\(","Bot AI update function is present.","updateBotAI() was not found."],
+   ["Quick Play matchmaking","swipe_find_team_match","Quick Play matchmaking RPC reference is present.","Quick Play matchmaking RPC reference is missing."],
+   ["Online lobbies","function refreshOnlineLobbies\s*\(","Online lobby refresh function is present.","refreshOnlineLobbies() was not found."],
+   ["Realtime presence","renderOnlinePresence","Online presence renderer is present.","Online presence renderer was not found."],
+   ["Score submission","function sendScore\s*\(","Score submission function is present.","sendScore() was not found."],
+   ["Profile synchronization","function syncAccount\s*\(","Account synchronization function is present.","syncAccount() was not found."],
+   ["Friend challenges","function sendFriendChallenge\s*\(","Friend challenge function is present.","sendFriendChallenge() was not found."],
+   ["Voice calls","function joinGroupVoiceChat\s*\(","Group voice-call join function is present.","joinGroupVoiceChat() was not found."],
+   ["Community levels","function loadCommunityLevels\s*\(","Community level loader is present.","loadCommunityLevels() was not found."],
+   ["Startup recovery","function boot\s*\([\s\S]*function loadNextSource\s*\(","Startup boot and fallback loader were found.","Startup boot or fallback loader was not found."]
+  ];
+  for(const [name,pattern,okText,badText] of gameFeatures)check(new RegExp(pattern).test(source),"Game feature: "+name,okText,badText);
+  const runtimeErrors=devRuntimeFindings.length;
+  add(runtimeErrors?"issue":"pass","Browser runtime events",runtimeErrors?runtimeErrors+" browser error or unhandled rejection event(s) have been captured since this diagnostics page opened.":"No browser error or unhandled rejection events have been captured on this status page since it opened.");
  }catch(error){add("issue","Deep scan failure",error?.message||String(error))}
  renderDevFindings(findings);
 }
