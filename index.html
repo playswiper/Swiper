@@ -937,7 +937,7 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
   primary.onload=boot;primary.onerror=loadFallback;document.head.appendChild(primary);
   setTimeout(function(){if(!window.__swiperBooted&&!window.supabase)showStartupError("SWP-NET-001","App library is taking too long","The Supabase library did not load within 12 seconds. Check your connection and report SWP-NET-001.")},12000);
   /* Hard stop for the loading overlay: never leave a spinner running forever. */
-  setTimeout(function(){const loading=document.getElementById("swiperLoading");if(loading&&!loading.classList.contains("fade-out")&&!window.__swiperBooted){showStartupError("SWP-BOOT-TIMEOUT","Swiper is taking too long to start","The app did not finish starting within 18 seconds. Check your connection, then retry.");}},18000);
+  setTimeout(function(){const loading=document.getElementById("swiperLoading");if(loading&&!loading.classList.contains("fade-out")&&!window.__swiperBooted){showStartupError("SWP-BOOT-002","Swiper is taking too long to start","The app did not finish starting within 18 seconds. Check your connection, then retry.");}},18000);
 })();
 </script>
 <div id="loginMessageOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="loginMessageTitle" aria-describedby="loginMessageBody"><div class="login-message-card"><div class="menu-tag">Account message</div><h2 id="loginMessageTitle">Message for you</h2><p id="loginMessageBody"></p><button type="button" class="primary" id="loginMessageOk">OK</button><p class="login-message-error" id="loginMessageError" role="status" aria-live="polite"></p></div></div>
