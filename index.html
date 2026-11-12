@@ -1148,7 +1148,7 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
       practiceButton.disabled=true;
       practiceButton.textContent="Opening Practice…";
       try{
-        document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");(()=>{const offlineGhost=$("bestGhost");if(offlineGhost){offlineGhost.classList.add("hidden");offlineGhost.style.setProperty("display","none","important");offlineGhost.style.setProperty("visibility","hidden","important");}})();if(typeof bestGhostMoves!=="undefined")bestGhostMoves=[];
+        document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");(()=>{const offlineGhost=document.getElementById("bestGhost");if(offlineGhost){offlineGhost.classList.add("hidden");offlineGhost.style.setProperty("display","none","important");offlineGhost.style.setProperty("visibility","hidden","important");}})();if(typeof bestGhostMoves!=="undefined")bestGhostMoves=[];
         if(!window.__swiperBooted){
           const offlineResult={data:null,error:null};
           const makeQuery=()=>{
@@ -1188,11 +1188,11 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
           window.__swiperBooted=true;
         }
         if(!document.getElementById("menuPractice"))throw new Error("The Practice game did not initialize.");
-        document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");(()=>{const offlineGhost=$("bestGhost");if(offlineGhost){offlineGhost.classList.add("hidden");offlineGhost.style.setProperty("display","none","important");offlineGhost.style.setProperty("visibility","hidden","important");}})();if(typeof bestGhostMoves!=="undefined")bestGhostMoves=[];
+        document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");(()=>{const offlineGhost=document.getElementById("bestGhost");if(offlineGhost){offlineGhost.classList.add("hidden");offlineGhost.style.setProperty("display","none","important");offlineGhost.style.setProperty("visibility","hidden","important");}})();if(typeof bestGhostMoves!=="undefined")bestGhostMoves=[];
         loading.classList.add("fade-out");
         setTimeout(()=>{
           loading.remove();
-          document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");(()=>{const offlineGhost=$("bestGhost");if(offlineGhost){offlineGhost.classList.add("hidden");offlineGhost.style.setProperty("display","none","important");offlineGhost.style.setProperty("visibility","hidden","important");}})();if(typeof bestGhostMoves!=="undefined")bestGhostMoves=[];
+          document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");(()=>{const offlineGhost=document.getElementById("bestGhost");if(offlineGhost){offlineGhost.classList.add("hidden");offlineGhost.style.setProperty("display","none","important");offlineGhost.style.setProperty("visibility","hidden","important");}})();if(typeof bestGhostMoves!=="undefined")bestGhostMoves=[];
           if(typeof cursedPracticeActive!=="undefined")cursedPracticeActive=false;
           if(typeof songLevelMode!=="undefined")songLevelMode=false;
           if(typeof chooseMode==="function")chooseMode("practice");
