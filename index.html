@@ -1117,80 +1117,119 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
     finished=true;
     const code=makeErrorCode();
     console.error("[Swiper "+code+"] "+title,detail||"");
-    const l=document.getElementById("swiperLoading");if(!l)return;
-    l.classList.remove("fade-out");l.replaceChildren();
-    const box=document.createElement("div");box.style.cssText='max-width:560px;text-align:center;color:white;padding:28px;font-family:"Luckiest Guy",cursive;';
-    const brand=document.createElement("h1");brand.textContent="SWIPER";brand.style.letterSpacing=".2em";
-    const rawDetail=String(detail||"No additional details were provided.");
-    let friendlyTitle=title,friendlyDetail=rawDetail;
-    if(/javascript.*runtime|runtime.*javascript|unknown script error/i.test(rawDetail)){
-      friendlyTitle="Swiper couldn't start in this browser";
-      friendlyDetail="This browser or embedded view could not start Swiper's normal game engine. Choose Practice Only to try the actual offline Practice game. If it still cannot run, open playswiper.com in Safari or Chrome with JavaScript enabled.";
-    }else if(/tried three independent CDN sources|could not load its required app library/i.test(rawDetail)){
-      friendlyTitle="Swiper's online service couldn't load";
-      friendlyDetail="The online service library could not be downloaded. Practice Only will try to launch the regular Practice game without online features.";
-    }
-    const heading=document.createElement("h2");heading.textContent=friendlyTitle;
-    const codeLine=document.createElement("p");codeLine.textContent="Error code: "+code;codeLine.style.cssText="font-weight:800;background:#ffffff20;border:1px solid #ffffff55;border-radius:8px;padding:10px;letter-spacing:.16em";
-    const detailLine=document.createElement("p");detailLine.textContent=friendlyDetail.slice(0,500);detailLine.style.cssText="overflow-wrap:anywhere;color:#ffe3e8";
-    const instruction=document.createElement("p");instruction.textContent="If this keeps happening, contact mystarsnight@gmail.com and include the 7-character error code.";
-    const retry=document.createElement("button");retry.textContent="Try again";retry.style.cssText="margin:12px 8px 0;padding:12px 20px;border:0;border-radius:9px;background:#ffffff;color:#8f1026;font-weight:800";retry.onclick=()=>location.reload();
-    if(code==="N2Q4KP7"||/unknown.*javascript.*runtime|unknown script error/i.test(String(title)+" "+String(detail))){
-      const practiceWrap=document.createElement("div");practiceWrap.style.cssText="position:sticky;top:0;z-index:5;margin:0 0 16px;padding:8px 0;background:#8f1026";
-      const practiceButton=document.createElement("button");practiceButton.type="button";practiceButton.textContent="Continue to Practice Only";practiceButton.style.cssText="padding:13px 22px;border:0;border-radius:999px;background:#fff;color:#8f1026;font-weight:900;font-size:15px;cursor:pointer";
-      const practiceTimer=document.createElement("p");practiceTimer.textContent="Opening Practice Only in 10 seconds…";practiceTimer.style.cssText="margin:8px 0 0;font-size:13px;color:#fff";
-      let practiceStarted=false;
-      const enterPracticeOnly=()=>{
-        if(practiceStarted)return;practiceStarted=true;clearInterval(practiceCountdown);
-        try{
-          document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");
-          if(!window.__swiperBooted){
-            const offlineResult={data:null,error:null};
-            const makeQuery=()=>{
-              const state={data:[],error:null};
-              const q={select(){return q},insert(){return q},upsert(){return q},update(){return q},delete(){return q},eq(){return q},neq(){return q},in(){return q},is(){return q},not(){return q},order(){return q},limit(){return q},range(){return q},filter(){return q},match(){return q},single(){state.data=null;return Promise.resolve(state)},maybeSingle(){state.data=null;return Promise.resolve(state)},then(resolve,reject){return Promise.resolve(state).then(resolve,reject)}};
-              return q;
+    const loading=document.getElementById("swiperLoading");
+    if(!loading)return;
+
+    // Keep the original loading screen in place. Never replace it with a
+    // separate connection/error page; Practice is the recovery action here.
+    const card=loading.querySelector(".swiper-loading-card")||loading;
+    const caption=loading.querySelector("#swiperLoadingCaption");
+    if(caption)caption.textContent="PRACTICE IS READY";
+
+    const practiceWrap=document.createElement("div");
+    practiceWrap.id="swiperPracticeOnlyRecovery";
+    practiceWrap.style.cssText="display:grid;justify-items:center;gap:8px;width:100%;margin:18px auto 0;position:relative;z-index:20";
+    const practiceButton=document.createElement("button");
+    practiceButton.type="button";
+    practiceButton.textContent="Continue to Practice Only";
+    practiceButton.style.cssText="display:block;width:min(100%,320px);min-height:50px;padding:13px 22px;border:0;border-radius:999px;background:#fff;color:#10131b;font:800 16px Fredoka,sans-serif;cursor:pointer;box-shadow:0 5px 24px #0008";
+    const practiceTimer=document.createElement("p");
+    practiceTimer.setAttribute("role","status");
+    practiceTimer.setAttribute("aria-live","polite");
+    practiceTimer.textContent="Practice will open automatically in 10 seconds.";
+    practiceTimer.style.cssText="margin:0;color:#fff;font:600 13px Fredoka,sans-serif;text-align:center";
+    let practiceStarted=false;
+    let practiceCountdown=null;
+
+    const enterPracticeOnly=()=>{
+      if(practiceStarted)return;
+      practiceStarted=true;
+      if(practiceCountdown!==null)clearInterval(practiceCountdown);
+      practiceButton.disabled=true;
+      practiceButton.textContent="Opening Practice…";
+      try{
+        document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");
+        if(!window.__swiperBooted){
+          const offlineResult={data:null,error:null};
+          const makeQuery=()=>{
+            const state={data:[],error:null};
+            const q={
+              select(){return q},insert(){return q},upsert(){return q},update(){return q},delete(){return q},
+              eq(){return q},neq(){return q},in(){return q},is(){return q},not(){return q},
+              gt(){return q},gte(){return q},lt(){return q},lte(){return q},like(){return q},ilike(){return q},
+              contains(){return q},containedBy(){return q},overlaps(){return q},or(){return q},order(){return q},
+              limit(){return q},range(){return q},filter(){return q},match(){return q},textSearch(){return q},
+              single(){state.data=null;return Promise.resolve(state)},
+              maybeSingle(){state.data=null;return Promise.resolve(state)},
+              then(resolve,reject){return Promise.resolve(state).then(resolve,reject)}
             };
-            const auth={getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),refreshSession:async()=>({data:{session:null},error:null}),signOut:async()=>({error:null}),signInAnonymously:async()=>({data:{user:null,session:null},error:{message:"Practice Only is offline"}})};
-            const client={auth,from:()=>makeQuery(),rpc:async()=>offlineResult,channel:()=>({on(){return this},subscribe(cb){cb?.("SUBSCRIBED");return this},track:async()=>({error:null}),presenceState:()=>({})}),removeChannel:async()=>({}),functions:{invoke:async()=>offlineResult},storage:{from:()=>({upload:async()=>({data:null,error:{message:"Uploads are disabled in Practice Only"}}),getPublicUrl:()=>({data:{publicUrl:""}}),remove:async()=>offlineResult})}};
-            window.supabase={createClient:()=>client};
-            if(typeof window.__bootSwiper!=="function")throw new Error("The Practice game code did not load.");
-            window.__bootSwiper();window.__swiperBooted=true;
-          }
-          if(!document.getElementById("menuPractice"))throw new Error("The Practice game did not initialize.");
-          document.body.classList.add("swiper-practice-only","swiper-practice-fallback");
-          l.classList.add("fade-out");
-          setTimeout(()=>{
-            l.remove();
-            document.body.classList.add("swiper-practice-only","swiper-practice-fallback");
-            if(typeof cursedPracticeActive!=="undefined")cursedPracticeActive=false;
-            if(typeof songLevelMode!=="undefined")songLevelMode=false;
-            if(typeof chooseMode==="function")chooseMode("practice");
-            if(typeof showScreen==="function")showScreen("game");
-            else document.getElementById("menuPractice")?.click();
-            const title=document.getElementById("overlayTitle");
-            const message=document.getElementById("overlayText");
-            const startButton=document.getElementById("overlayStart");
-            if(title)title.textContent="Practice";
-            if(message)message.textContent="Swipe up or down to dodge the spikes.";
-            if(startButton)startButton.textContent="Start Practice";
-          },80);
-        }catch(fallbackError){
-          practiceTimer.textContent="Practice could not start in this browser: "+String(fallbackError?.message||fallbackError).slice(0,180);
-          practiceButton.disabled=false;practiceStarted=false;
+            return q;
+          };
+          const auth={
+            getSession:async()=>({data:{session:null},error:null}),
+            getUser:async()=>({data:{user:null},error:null}),
+            onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
+            refreshSession:async()=>({data:{session:null},error:null}),
+            signOut:async()=>({error:null}),
+            signInAnonymously:async()=>({data:{user:null,session:null},error:{message:"Practice Only is offline"}})
+          };
+          const client={
+            auth,
+            from:()=>makeQuery(),
+            rpc:async()=>offlineResult,
+            channel:()=>({on(){return this},subscribe(cb){cb?.("SUBSCRIBED");return this},track:async()=>({error:null}),presenceState:()=>({})}),
+            removeChannel:async()=>({}),
+            functions:{invoke:async()=>offlineResult},
+            storage:{from:()=>({upload:async()=>({data:null,error:{message:"Uploads are disabled in Practice Only"}}),getPublicUrl:()=>({data:{publicUrl:""}}),remove:async()=>offlineResult})}
+          };
+          window.supabase={createClient:()=>client};
+          if(typeof window.__bootSwiper!=="function")throw new Error("The Practice game code did not load.");
+          window.__bootSwiper();
+          window.__swiperBooted=true;
         }
-      };
-      practiceButton.addEventListener("click",enterPracticeOnly);
-      practiceWrap.append(practiceButton,practiceTimer);
-      box.insertBefore(practiceWrap,box.firstChild);
-      let secondsLeft=10;
-      const practiceCountdown=setInterval(()=>{
-        secondsLeft--;
-        if(secondsLeft<=0){practiceTimer.textContent="Opening Practice Only…";enterPracticeOnly()}
-        else practiceTimer.textContent="Opening Practice Only in "+secondsLeft+" seconds…";
-      },1000);
-    }
-    box.append(brand,heading,codeLine,detailLine,instruction,retry);l.append(box);
+        if(!document.getElementById("menuPractice"))throw new Error("The Practice game did not initialize.");
+        document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");
+        loading.classList.add("fade-out");
+        setTimeout(()=>{
+          loading.remove();
+          document.body.classList.add("swiper-practice-only","swiper-practice-fallback","swiper-offline-mode");
+          if(typeof cursedPracticeActive!=="undefined")cursedPracticeActive=false;
+          if(typeof songLevelMode!=="undefined")songLevelMode=false;
+          if(typeof chooseMode==="function")chooseMode("practice");
+          if(typeof showScreen==="function")showScreen("game");
+          else document.getElementById("menuPractice")?.click();
+          const gameTitle=document.getElementById("overlayTitle");
+          const gameMessage=document.getElementById("overlayText");
+          const startButton=document.getElementById("overlayStart");
+          if(gameTitle)gameTitle.textContent="Practice";
+          if(gameMessage)gameMessage.textContent="Swipe up or down to dodge the spikes.";
+          if(startButton)startButton.textContent="Start Practice";
+        },80);
+      }catch(fallbackError){
+        console.error("[Swiper "+code+"] Practice fallback failed",fallbackError);
+        practiceTimer.textContent="Practice couldn't start: "+String(fallbackError?.message||fallbackError).slice(0,150);
+        practiceButton.disabled=false;
+        practiceButton.textContent="Try Practice Again";
+        practiceStarted=false;
+      }
+    };
+
+    practiceButton.addEventListener("click",enterPracticeOnly);
+    practiceWrap.append(practiceButton,practiceTimer);
+    const progress=card.querySelector(".loading-progress");
+    if(progress)card.insertBefore(practiceWrap,progress);
+    else card.appendChild(practiceWrap);
+
+    let secondsLeft=10;
+    practiceCountdown=setInterval(()=>{
+      secondsLeft--;
+      if(secondsLeft<=0){
+        practiceTimer.textContent="Opening Practice…";
+        enterPracticeOnly();
+      }else{
+        practiceTimer.textContent="Practice will open automatically in "+secondsLeft+" seconds.";
+      }
+    },1000);
   }
   function boot(){
     if(finished||window.__swiperBooted||!window.supabase||typeof window.__bootSwiper!=="function")return false;
