@@ -363,6 +363,26 @@ body.cursed-practice .arena:before{content:"";position:absolute;inset:0;pointer-
 
 .leaderboard-swipe-hint{margin:8px 0 14px;opacity:.72;font-size:12px}.leader-list.board-fade{animation:leaderboardFadeIn .34s ease both;will-change:opacity,transform}@keyframes leaderboardFadeIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.leader-list.board-fade{animation:none}}.avatar-preset-buttons .avatar-preset{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.25}.avatar-preview,.mini-avatar,.menu-profile-avatar,.runner.tomato-avatar{display:grid;place-items:center;text-align:center;line-height:1}.runner[data-tag]:before{display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;max-width:180px}.runner:not(.tomato-avatar){text-align:center;line-height:24px}
 .turnstile-wrap{display:flex;justify-content:center;min-height:0;margin:12px 0;overflow:hidden}.turnstile-wrap:empty{display:none}.turnstile-wrap iframe{max-width:100%}
+@media screen and (max-width:260px),screen and (max-height:320px){
+html,body{width:100%!important;min-width:0!important;max-width:100%!important;overflow:hidden!important}
+body.swiper-practice-fallback .wrap,body.swiper-practice-fallback .layout,body.swiper-practice-fallback .layout.view-game{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:0!important}
+body.swiper-practice-fallback #gameScreen{width:100%!important;max-width:100%!important;margin:0!important;padding:2px!important}
+body.swiper-practice-fallback .arena{width:100%!important;min-width:0!important;height:min(42vh,150px)!important;min-height:105px!important;border-radius:9px!important}
+body.swiper-practice-fallback .runner{width:15px!important;height:15px!important}
+body.swiper-practice-fallback #runNote,body.swiper-practice-fallback .game-header,body.swiper-practice-fallback .game-title{display:none!important}
+body.swiper-practice-fallback .game-controls{display:flex!important;gap:4px!important;margin:3px 0!important}
+body.swiper-practice-fallback .game-controls #start{display:block!important;width:100%!important;min-height:34px!important;padding:5px!important;font-size:13px!important}
+body.swiper-practice-fallback #overlay{padding:4px!important}
+body.swiper-practice-fallback .overlay-inner{width:calc(100% - 8px)!important;max-width:none!important;padding:7px!important;border-radius:9px!important}
+body.swiper-practice-fallback .overlay-inner .eyebrow{font-size:9px!important;margin:0!important}
+body.swiper-practice-fallback .overlay-inner h3{font-size:13px!important;line-height:1.1!important;margin:2px 0!important}
+body.swiper-practice-fallback .overlay-inner p{font-size:10px!important;line-height:1.15!important;margin:2px 0!important}
+body.swiper-practice-fallback #overlayStart{display:block!important;width:100%!important;min-height:32px!important;padding:4px!important;font-size:12px!important}
+body.swiper-practice-fallback .lane-control-buttons{gap:3px!important}
+body.swiper-practice-fallback .lane-control{width:27px!important;height:27px!important;min-width:27px!important;font-size:14px!important}
+body.swiper-practice-fallback #score,body.swiper-practice-fallback #best{font-size:12px!important}
+body.swiper-practice-fallback .hud{gap:4px!important;padding:2px!important}
+}
 /* The startup fallback keeps the actual Practice game and hides every other destination. */
 body.swiper-practice-fallback .top,
 body.swiper-practice-fallback #mainMenu,
@@ -1140,7 +1160,21 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
           if(!document.getElementById("menuPractice"))throw new Error("The Practice game did not initialize.");
           document.body.classList.add("swiper-practice-only","swiper-practice-fallback");
           l.classList.add("fade-out");
-          setTimeout(()=>{l.remove();document.getElementById("menuPractice")?.click()},250);
+          setTimeout(()=>{
+            l.remove();
+            document.body.classList.add("swiper-practice-only","swiper-practice-fallback");
+            if(typeof cursedPracticeActive!=="undefined")cursedPracticeActive=false;
+            if(typeof songLevelMode!=="undefined")songLevelMode=false;
+            if(typeof chooseMode==="function")chooseMode("practice");
+            if(typeof showScreen==="function")showScreen("game");
+            else document.getElementById("menuPractice")?.click();
+            const title=document.getElementById("overlayTitle");
+            const message=document.getElementById("overlayText");
+            const startButton=document.getElementById("overlayStart");
+            if(title)title.textContent="Practice";
+            if(message)message.textContent="Swipe up or down to dodge the spikes.";
+            if(startButton)startButton.textContent="Start Practice";
+          },80);
         }catch(fallbackError){
           practiceTimer.textContent="Practice could not start in this browser: "+String(fallbackError?.message||fallbackError).slice(0,180);
           practiceButton.disabled=false;practiceStarted=false;
