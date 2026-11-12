@@ -363,6 +363,21 @@ body.cursed-practice .arena:before{content:"";position:absolute;inset:0;pointer-
 
 .leaderboard-swipe-hint{margin:8px 0 14px;opacity:.72;font-size:12px}.leader-list.board-fade{animation:leaderboardFadeIn .34s ease both;will-change:opacity,transform}@keyframes leaderboardFadeIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}@media(prefers-reduced-motion:reduce){.leader-list.board-fade{animation:none}}.avatar-preset-buttons .avatar-preset{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.25}.avatar-preview,.mini-avatar,.menu-profile-avatar,.runner.tomato-avatar{display:grid;place-items:center;text-align:center;line-height:1}.runner[data-tag]:before{display:flex;align-items:center;justify-content:center;text-align:center;white-space:nowrap;max-width:180px}.runner:not(.tomato-avatar){text-align:center;line-height:24px}
 .turnstile-wrap{display:flex;justify-content:center;min-height:0;margin:12px 0;overflow:hidden}.turnstile-wrap:empty{display:none}.turnstile-wrap iframe{max-width:100%}
+/* The startup fallback keeps the actual Practice game and hides every other destination. */
+body.swiper-practice-fallback .top,
+body.swiper-practice-fallback #mainMenu,
+body.swiper-practice-fallback #matchScreen,
+body.swiper-practice-fallback #onlineLobbyScreen,
+body.swiper-practice-fallback .site-footer,
+body.swiper-practice-fallback #optionsMenu,
+body.swiper-practice-fallback #optionsButton,
+body.swiper-practice-fallback .layout button:not(#start):not(#overlayStart):not(#pause):not(#moveLaneUp):not(#moveLaneDown),
+body.swiper-practice-fallback .layout a,
+body.swiper-practice-fallback .layout input,
+body.swiper-practice-fallback .layout select,
+body.swiper-practice-fallback .layout textarea,
+body.swiper-practice-fallback .layout summary{display:none!important}
+body.swiper-practice-fallback .layout{display:block!important}
 /* Practice-only lock mode is applied only by the N2Q4KP7 startup-error recovery screen. */
 body.swiper-practice-only .wrap button:not(#menuPractice):not(#start):not(#overlayStart):not(#pause):not(#moveLaneUp):not(#moveLaneDown),
 body.swiper-practice-only .wrap a,
@@ -1099,13 +1114,29 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
       let practiceStarted=false;
       const enterPracticeOnly=()=>{
         if(practiceStarted)return;practiceStarted=true;clearInterval(practiceCountdown);
-        if(!window.__swiperBooted||!document.getElementById("menuPractice")){
-          practiceTimer.textContent="Practice is unavailable because Swiper did not finish loading. Please try again.";
-          practiceButton.disabled=true;practiceButton.style.opacity=".5";return;
+        try{
+          if(!window.__swiperBooted){
+            const offlineResult={data:null,error:null};
+            const makeQuery=()=>{
+              const state={data:[],error:null};
+              const q={select(){return q},insert(){return q},upsert(){return q},update(){return q},delete(){return q},eq(){return q},neq(){return q},in(){return q},is(){return q},not(){return q},order(){return q},limit(){return q},range(){return q},filter(){return q},match(){return q},single(){state.data=null;return Promise.resolve(state)},maybeSingle(){state.data=null;return Promise.resolve(state)},then(resolve,reject){return Promise.resolve(state).then(resolve,reject)}};
+              return q;
+            };
+            const auth={getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),refreshSession:async()=>({data:{session:null},error:null}),signOut:async()=>({error:null}),signInAnonymously:async()=>({data:{user:null,session:null},error:{message:"Practice Only is offline"}})};
+            const client={auth,from:()=>makeQuery(),rpc:async()=>offlineResult,channel:()=>({on(){return this},subscribe(cb){cb?.("SUBSCRIBED");return this},track:async()=>({error:null}),presenceState:()=>({})}),removeChannel:async()=>({}),functions:{invoke:async()=>offlineResult},storage:{from:()=>({upload:async()=>({data:null,error:{message:"Uploads are disabled in Practice Only"}}),getPublicUrl:()=>({data:{publicUrl:""}}),remove:async()=>offlineResult})}};
+            window.supabase={createClient:()=>client};
+            if(typeof window.__bootSwiper!=="function")throw new Error("The Practice game code did not load.");
+            window.__bootSwiper();window.__swiperBooted=true;
+          }
+          if(!document.getElementById("menuPractice"))throw new Error("The Practice game did not initialize.");
+          document.body.classList.add("swiper-practice-only","swiper-practice-fallback");
+          l.classList.add("fade-out");
+          setTimeout(()=>{l.remove();document.getElementById("menuPractice")?.click()},250);
+        }catch(fallbackError){
+          practiceTimer.textContent="Practice could not start in this browser: "+String(fallbackError?.message||fallbackError).slice(0,180);
+          practiceButton.disabled=false;practiceStarted=false;
         }
-        document.body.classList.add("swiper-practice-only");
-        l.classList.add("fade-out");setTimeout(()=>{l.remove();document.getElementById("menuPractice")?.click()},750);
-      };
+      };;
       practiceButton.addEventListener("click",enterPracticeOnly);
       practiceWrap.append(practiceButton,practiceTimer);
       box.insertBefore(practiceWrap,box.firstChild);
