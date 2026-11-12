@@ -1102,9 +1102,18 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
     l.classList.remove("fade-out");l.replaceChildren();
     const box=document.createElement("div");box.style.cssText='max-width:560px;text-align:center;color:white;padding:28px;font-family:"Luckiest Guy",cursive;';
     const brand=document.createElement("h1");brand.textContent="SWIPER";brand.style.letterSpacing=".2em";
-    const heading=document.createElement("h2");heading.textContent=title;
+    const rawDetail=String(detail||"No additional details were provided.");
+    let friendlyTitle=title,friendlyDetail=rawDetail;
+    if(/javascript.*runtime|runtime.*javascript|unknown script error/i.test(rawDetail)){
+      friendlyTitle="Swiper couldn't start in this browser";
+      friendlyDetail="This browser or embedded view could not start Swiper's normal game engine. Choose Practice Only to try the actual offline Practice game. If it still cannot run, open playswiper.com in Safari or Chrome with JavaScript enabled.";
+    }else if(/tried three independent CDN sources|could not load its required app library/i.test(rawDetail)){
+      friendlyTitle="Swiper's online service couldn't load";
+      friendlyDetail="The online service library could not be downloaded. Practice Only will try to launch the regular Practice game without online features.";
+    }
+    const heading=document.createElement("h2");heading.textContent=friendlyTitle;
     const codeLine=document.createElement("p");codeLine.textContent="Error code: "+code;codeLine.style.cssText="font-weight:800;background:#ffffff20;border:1px solid #ffffff55;border-radius:8px;padding:10px;letter-spacing:.16em";
-    const detailLine=document.createElement("p");detailLine.textContent=String(detail||"No additional details were provided.").slice(0,500);detailLine.style.cssText="overflow-wrap:anywhere;color:#ffe3e8";
+    const detailLine=document.createElement("p");detailLine.textContent=friendlyDetail.slice(0,500);detailLine.style.cssText="overflow-wrap:anywhere;color:#ffe3e8";
     const instruction=document.createElement("p");instruction.textContent="If this keeps happening, contact mystarsnight@gmail.com and include the 7-character error code.";
     const retry=document.createElement("button");retry.textContent="Try again";retry.style.cssText="margin:12px 8px 0;padding:12px 20px;border:0;border-radius:9px;background:#ffffff;color:#8f1026;font-weight:800";retry.onclick=()=>location.reload();
     if(code==="N2Q4KP7"||/unknown.*javascript.*runtime|unknown script error/i.test(String(title)+" "+String(detail))){
@@ -1136,7 +1145,7 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
           practiceTimer.textContent="Practice could not start in this browser: "+String(fallbackError?.message||fallbackError).slice(0,180);
           practiceButton.disabled=false;practiceStarted=false;
         }
-      };;
+      };
       practiceButton.addEventListener("click",enterPracticeOnly);
       practiceWrap.append(practiceButton,practiceTimer);
       box.insertBefore(practiceWrap,box.firstChild);
