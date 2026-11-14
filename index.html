@@ -898,7 +898,7 @@ function initSwiperGlobalChat(){
   list.scrollTop=list.scrollHeight;
  };
  const refresh=async()=>{
-  if(!user){list.replaceChildren();const note=document.createElement("div");note.className="swiper-global-chat-empty";note.textContent="Sign in to join Global Chat.";list.append(note);setStatus("Sign in required");return}
+  if(!user){list.replaceChildren();const note=document.createElement("div");note.className="swiper-global-chat-empty";note.textContent="Guests can use Quick Words only. Sign in for chat messages and voice-to-text.";list.append(note);input.disabled=true;send.disabled=true;input.placeholder="Sign in to send messages";setStatus("Guest mode · Quick Words only");return} input.disabled=false;send.disabled=false;input.placeholder="Message…";
   if(loading)return;loading=true;
   try{
    const result=await db.from("swiper_global_chat_messages").select("id,user_id,content,created_at").order("created_at",{ascending:false}).limit(60);
@@ -1613,7 +1613,7 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
 .swiper-global-chat-rail button{width:44px;height:48px;display:grid;place-items:center;border:0;border-radius:7px;background:transparent;color:#fff;font-weight:900}
 .swiper-global-chat-rail svg{width:34px;height:34px}
 #swiperGlobalChatABC span{font:900 20px/1 "Fredoka",sans-serif;letter-spacing:-2px}
-#swiperGlobalChatLeave{margin-top:auto;background:#f33d4b;border-radius:50%;height:46px;font-size:42px;font-weight:400}
+#swiperGlobalChatInfo{background:#ffffff24;border:1px solid #ffffff55;border-radius:50%;font-size:25px;font-family:Georgia,serif;font-style:italic}#swiperGlobalChatLeave{margin-top:auto;background:#f33d4b;border-radius:50%;height:46px;font-size:42px;font-weight:400}
 .swiper-global-chat-content{display:flex;flex:1;min-width:0;min-height:0;flex-direction:column;background:#050505}
 #swiperGlobalChatChatView,#swiperGlobalChatQuickView,#swiperGlobalChatInfoView{display:flex;flex:1;min-height:0;flex-direction:column}
 #swiperGlobalChatList{flex:1;min-height:0;overflow:auto;padding:12px 10px;display:flex;flex-direction:column;gap:7px;overscroll-behavior:contain}
@@ -1684,6 +1684,7 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
   <aside class="swiper-global-chat-rail" aria-label="Chat tools">
    <button id="swiperGlobalChatMic" type="button" aria-label="Voice to text" title="Talk while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
    <button id="swiperGlobalChatABC" type="button" data-swiper-chat-tab="quick" aria-label="Quick Words" title="Quick Words"><span>ABC</span></button>
+   <button id="swiperGlobalChatInfo" type="button" data-swiper-chat-tab="info" aria-label="Info" title="Info"><span>i</span></button>
    <button id="swiperGlobalChatLeave" type="button" aria-label="Leave chat" title="Leave"><span>×</span></button>
   </aside>
   <div class="swiper-global-chat-content">
