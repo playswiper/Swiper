@@ -956,7 +956,7 @@ function initSwiperGlobalChat(){
 
  send.addEventListener("click",()=>sendMessage(input.value));
  input.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();sendMessage(input.value)}});
- document.querySelectorAll("[data-swiper-quick-word]").forEach(button=>button.addEventListener("click",()=>sendMessage(button.dataset.swiperQuickWord,true)));
+
  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!panel.hidden){panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}}});
 }
 
