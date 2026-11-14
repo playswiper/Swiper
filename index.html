@@ -875,13 +875,14 @@ function initSwiperGlobalChat(){
  const onlineCount=()=>{if(!globalLive)return 0;return Object.values(globalLive.presenceState()||{}).reduce((n,a)=>n+(a||[]).length,0)};
  const updateGlobalOnline=()=>{const n=onlineCount();$("swiperGlobalChatHeading").textContent="Chat ("+n+" Online)";$("swiperGlobalChatOnline").textContent="("+n+" Online)"};
  const globalSystem=text=>{const e=document.createElement("div");e.className="swiper-global-system-event";e.textContent=text;list.append(e);list.scrollTop=list.scrollHeight};
+ const appendGlobalChatMessage=(displayName,content,preset=false)=>{const item=document.createElement("article");item.className="swiper-global-message";const head=document.createElement("div");head.className="swiper-global-message-head";const name=document.createElement("strong");name.textContent=displayName+":";head.append(name);const body=document.createElement("p");body.textContent=content;item.append(head,body);list.append(item);if(preset)globalSystem("Sent using Quick Words");list.scrollTop=list.scrollHeight};
  const globalBroadcast=(event,payload)=>{if(globalLive&&globalLiveReady)globalLive.send({type:"broadcast",event,payload})};
  window.swiperGlobalChatAnnounceScore=(player,score,mode="Game")=>globalBroadcast("score",{player:String(player||"Player"),score:String(score),mode:String(mode)});
  try{
   globalLive=db.channel("swiper-global-chat-live",{config:{presence:{key:user?.id||("guest-"+Math.random().toString(36).slice(2))},broadcast:{self:false}}});
   globalLive.on("presence",{event:"sync"},updateGlobalOnline)
    .on("presence",{event:"join"},({newPresences})=>{updateGlobalOnline();(newPresences||[]).forEach(p=>{const key=p.user_id||p.display_name;if(key&&!globalPresenceSeen.has(key)){globalPresenceSeen.add(key);if(p.display_name)globalSystem(p.display_name+" Joined The Chat")}})})
-   .on("broadcast",{event:"chat-message"},({payload})=>{if(!payload)return;const item=document.createElement("article");item.className="swiper-global-message";const head=document.createElement("div");head.className="swiper-global-message-head";const name=document.createElement("strong");name.textContent=(payload.display_name||"Player")+":";head.append(name);const body=document.createElement("p");body.textContent=payload.content||"";item.append(head,body);list.append(item);if(payload.preset){const note=document.createElement("div");note.className="swiper-global-system-event";note.textContent="Sent using Quick Words";list.append(note)}list.scrollTop=list.scrollHeight})
+   .on("broadcast",{event:"chat-message"},({payload})=>{if(!payload)return;appendGlobalChatMessage(payload.display_name||"Player",payload.content||"",!!payload.preset)})
    .on("broadcast",{event:"score"},({payload})=>{if(payload)globalSystem(payload.player+" Scored "+payload.score+" On "+payload.mode)});
   globalLive.subscribe(async state=>{if(state==="SUBSCRIBED"){globalLiveReady=true;updateGlobalOnline()}});
  }catch(e){console.warn("Global chat presence unavailable",e)}
@@ -926,14 +927,14 @@ function initSwiperGlobalChat(){
  const sendMessage=async (value,isPreset=false)=>{
   const content=String(value||"").trim();
   if(!content)return;
-  if(!user){if(isPreset){globalBroadcast("chat-message",{display_name:"Guest",content,preset:true});setStatus("Sent using Quick Words");return}setStatus("Guests can only use Quick Words.",true);return}
+  if(!user){if(isPreset){if(!globalLive||!globalLiveReady){setStatus("Chat is connecting. Try again in a moment.",true);return}await globalLive.send({type:"broadcast",event:"chat-message",payload:{display_name:"Guest",content,preset:true}});appendGlobalChatMessage("You",content,true);switchTab("chat");setStatus("Quick Word sent");return}setStatus("Guests can only use Quick Words.",true);return}
   if(content.length>500){setStatus("Messages must be 500 characters or fewer.",true);return}
   if(Date.now()-lastSentAt<1400){setStatus("Please wait a moment before sending again.",true);return}
   send.disabled=true;
   try{
    const result=await db.from("swiper_global_chat_messages").insert({user_id:user.id,content}).select("id").single();
    if(result.error)throw result.error;
-   lastSentAt=Date.now();input.value="";setStatus("Message sent");globalBroadcast("chat-message",{display_name:profile?.display_name||profile?.username||"Player",content,preset:false});await refresh();
+   lastSentAt=Date.now();input.value="";setStatus(isPreset?"Quick Word sent":"Message sent");globalBroadcast("chat-message",{display_name:profile?.display_name||profile?.username||"Player",content,preset:!!isPreset});if(isPreset)switchTab("chat");await refresh();
   }catch(error){setStatus(error?.message||"Message could not be sent.",true)}
   finally{send.disabled=false}
  };
@@ -944,6 +945,7 @@ function initSwiperGlobalChat(){
  });
  close.addEventListener("click",async()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(globalLive&&globalLiveReady)await globalLive.untrack();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}});
  document.querySelectorAll("[data-swiper-chat-tab]").forEach(button=>button.addEventListener("click",()=>switchTab(button.dataset.swiperChatTab)));
+ $("swiperGlobalChatQuickBack")?.addEventListener("click",()=>switchTab("chat"));
  const leave=async()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(globalLive&&globalLiveReady)await globalLive.untrack();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}};
  $("swiperGlobalChatLeave")?.addEventListener("click",leave);
  
@@ -1694,6 +1696,12 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
 .swiper-global-info h3{margin:0 0 9px;font-size:19px;color:white}.swiper-global-info ul{padding-left:19px;margin:8px 0}.swiper-global-info li{margin:7px 0}.swiper-global-info .info-note{padding:11px;border:1px solid #36516e;border-radius:12px;background:#182b42;color:#b9d8fb}
 @media(max-width:520px){#swiperGlobalChat{right:12px;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 74px);width:calc(100vw - 24px);height:min(590px,calc(100dvh - 105px));border-radius:20px}#swiperGlobalChatLauncher{right:14px!important;bottom:max(14px,env(safe-area-inset-bottom))!important;width:58px;height:58px;border-radius:19px}.swiper-global-chat-top{padding:13px}.swiper-global-quick-grid{gap:8px;padding:11px}.swiper-global-quick-grid button{padding:10px 8px;font-size:12px}}
 
+/* Quick Words navigation and layout */
+#swiperGlobalChat .swiper-global-quick-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+#swiperGlobalChat #swiperGlobalChatQuickBack{flex:0 0 auto;padding:9px 12px;border:1px solid #cbd8ea!important;border-radius:11px!important;background:#fff!important;color:#1b477c!important;font:700 13px "Fredoka",sans-serif}
+#swiperGlobalChat .swiper-global-quick-heading{margin:0;font-size:23px;color:#17283e}
+#swiperGlobalChat .swiper-global-quick-grid{padding:0 0 12px;grid-template-columns:1fr;gap:8px}
+#swiperGlobalChat .swiper-global-quick-grid button{min-height:44px;padding:11px 14px;font-size:15px}
 /* Modern Global Chat controls */
 #swiperGlobalChatLauncher,
 #swiperGlobalChat button,
@@ -1751,7 +1759,7 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
     <div class="swiper-global-chat-compose"><textarea id="swiperGlobalChatInput" rows="1" maxlength="500" placeholder="Message…" aria-label="Write a message"></textarea><button id="swiperGlobalChatSend" type="button" aria-label="Send message"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M22 2 11 13" stroke="currentColor" stroke-width="2"/></svg></button></div>
     <div id="swiperGlobalChatStatus" role="status">Connecting…</div>
    </div>
-   <div id="swiperGlobalChatQuickView" hidden><div class="swiper-global-quick-heading">Quick Words</div><input id="swiperGlobalQuickSearch" class="swiper-global-quick-search" type="search" placeholder="Search Quick Words…" autocomplete="off"><div class="swiper-global-quick-grid" aria-label="Preset messages"></div></div>
+   <div id="swiperGlobalChatQuickView" hidden><div class="swiper-global-quick-toolbar"><button id="swiperGlobalChatQuickBack" type="button" aria-label="Back to chat">← Back to Chat</button><div class="swiper-global-quick-heading">Quick Words</div></div><input id="swiperGlobalQuickSearch" class="swiper-global-quick-search" type="search" placeholder="Search Quick Words…" autocomplete="off"><div class="swiper-global-quick-grid" aria-label="Preset messages"></div></div>
 
   </div>
  </div>
