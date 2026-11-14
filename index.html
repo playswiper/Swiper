@@ -929,6 +929,12 @@ function initSwiperGlobalChat(){
  });
  close.addEventListener("click",()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}});
  document.querySelectorAll("[data-swiper-chat-tab]").forEach(button=>button.addEventListener("click",()=>switchTab(button.dataset.swiperChatTab)));
+ const leave=()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}};
+ $("swiperGlobalChatLeave")?.addEventListener("click",leave);
+ $("swiperGlobalChatABC")?.addEventListener("click",()=>switchTab(activeTab==="quick"?"chat":"quick"));
+ $("swiperGlobalChatMoreWords")?.addEventListener("click",()=>{const more=["That was awesome!","Oops!","One more round?","I need a break.","Let's team up!","Well played!","I'm practicing!","See you later!","Thanks for playing!","Whoa!","Amazing!","Ready?","Let's go!","Good try!","Nice!","LOL!","BRB!","Welcome!","You got this!","GG!"];const grid=document.querySelector(".swiper-global-quick-grid");grid.replaceChildren(...more.map(word=>{const b=document.createElement("button");b.type="button";b.textContent=word;b.dataset.swiperQuickWord=word;b.addEventListener("click",()=>sendMessage(word));return b}))});
+ $("swiperGlobalChatMic")?.addEventListener("click",()=>{const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SpeechRecognition){setStatus("Voice-to-text isn't supported in this browser.",true);return}if(!user){setStatus("Guests can use Quick Words only.",true);return}try{const recognition=new SpeechRecognition();recognition.lang=navigator.language||"en-US";recognition.interimResults=false;recognition.maxAlternatives=1;setStatus("Listening…");recognition.onresult=e=>{input.value=(input.value+" "+e.results[0][0].transcript).trim();input.focus();setStatus("Voice text added. Tap send when ready.")};recognition.onerror=e=>setStatus(e.error==="not-allowed"?"Microphone permission was blocked.":"Voice input stopped: "+e.error,true);recognition.onend=()=>{if(status.textContent==="Listening…")setStatus("Voice input ended.")};recognition.start()}catch(error){setStatus("Could not start voice input.",true)}});
+
  send.addEventListener("click",()=>sendMessage(input.value));
  input.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();sendMessage(input.value)}});
  document.querySelectorAll("[data-swiper-quick-word]").forEach(button=>button.addEventListener("click",()=>sendMessage(button.dataset.swiperQuickWord)));
@@ -1594,6 +1600,47 @@ a{transition:color .2s ease,opacity .2s ease}
 
 <style id="swiper-board-mode-accessibility">.leaderboard-mode-access{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}.arena{position:relative;isolation:isolate}#bestGhost{display:none!important}
 body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:block!important;filter:none!important;opacity:1!important;pointer-events:auto!important;cursor:pointer!important;visibility:visible!important;margin-top:10px}
+</style>
+<style id="swiper-global-chat-reference-layout">
+#swiperGlobalChat{position:fixed!important;right:max(18px,env(safe-area-inset-right))!important;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 78px)!important;z-index:100021!important;width:min(480px,calc(100vw - 24px))!important;height:min(680px,calc(100dvh - 112px))!important;min-height:340px!important;display:flex;flex-direction:column;overflow:hidden;border:3px solid #080808!important;border-radius:28px!important;background:#050505!important;color:#fff!important;box-shadow:0 24px 80px #000b!important;font-family:"Fredoka",sans-serif!important}
+#swiperGlobalChat[hidden],#swiperGlobalChatChatView[hidden],#swiperGlobalChatQuickView[hidden],#swiperGlobalChatInfoView[hidden]{display:none!important}
+.swiper-global-chat-top{height:88px;min-height:88px;display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 18px!important;margin:0 0 4px;background:#2678ed!important;border:3px solid #080808!important;border-radius:24px!important;color:white}
+.swiper-global-chat-top strong{font:500 clamp(25px,5vw,38px)/1.1 "Fredoka",sans-serif!important;color:#fff}
+.swiper-global-chat-top span{font:600 12px "Fredoka",sans-serif;color:#eaf2ff}
+#swiperGlobalChatClose{position:absolute;right:12px;top:12px;width:32px;height:32px;border-radius:50%;background:#ffffff20;color:#fff;font-size:24px}
+.swiper-global-chat-main{display:flex;flex:1;min-height:0}
+.swiper-global-chat-rail{width:54px;min-width:54px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 4px;background:#2879ec}
+.swiper-global-chat-rail button{width:44px;height:48px;display:grid;place-items:center;border:0;border-radius:7px;background:transparent;color:#fff;font-weight:900}
+.swiper-global-chat-rail svg{width:34px;height:34px}
+#swiperGlobalChatABC span{font:900 20px/1 "Fredoka",sans-serif;letter-spacing:-2px}
+#swiperGlobalChatLeave{margin-top:auto;background:#f33d4b;border-radius:50%;height:46px;font-size:42px;font-weight:400}
+.swiper-global-chat-content{display:flex;flex:1;min-width:0;min-height:0;flex-direction:column;background:#050505}
+#swiperGlobalChatChatView,#swiperGlobalChatQuickView,#swiperGlobalChatInfoView{display:flex;flex:1;min-height:0;flex-direction:column}
+#swiperGlobalChatList{flex:1;min-height:0;overflow:auto;padding:12px 10px;display:flex;flex-direction:column;gap:7px;overscroll-behavior:contain}
+.swiper-global-message{max-width:96%;align-self:center;padding:1px 5px;border:0;background:transparent!important;color:#fff;text-align:center;overflow-wrap:anywhere}
+.swiper-global-message.mine{align-self:center;background:transparent!important;border:0}
+.swiper-global-message-head{display:inline-flex;align-items:center;gap:5px;margin:0 5px 0 0}
+.swiper-global-message-head strong{font:600 clamp(17px,3.8vw,24px)/1.25 "Fredoka",sans-serif;color:#fff}
+.swiper-global-message-head time{display:none}
+.swiper-global-message p{display:inline;margin:0;font:600 clamp(17px,3.8vw,24px)/1.25 "Fredoka",sans-serif;color:#fff;white-space:pre-wrap}
+.swiper-global-verified{color:#62a9ff}
+.swiper-global-chat-empty{margin:auto;text-align:center;padding:24px;color:#ddd;font-size:14px}
+.swiper-global-chat-compose{display:flex;align-items:center;gap:7px;padding:7px 9px 9px;border-top:0;background:#050505}
+#swiperGlobalChatInput{flex:1;min-width:0;max-height:90px;resize:none;padding:10px 12px;border:2px solid #888;border-radius:6px;background:#fff;color:#111;font:16px "Fredoka",sans-serif}
+#swiperGlobalChatSend{width:48px;height:48px;padding:6px;background:transparent;color:#19b66a}
+#swiperGlobalChatSend svg{width:38px;height:38px}
+#swiperGlobalChatStatus{min-height:19px;padding:0 10px 5px;color:#b8b8b8;font-size:10px;background:#050505;text-align:center}
+#swiperGlobalChatStatus.is-error{color:#ff8b94}
+#swiperGlobalChatQuickView{background:#e7e7e7;color:#111;padding:14px;overflow:auto}
+.swiper-global-quick-heading{font:700 25px "Fredoka",sans-serif;margin-bottom:12px}
+.swiper-global-quick-grid{display:flex;flex-direction:column;gap:8px;padding:0}
+.swiper-global-quick-grid button{width:100%;padding:10px 12px;border:0;border-radius:11px;background:#f7f7f7;color:#151515;text-align:left;font:600 17px "Fredoka",sans-serif}
+#swiperGlobalChatMoreWords{margin-top:10px;padding:9px 12px;border:0;border-radius:10px;background:#d0d0d0;color:#222;font:600 14px "Fredoka",sans-serif}
+#swiperGlobalChatInfoView{background:#fff;color:#111;overflow:auto}
+.swiper-global-info{padding:16px;color:#111;font:500 15px/1.5 "Fredoka",sans-serif}
+.swiper-global-info h3{font-size:30px;color:#111;margin:0 0 16px}
+.swiper-global-info p{margin:14px 0}
+@media(max-width:520px){#swiperGlobalChat{right:12px!important;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 72px)!important;width:calc(100vw - 24px)!important;height:min(620px,calc(100dvh - 100px))!important;border-radius:23px!important}.swiper-global-chat-top{height:74px;min-height:74px}.swiper-global-chat-rail{width:48px;min-width:48px}.swiper-global-chat-rail button{width:40px}}
 </style>\n
 <style id="swiper-global-chat-style">
 #swiperGlobalChatLauncher{position:fixed!important;right:max(18px,env(safe-area-inset-right))!important;bottom:max(18px,env(safe-area-inset-bottom))!important;z-index:100020!important;width:64px;height:64px;padding:0;border:1px solid #8abaff;border-radius:22px;background:linear-gradient(145deg,#258cff,#0865df);box-shadow:0 12px 34px #0057c955,0 4px 12px #0008;display:grid;place-items:center}
@@ -1632,18 +1679,31 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
  <svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M32 7C17.7 7 6 17.4 6 30.3c0 7.1 3.6 13.4 9.4 17.7L12 57l14-4.5c2 .5 4 .8 6 .8 14.3 0 26-10.4 26-23.2S46.3 7 32 7Z" fill="white"/><circle cx="21" cy="30" r="4.2" fill="#1478ed"/><circle cx="32" cy="30" r="4.2" fill="#1478ed"/><circle cx="43" cy="30" r="4.2" fill="#1478ed"/></svg>
 </button>
 <section id="swiperGlobalChat" hidden aria-label="Swiper Global Chat">
- <header class="swiper-global-chat-top"><div class="swiper-global-chat-logo">🌐</div><div class="swiper-global-chat-title"><strong>Global Chat</strong><span>Chat with the Swiper community</span></div><button id="swiperGlobalChatClose" type="button" aria-label="Close chat">×</button></header>
- <nav class="swiper-global-chat-tabs" aria-label="Global chat sections"><button type="button" data-swiper-chat-tab="chat" class="active">Chat</button><button type="button" data-swiper-chat-tab="quick">Quick Words</button><button type="button" data-swiper-chat-tab="info">Info</button></nav>
- <div id="swiperGlobalChatChatView"><div id="swiperGlobalChatList" aria-live="polite"><div class="swiper-global-chat-empty">Sign in to join Global Chat.</div></div><div class="swiper-global-chat-compose"><textarea id="swiperGlobalChatInput" rows="1" maxlength="500" placeholder="Write a message…" aria-label="Write a message"></textarea><button id="swiperGlobalChatSend" type="button">Send</button></div><div id="swiperGlobalChatStatus" role="status">Sign in required</div></div>
- <div id="swiperGlobalChatQuickView" hidden><div class="swiper-global-quick-grid">
-  <button type="button" data-swiper-quick-word="Hello everyone!"><span>👋</span><strong>Hello!</strong></button>
-  <button type="button" data-swiper-quick-word="Good game!"><span>🏆</span><strong>Good game!</strong></button>
-  <button type="button" data-swiper-quick-word="Good luck!"><span>🍀</span><strong>Good luck!</strong></button>
-  <button type="button" data-swiper-quick-word="Nice play!"><span>⚡</span><strong>Nice play!</strong></button>
-  <button type="button" data-swiper-quick-word="Anyone want to play?"><span>🎮</span><strong>Play?</strong></button>
-  <button type="button" data-swiper-quick-word="Thanks!"><span>💙</span><strong>Thanks!</strong></button>
- </div></div>
- <div id="swiperGlobalChatInfoView" hidden><div class="swiper-global-info"><h3>Welcome to Global Chat</h3><p>Meet other players, celebrate good runs, and find people to play with.</p><ul><li>Be friendly and respectful.</li><li>Keep messages appropriate for all players.</li><li>Never share your password, address, phone number, or private information.</li><li>Don't spam, bully, threaten, or post advertisements.</li><li>If someone makes you uncomfortable, leave the chat and tell a trusted adult.</li></ul><div class="info-note">Global Chat is for signed-in Swiper accounts. Messages are visible to other signed-in players.</div></div></div>
+ <header class="swiper-global-chat-top"><strong id="swiperGlobalChatHeading">Chat</strong><span id="swiperGlobalChatOnline">Global</span><button id="swiperGlobalChatClose" type="button" aria-label="Leave chat">×</button></header>
+ <div class="swiper-global-chat-main">
+  <aside class="swiper-global-chat-rail" aria-label="Chat tools">
+   <button id="swiperGlobalChatMic" type="button" aria-label="Voice to text" title="Talk while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+   <button id="swiperGlobalChatABC" type="button" data-swiper-chat-tab="quick" aria-label="Quick Words" title="Quick Words"><span>ABC</span></button>
+   <button id="swiperGlobalChatLeave" type="button" aria-label="Leave chat" title="Leave"><span>×</span></button>
+  </aside>
+  <div class="swiper-global-chat-content">
+   <div id="swiperGlobalChatChatView"><div id="swiperGlobalChatList" aria-live="polite"><div class="swiper-global-chat-empty">Join the conversation.</div></div>
+    <div class="swiper-global-chat-compose"><textarea id="swiperGlobalChatInput" rows="1" maxlength="500" placeholder="Message…" aria-label="Write a message"></textarea><button id="swiperGlobalChatSend" type="button" aria-label="Send message"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M22 2 11 13" stroke="currentColor" stroke-width="2"/></svg></button></div>
+    <div id="swiperGlobalChatStatus" role="status">Connecting…</div>
+   </div>
+   <div id="swiperGlobalChatQuickView" hidden><div class="swiper-global-quick-heading">Quick Words</div><div class="swiper-global-quick-grid">
+    <button type="button" data-swiper-quick-word="Hello!">Hello</button>
+    <button type="button" data-swiper-quick-word="Hello World!">Hello World</button>
+    <button type="button" data-swiper-quick-word="Hello Kitty!">Hello Kitty</button>
+    <button type="button" data-swiper-quick-word="Helium Balloon!">Helium Balloon</button>
+    <button type="button" data-swiper-quick-word="Good game!">Good game!</button>
+    <button type="button" data-swiper-quick-word="Good luck!">Good luck!</button>
+    <button type="button" data-swiper-quick-word="Nice play!">Nice play!</button>
+    <button type="button" data-swiper-quick-word="Anyone want to play?">Anyone want to play?</button>
+   </div><button id="swiperGlobalChatMoreWords" type="button">View More Quick Words</button></div>
+   <div id="swiperGlobalChatInfoView" hidden><div class="swiper-global-info"><h3>Info!</h3><p>🎙️ Talk while you play without touching anything (voice to text).</p><p>Guests can only use Quick Words — no free speech. Quick Words has lots of fun, cool, weird, and general preset phrases.</p><p>Use the red × button to leave chat.</p></div></div>
+  </div>
+ </div>
 </section>
 
 </body></html>
