@@ -1224,6 +1224,7 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
   .subscribe();
  refreshNotices().catch(e=>console.warn("Swiper notices refresh failed:",e));
  setInterval(()=>refreshNotices().catch(e=>console.warn("Swiper notices refresh failed:",e)),30000);
+ initSwiperGlobalChat();
 
 })();
 })();
