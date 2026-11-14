@@ -1697,18 +1697,58 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
 .swiper-global-info{padding:18px 17px;overflow:auto;color:#dce7f5;font-size:13px;line-height:1.55}
 .swiper-global-info h3{margin:0 0 9px;font-size:19px;color:white}.swiper-global-info ul{padding-left:19px;margin:8px 0}.swiper-global-info li{margin:7px 0}.swiper-global-info .info-note{padding:11px;border:1px solid #36516e;border-radius:12px;background:#182b42;color:#b9d8fb}
 @media(max-width:520px){#swiperGlobalChat{right:12px;bottom:calc(max(12px,env(safe-area-inset-bottom)) + 74px);width:calc(100vw - 24px);height:min(590px,calc(100dvh - 105px));border-radius:20px}#swiperGlobalChatLauncher{right:14px!important;bottom:max(14px,env(safe-area-inset-bottom))!important;width:58px;height:58px;border-radius:19px}.swiper-global-chat-top{padding:13px}.swiper-global-quick-grid{gap:8px;padding:11px}.swiper-global-quick-grid button{padding:10px 8px;font-size:12px}}
+
+/* Modern Global Chat controls */
+#swiperGlobalChatLauncher,
+#swiperGlobalChat button,
+#swiperGlobalChatClose{
+ -webkit-appearance:none;appearance:none;outline:0!important;border:0!important;
+ box-shadow:none!important;text-shadow:none!important;
+}
+#swiperGlobalChatLauncher{overflow:hidden;background:transparent!important;border-radius:20px!important;isolation:isolate;transition:transform .18s ease,filter .18s ease}
+#swiperGlobalChatLauncher img{display:block;border:0!important;outline:0!important}
+#swiperGlobalChatLauncher:focus-visible,
+#swiperGlobalChat button:focus-visible{outline:3px solid rgba(75,155,255,.7)!important;outline-offset:3px!important}
+#swiperGlobalChat .swiper-global-chat-rail{gap:11px;padding:14px 10px;background:linear-gradient(180deg,#101a2b,#0c1422)}
+#swiperGlobalChat .swiper-global-chat-rail button,
+#swiperGlobalChatClose{
+ width:44px;height:44px;min-width:44px;min-height:44px;display:grid;place-items:center;
+ padding:10px;border-radius:15px!important;background:#1c2b42!important;color:#dceaff!important;
+ border:1px solid rgba(151,190,239,.12)!important;cursor:pointer;
+ transition:background .18s ease,transform .18s ease,color .18s ease;
+}
+#swiperGlobalChat .swiper-global-chat-rail button:hover{background:#294366!important;color:#fff!important;transform:translateY(-2px)}
+#swiperGlobalChat .swiper-global-chat-rail button svg,
+#swiperGlobalChatClose svg{width:23px;height:23px;display:block}
+#swiperGlobalChat #swiperGlobalChatMic{background:linear-gradient(145deg,#287cf0,#1555c9)!important;color:#fff!important}
+#swiperGlobalChat #swiperGlobalChatABC{background:linear-gradient(145deg,#334e75,#203451)!important;color:#fff!important}
+#swiperGlobalChat #swiperGlobalChatLeave{margin-top:auto;background:linear-gradient(145deg,#fa5865,#d92d45)!important;color:#fff!important;border:0!important}
+#swiperGlobalChat #swiperGlobalChatLeave:hover{background:#ff4055!important}
+#swiperGlobalChatClose{width:36px;height:36px;min-width:36px;min-height:36px;padding:8px;background:rgba(255,255,255,.14)!important;color:#fff!important;border:0!important;border-radius:12px!important}
+#swiperGlobalChatClose:hover{background:rgba(255,255,255,.25)!important}
+#swiperGlobalChat .swiper-global-chat-top{align-items:center}
+#swiperGlobalChat .swiper-global-chat-top strong{font-size:18px;letter-spacing:.2px}
+#swiperGlobalChat .swiper-global-chat-compose{border-radius:17px;background:#111d30;border:1px solid rgba(144,180,225,.16);padding:7px;gap:8px}
+#swiperGlobalChat #swiperGlobalChatInput{border:0!important;outline:0!important;box-shadow:none!important;background:transparent}
+#swiperGlobalChat #swiperGlobalChatSend{width:42px;height:42px;border-radius:13px!important;background:linear-gradient(145deg,#388dff,#1762df)!important;color:#fff!important}
+#swiperGlobalChat #swiperGlobalChatSend svg{width:21px;height:21px}
+#swiperGlobalChat .swiper-global-quick-search{outline:0!important;box-shadow:none!important;border:1px solid #d8e0ec!important;border-radius:13px!important}
+#swiperGlobalChat .swiper-global-quick-grid button{border:1px solid rgba(125,155,195,.18)!important;border-radius:12px!important;box-shadow:none!important;background:#f2f5fa!important;color:#1b2a40!important;transition:transform .15s ease,background .15s ease}
+#swiperGlobalChat .swiper-global-quick-grid button:hover{background:#e5efff!important;transform:translateY(-1px)}
+#swiperGlobalChat button:active{transform:scale(.96)}
+@media(prefers-reduced-motion:reduce){#swiperGlobalChat button,#swiperGlobalChatLauncher{transition:none!important}}
 </style>
 <button id="swiperGlobalChatLauncher" type="button" aria-label="Open Global Chat" aria-controls="swiperGlobalChat" aria-expanded="false">
  <img src="https://raw.githubusercontent.com/playswiper/Swiper/main/IMG_2382.jpeg" alt="" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">
 </button>
 <section id="swiperGlobalChat" hidden aria-label="Swiper Global Chat">
- <header class="swiper-global-chat-top"><strong id="swiperGlobalChatHeading">Chat</strong><span id="swiperGlobalChatOnline">Global</span><button id="swiperGlobalChatClose" type="button" aria-label="Leave chat">×</button></header>
+ <header class="swiper-global-chat-top"><strong id="swiperGlobalChatHeading">Chat</strong><span id="swiperGlobalChatOnline">Global</span><button id="swiperGlobalChatClose" type="button" aria-label="Close chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button></header>
  <div class="swiper-global-chat-main">
   <aside class="swiper-global-chat-rail" aria-label="Chat tools">
    <button id="swiperGlobalChatMic" type="button" aria-label="Voice to text" title="Talk while you play"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="13" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-   <button id="swiperGlobalChatABC" type="button" data-swiper-chat-tab="quick" aria-label="Quick Words" title="Quick Words"><span>ABC</span></button>
+   <button id="swiperGlobalChatABC" type="button" data-swiper-chat-tab="quick" aria-label="Quick Words" title="Quick Words"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18 9 6h2l5 12M6 14h8M15 10h3.5a2.5 2.5 0 0 1 0 5H15m0-5v9h4a2.5 2.5 0 0 0 0-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
    <button id="swiperGlobalChatInfo" type="button" data-swiper-chat-tab="info" aria-label="Info" title="Info"><span>i</span></button>
-   <button id="swiperGlobalChatLeave" type="button" aria-label="Leave chat" title="Leave"><span>×</span></button>
+   <button id="swiperGlobalChatLeave" type="button" aria-label="Leave chat" title="Leave"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7 17 17M17 7 7 17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button>
   </aside>
   <div class="swiper-global-chat-content">
    <div id="swiperGlobalChatChatView"><div id="swiperGlobalChatList" aria-live="polite"><div class="swiper-global-chat-empty">Join the conversation.</div></div>
