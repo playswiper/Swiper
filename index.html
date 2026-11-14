@@ -1148,6 +1148,52 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
 </style>
 <script>
 (function(){
+  // Show active error-level status notices directly on the startup loader.
+  (async()=>{
+    try{
+      const response=await fetch("https://upghyzhawctughyojwpo.supabase.co/rest/v1/swiper_known_outages?select=title,details,severity&resolved_at=is.null&severity=eq.error&order=started_at.desc&limit=3",{
+        headers:{apikey:"sb_publishable_z70GOIzu3F_xdxdJiVa48A_SqvrA6-b"},
+        cache:"no-store"
+      });
+      if(!response.ok)throw new Error("Status notice check failed: "+response.status);
+      const notices=await response.json();
+      if(!Array.isArray(notices)||!notices.length)return;
+      const loading=document.getElementById("swiperLoading");
+      const card=loading?.querySelector(".swiper-loading-card");
+      if(!card||document.getElementById("swiperStartupStatusAlert"))return;
+      const alert=document.createElement("section");
+      alert.id="swiperStartupStatusAlert";
+      alert.setAttribute("role","alert");
+      alert.style.cssText="width:min(100%,420px);margin:14px auto 0;padding:12px 14px;border:1px solid #a83e3e;border-radius:13px;background:linear-gradient(135deg,#2b1010,#160909);color:#fff;text-align:left;box-shadow:0 8px 28px #0008";
+      const heading=document.createElement("div");
+      heading.textContent="⚠ SWIPER ERROR NOTICE";
+      heading.style.cssText="font:800 13px Fredoka,sans-serif;letter-spacing:.06em;color:#ff9292;margin-bottom:7px";
+      alert.append(heading);
+      for(const notice of notices){
+        const item=document.createElement("div");
+        item.style.cssText="font:600 13px/1.4 Fredoka,sans-serif;margin-top:7px";
+        const title=document.createElement("div");
+        title.textContent=notice.title||"Service issue";
+        title.style.cssText="font-weight:700;color:#fff";
+        item.append(title);
+        if(notice.details){
+          const detail=document.createElement("div");
+          detail.textContent=notice.details;
+          detail.style.cssText="font-weight:400;color:#e6caca;margin-top:3px;white-space:pre-wrap;overflow-wrap:anywhere";
+          item.append(detail);
+        }
+        alert.append(item);
+      }
+      const link=document.createElement("a");
+      link.href="https://www.playswiper.com/status";
+      link.textContent="View status updates";
+      link.target="_blank";
+      link.rel="noopener noreferrer";
+      link.style.cssText="display:inline-block;margin-top:10px;color:#ffb2b2;font:600 12px Fredoka,sans-serif";
+      alert.append(link);
+      card.append(alert);
+    }catch(error){console.warn("[Swiper status check]",error)}
+  })();
   const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   function makeErrorCode(){
     const bytes=new Uint8Array(7);
