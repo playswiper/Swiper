@@ -883,7 +883,7 @@ function initSwiperGlobalChat(){
    .on("presence",{event:"join"},({newPresences})=>{updateGlobalOnline();(newPresences||[]).forEach(p=>{const key=p.user_id||p.display_name;if(key&&!globalPresenceSeen.has(key)){globalPresenceSeen.add(key);if(p.display_name)globalSystem(p.display_name+" Joined The Chat")}})})
    .on("broadcast",{event:"chat-message"},({payload})=>{if(!payload)return;const item=document.createElement("article");item.className="swiper-global-message";const head=document.createElement("div");head.className="swiper-global-message-head";const name=document.createElement("strong");name.textContent=(payload.display_name||"Player")+":";head.append(name);const body=document.createElement("p");body.textContent=payload.content||"";item.append(head,body);list.append(item);if(payload.preset){const note=document.createElement("div");note.className="swiper-global-system-event";note.textContent="Sent using Quick Words";list.append(note)}list.scrollTop=list.scrollHeight})
    .on("broadcast",{event:"score"},({payload})=>{if(payload)globalSystem(payload.player+" Scored "+payload.score+" On "+payload.mode)});
-  globalLive.subscribe(async state=>{if(state==="SUBSCRIBED"){globalLiveReady=true;await globalLive.track({display_name:profile?.display_name||profile?.username||(user?"Player":"Guest"),user_id:user?.id||null});updateGlobalOnline()}});
+  globalLive.subscribe(async state=>{if(state==="SUBSCRIBED"){globalLiveReady=true;updateGlobalOnline()}});
  }catch(e){console.warn("Global chat presence unavailable",e)}
 
  const switchTab=tab=>{
@@ -939,12 +939,12 @@ function initSwiperGlobalChat(){
  };
  launcher.addEventListener("click",async()=>{
   const opening=panel.hidden;panel.hidden=!opening;launcher.setAttribute("aria-expanded",String(opening));
-  if(opening){switchTab(activeTab);await refresh();if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(!panel.hidden&&activeTab==="chat")refresh()},5000);if(user)input.focus()}
-  else if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}
+  if(opening){if(globalLive&&globalLiveReady)await globalLive.track({display_name:profile?.display_name||profile?.username||(user?"Player":"Guest"),user_id:user?.id||null});switchTab(activeTab);await refresh();if(refreshTimer)clearInterval(refreshTimer);refreshTimer=setInterval(()=>{if(!panel.hidden&&activeTab==="chat")refresh()},5000);if(user)input.focus()}
+  else{if(globalLive&&globalLiveReady)await globalLive.untrack();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}}
  });
- close.addEventListener("click",()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}});
+ close.addEventListener("click",async()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(globalLive&&globalLiveReady)await globalLive.untrack();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}});
  document.querySelectorAll("[data-swiper-chat-tab]").forEach(button=>button.addEventListener("click",()=>switchTab(button.dataset.swiperChatTab)));
- const leave=()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}};
+ const leave=async()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(globalLive&&globalLiveReady)await globalLive.untrack();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}};
  $("swiperGlobalChatLeave")?.addEventListener("click",leave);
  $("swiperGlobalChatABC")?.addEventListener("click",()=>switchTab(activeTab==="quick"?"chat":"quick"));
  
