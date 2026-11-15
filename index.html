@@ -994,7 +994,7 @@ function initSwiperGlobalChat(){
  send.addEventListener("click",()=>sendMessage(input.value));
  input.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();sendMessage(input.value)}});
 
- document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!panel.hidden){panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}}});
+ document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!panel.hidden){if(voiceActive)stopVoice();panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}}});
 }
 
 let activeChatId=null,activeChatKind="direct",chatRefreshTimer=null,lastRenderedChatMessageSignature="";
