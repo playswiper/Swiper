@@ -930,7 +930,7 @@ function initSwiperGlobalChat(){
  const launcher=$("swiperGlobalChatLauncher"),panel=$("swiperGlobalChat"),close=$("swiperGlobalChatClose"),input=$("swiperGlobalChatInput"),send=$("swiperGlobalChatSend"),list=$("swiperGlobalChatList"),status=$("swiperGlobalChatStatus");
  if(!launcher||!panel||launcher.dataset.ready==="1")return;
  launcher.dataset.ready="1";
- let refreshTimer=null,loading=false,lastSentAt=0,activeTab="chat",chatRestricted=false;
+ let refreshTimer=null,loading=false,lastSentAt=0,guestSlowUntil=0,activeTab="chat",chatRestricted=false;
  const setStatus=(text,error=false)=>{status.textContent=text;status.classList.toggle("is-error",!!error)};
  let globalLive=null,globalLiveReady=false,globalPresenceSeen=new Set();
  const onlineCount=()=>{if(!globalLive)return 0;return Object.values(globalLive.presenceState()||{}).reduce((n,a)=>n+(a||[]).length,0)};
@@ -1008,7 +1008,7 @@ function initSwiperGlobalChat(){
   const content=sanitizeSwiperChatText(String(value||"").trim());
   if(!content)return;
   if(chatRestricted&&!isPreset){setStatus("Chat is restricted. You can still send Quick Words.",true);switchTab("quick");return}
-  if(!user){if(isPreset){if(!globalLive||!globalLiveReady){setStatus("Chat is connecting. Try again in a moment.",true);return}const guestMessage={display_name:"Guest",content,preset:true,guest:true,created_at:new Date().toISOString()};globalGuestMessages.push(guestMessage);if(globalGuestMessages.length>100)globalGuestMessages.shift();await globalLive.send({type:"broadcast",event:"chat-message",payload:guestMessage});appendGlobalChatMessage("You",content,true,true,guestMessage.created_at);switchTab("chat");setStatus("Quick Word sent");return}setStatus("Guests can only use Quick Words.",true);return}
+  if(!user){if(isPreset){const now=Date.now();if(now<guestSlowUntil){setStatus("Guest slow mode is active. Wait 3 seconds before sending another Quick Word.",true);return}if(lastSentAt&&now-lastSentAt<1000){guestSlowUntil=now+3000;setStatus("Slow mode activated for 3 seconds. Please slow down.",true);return}if(now-lastSentAt<1400){setStatus("Please wait a moment before sending again.",true);return}if(!globalLive||!globalLiveReady){setStatus("Chat is connecting. Try again in a moment.",true);return}lastSentAt=now;const guestMessage={display_name:"Guest",content,preset:true,guest:true,created_at:new Date().toISOString()};globalGuestMessages.push(guestMessage);if(globalGuestMessages.length>100)globalGuestMessages.shift();await globalLive.send({type:"broadcast",event:"chat-message",payload:guestMessage});appendGlobalChatMessage("You",content,true,true,guestMessage.created_at);switchTab("chat");setStatus("Quick Word sent");return}setStatus("Guests can only use Quick Words.",true);return}
   if(content.length>500){setStatus("Messages must be 500 characters or fewer.",true);return}
   if(Date.now()-lastSentAt<1400){setStatus("Please wait a moment before sending again.",true);return}
   send.disabled=true;
