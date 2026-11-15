@@ -975,7 +975,6 @@ function initSwiperGlobalChat(){
    const person=profiles.get(row.user_id)||{};
    const displayName=row.user_id===user?.id?(profile?.display_name||person.display_name||profile?.username||person.username||"You"):(person.display_name||person.username||"Player");
    const item=document.createElement("article");item.className="swiper-global-message"+(row.user_id===user?.id?" mine":"");
-   const avatar=document.createElement("span");avatar.className="swiper-global-message-avatar";avatar.textContent=String(displayName).trim().slice(0,1).toUpperCase();avatar.setAttribute("aria-label",displayName);
    const bubble=document.createElement("div");bubble.className="swiper-global-message-bubble";
    const head=document.createElement("span");head.className="swiper-global-message-head";
    const name=document.createElement("strong");name.textContent=displayName;head.append(name);
@@ -983,7 +982,13 @@ function initSwiperGlobalChat(){
    if(moderatorIds.has(row.user_id)){const mod=moderatorMark(true);if(mod){mod.classList.add("swiper-global-mod-badge");head.append(mod)}}
    const time=document.createElement("time");time.dateTime=row.created_at;time.textContent=new Date(row.created_at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});head.append(time);
    const body=document.createElement("span");body.className="swiper-global-message-text";body.textContent=sanitizeSwiperChatText(row.content);
-   bubble.append(head,body);item.append(avatar,bubble);list.append(item);
+   bubble.append(head,body);item.append(bubble);
+   if(row.user_id===user?.id){
+    const remove=document.createElement("button");remove.type="button";remove.className="swiper-global-message-delete";remove.textContent="×";remove.setAttribute("aria-label","Delete your message");remove.title="Delete message";
+    remove.addEventListener("click",async event=>{event.preventDefault();event.stopPropagation();if(remove.disabled)return;remove.disabled=true;remove.textContent="…";try{const deleted=await db.from("swiper_global_chat_messages").delete().eq("id",row.id).eq("user_id",user.id).select("id");if(deleted.error)throw deleted.error;if(!deleted.data?.length)throw new Error("Message could not be deleted.");item.remove();if(!list.querySelector(".swiper-global-message")){const empty=document.createElement("div");empty.className="swiper-global-chat-empty";empty.textContent="It's quiet in here. Say hello!";list.append(empty)}setStatus("Message deleted")}catch(error){remove.disabled=false;remove.textContent="×";setStatus(error?.message||"Could not delete message.",true)}});
+    item.append(remove);
+   }
+   list.append(item);
   });
   globalGuestMessages.forEach(message=>appendGlobalChatMessage(message.display_name||"Guest",sanitizeSwiperChatText(message.content||""),!!message.preset,false,message.created_at||new Date()));
   list.scrollTop=list.scrollHeight;
@@ -1863,13 +1868,13 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
 <script id="swiper-global-chat-window-controls">
 (()=>{const panel=document.getElementById("swiperGlobalChat"),header=panel?.querySelector(".swiper-global-chat-top"),grip=document.getElementById("swiperGlobalChatResize");if(!panel||!header||!grip)return;
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
- const apply=(left,top,width,height)=>{const vw=window.innerWidth,vh=window.innerHeight,minW=Math.min(300,vw-16),minH=Math.min(340,vh-16),w=clamp(width,minW,vw-16),h=clamp(height,minH,vh-16),x=clamp(left,8,Math.max(8,vw-w-8)),y=clamp(top,8,Math.max(8,vh-h-8));panel.style.setProperty("left",x+"px");panel.style.setProperty("top",y+"px");panel.style.setProperty("right","auto");panel.style.setProperty("bottom","auto");panel.style.setProperty("width",w+"px");panel.style.setProperty("height",h+"px")};
+ const apply=(left,top,width,height)=>{const vw=window.innerWidth,vh=window.innerHeight,minW=Math.min(300,Math.max(220,vw-16)),minH=Math.min(340,Math.max(220,vh-16)),w=clamp(width,minW,Math.max(minW,vw-16)),h=clamp(height,minH,Math.max(minH,vh-16)),x=clamp(left,8,Math.max(8,vw-w-8)),y=clamp(top,8,Math.max(8,vh-h-8));panel.style.setProperty("left",x+"px","important");panel.style.setProperty("top",y+"px","important");panel.style.setProperty("right","auto","important");panel.style.setProperty("bottom","auto","important");panel.style.setProperty("width",w+"px","important");panel.style.setProperty("height",h+"px","important");panel.style.setProperty("min-width",minW+"px","important");panel.style.setProperty("min-height",minH+"px","important");panel.style.setProperty("max-width",Math.max(minW,vw-16)+"px","important");panel.style.setProperty("max-height",Math.max(minH,vh-16)+"px","important")};
  const persist=()=>{const r=panel.getBoundingClientRect();try{localStorage.setItem("swiperGlobalChatWindow",JSON.stringify({left:r.left,top:r.top,width:r.width,height:r.height}))}catch{}};
  try{const saved=JSON.parse(localStorage.getItem("swiperGlobalChatWindow")||"null");if(saved&&["left","top","width","height"].every(k=>Number.isFinite(saved[k])))apply(saved.left,saved.top,saved.width,saved.height)}catch{}
  let active=null;
- const begin=(event,mode)=>{if(event.pointerType==="mouse"&&event.button!==0)return;if(active)return;if(mode==="move"&&event.target.closest("button"))return;event.preventDefault();const r=panel.getBoundingClientRect();active={id:event.pointerId,mode,x:event.clientX,y:event.clientY,left:r.left,top:r.top,width:r.width,height:r.height};try{(mode==="resize"?grip:header).setPointerCapture(event.pointerId)}catch{}};
+ const begin=(event,mode)=>{if(event.pointerType==="mouse"&&event.button!==0)return;if(active||panel.hidden)return;if(mode==="move"&&event.target.closest("button"))return;event.preventDefault();const r=panel.getBoundingClientRect();active={id:event.pointerId,mode,x:event.clientX,y:event.clientY,left:r.left,top:r.top,width:r.width,height:r.height};panel.style.setProperty("user-select","none","important");try{(mode==="resize"?grip:header).setPointerCapture(event.pointerId)}catch{}};
  const move=event=>{if(!active||event.pointerId!==active.id)return;const dx=event.clientX-active.x,dy=event.clientY-active.y;if(active.mode==="resize")apply(active.left,active.top,active.width+dx,active.height+dy);else apply(active.left+dx,active.top+dy,active.width,active.height)};
- const finish=event=>{if(!active||event.pointerId!==active.id)return;active=null;persist()};
+ const finish=event=>{if(!active||event.pointerId!==active.id)return;active=null;panel.style.removeProperty("user-select");persist()};
  header.addEventListener("pointerdown",e=>begin(e,"move"));
  grip.addEventListener("pointerdown",e=>begin(e,"resize"));
  window.addEventListener("pointermove",move,{passive:false});window.addEventListener("pointerup",finish);window.addEventListener("pointercancel",finish);
@@ -1880,7 +1885,20 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
 
 <script id="swiper-practice-only-database-retry-handler">
 (()=>{const button=document.getElementById("swiperPracticeOnlyRetryDatabase");if(!button)return;button.addEventListener("click",async()=>{if(button.disabled)return;button.disabled=true;button.textContent="Checking database…";try{const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),12000);let response;try{response=await fetch(SUPABASE_URL+"/auth/v1/health",{method:"GET",headers:{apikey:SUPABASE_KEY},cache:"no-store",signal:controller.signal})}finally{clearTimeout(timeout)}if(!response.ok)throw new Error("Database returned HTTP "+response.status);button.textContent="Database connected! Reloading…";window.location.reload()}catch(error){button.disabled=false;button.textContent="↻ Retry database connection";let note=document.getElementById("swiperPracticeOnlyDatabaseRetryStatus");if(!note){note=document.createElement("p");note.id="swiperPracticeOnlyDatabaseRetryStatus";note.setAttribute("role","status");note.style.cssText="margin:5px auto;color:#ffb4b4;text-align:center;font:600 12px Fredoka,sans-serif";button.insertAdjacentElement("afterend",note)}note.textContent=error?.name==="AbortError"?"Connection timed out. Check your internet and retry.":(error?.message||"Could not reach the database. Try again.")}})})();
-</script><style id="swiper-global-chat-inline-message-layout">
+</script><style id="swiper-global-chat-no-outline-delete-resize">
+#swiperGlobalChat .swiper-global-message-bubble,
+#swiperGlobalChat .swiper-global-message.mine .swiper-global-message-bubble{border:0!important;outline:0!important;box-shadow:none!important}
+#swiperGlobalChat .swiper-global-message-bubble:before,
+#swiperGlobalChat .swiper-global-message.mine .swiper-global-message-bubble:before{content:none!important;display:none!important}
+#swiperGlobalChat .swiper-global-message{align-items:center!important;gap:7px!important}
+#swiperGlobalChat .swiper-global-message-delete{flex:0 0 25px!important;width:25px!important;height:25px!important;padding:0!important;border:0!important;border-radius:50%!important;background:#26364d!important;color:#d7e5f7!important;font:600 19px/1 "Fredoka",sans-serif!important;cursor:pointer!important;opacity:.8!important;touch-action:manipulation!important}
+#swiperGlobalChat .swiper-global-message-delete:hover{background:#8d3040!important;color:#fff!important;opacity:1!important}
+#swiperGlobalChat .swiper-global-message-delete:disabled{opacity:.45!important;cursor:wait!important}
+#swiperGlobalChatResize{width:42px!important;height:42px!important;right:0!important;bottom:0!important;z-index:999!important;touch-action:none!important;pointer-events:auto!important;cursor:nwse-resize!important;background-color:transparent!important}
+#swiperGlobalChat .swiper-global-chat-top{touch-action:none!important;user-select:none!important;-webkit-user-select:none!important}
+#swiperGlobalChat{box-sizing:border-box!important;overflow:hidden!important}
+</style>
+<style id="swiper-global-chat-inline-message-layout">
 #swiperGlobalChatList{align-items:stretch!important;gap:9px!important}
 #swiperGlobalChat .swiper-global-message{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;width:fit-content!important;max-width:100%!important;align-self:flex-start!important;padding:0!important;text-align:left!important;background:transparent!important;border:0!important}
 #swiperGlobalChat .swiper-global-message.mine{align-self:flex-end!important;flex-direction:row-reverse!important}
