@@ -987,6 +987,9 @@ function initSwiperGlobalChat(){
  recognition.start();$("swiperGlobalChatMic")?.classList.add("voice-listening");$("swiperGlobalChatMic")?.classList.remove("voice-paused");$("swiperGlobalChatMic")?.setAttribute("aria-pressed","true");setStatus("Listening… Say “send it” to send, “pause” to pause, or “cancel” to stop.");
  }catch(error){stopVoice();setStatus("Could not start voice input. Check microphone permission.",true)}};
  $("swiperGlobalChatMic")?.addEventListener("click",()=>{const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SpeechRecognition){setStatus("Voice-to-text isn't supported in this browser.",true);return}if(!user){setStatus("Guests can use Quick Words only.",true);return}if(voiceActive&&!voicePaused){stopVoice();setStatus("Microphone stopped. Tap the mic to start again.");return}if(voiceActive&&voicePaused){voicePaused=false;startVoiceRecognition();return}voiceActive=true;voicePaused=false;voiceSession++;startVoiceRecognition()});
+ close?.addEventListener("click",()=>{if(voiceActive)stopVoice()});
+ $("swiperGlobalChatLeave")?.addEventListener("click",()=>{if(voiceActive)stopVoice()});
+ launcher.addEventListener("click",()=>{if(panel.hidden&&voiceActive)stopVoice()});
 
  send.addEventListener("click",()=>sendMessage(input.value));
  input.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey){event.preventDefault();sendMessage(input.value)}});
