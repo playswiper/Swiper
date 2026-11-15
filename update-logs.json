@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "instructions": "Add new entries to the top of updates. Required: version, published_at (ISO 8601 date/time), title, description. Optional: image_url. Wrap any description text in parentheses to render it bold. Example: (New multiplayer mode) is now available.",
+  "instructions": "Add new entries to the top of updates. Required: version, published_at (ISO 8601 date/time), title, description. Required: image_url. Wrap any description text in parentheses to render it bold. Example: (New multiplayer mode) is now available.",
   "template": {
     "version": "2.5.0",
     "published_at": "2026-11-15T09:30:00-07:00",
