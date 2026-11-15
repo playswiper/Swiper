@@ -1020,7 +1020,7 @@ function initSwiperGlobalChat(){
  };
  launcher.addEventListener("click",async()=>{
   const opening=panel.hidden;panel.hidden=!opening;launcher.setAttribute("aria-expanded",String(opening));
-  if(opening){if(globalLive&&globalLiveReady){const tracked=await globalLive.track({display_name:profile?.display_name||profile?.username||(user?"Player":"Guest"),user_id:user?.id||null});if(tracked?.error)setStatus("Could not join online chat presence.",true);updateGlobalOnline()}switchTab(activeTab);await refresh();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}if(user)input.focus()}
+  if(opening){if(globalLive&&globalLiveReady){const tracked=await globalLive.track({display_name:profile?.display_name||profile?.username||(user?"Player":"Guest"),user_id:user?.id||null});if(tracked?.error)setStatus("Could not join online chat presence.",true);updateGlobalOnline()}if(!user){launcher.classList.add("quick-words-needed");$("swiperGlobalChatABC")?.classList.add("guest-quick-highlight");switchTab("quick");setStatus("Guest mode · Quick Words highlighted")}else{launcher.classList.remove("quick-words-needed");$("swiperGlobalChatABC")?.classList.remove("guest-quick-highlight");switchTab(activeTab)}await refresh();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}if(user)input.focus()}
   else{if(globalLive&&globalLiveReady){await globalLive.untrack();updateGlobalOnline()}if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}}
  });
  close.addEventListener("click",async()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(globalLive&&globalLiveReady)await globalLive.untrack();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}});
@@ -1839,8 +1839,8 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
 #swiperGlobalChat{min-width:300px!important;min-height:340px!important;max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important}
 #swiperGlobalChatResize{display:block!important;pointer-events:auto!important}
 </style>
-<button id="swiperGlobalChatLauncher" type="button" aria-label="Open Global Chat" aria-controls="swiperGlobalChat" aria-expanded="false">
- <img src="https://raw.githubusercontent.com/playswiper/Swiper/main/IMG_2382.jpeg" alt="" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">
+<style id="swiper-global-chat-notification-badge">#swiperGlobalChatLauncher{position:relative!important}#swiperGlobalChatUnreadBadge{position:absolute;right:-4px;top:-5px;min-width:21px;height:21px;padding:0 5px;display:none;place-items:center;border:2px solid #08111e;border-radius:999px;background:#ef334b;color:#fff;font:800 11px/1 "Fredoka",sans-serif;z-index:100;pointer-events:none}#swiperGlobalChatUnreadBadge.show{display:grid!important}#swiperGlobalChatLauncher.quick-words-needed{animation:swiperQuickWordGlow 1.2s ease-in-out infinite}@keyframes swiperQuickWordGlow{50%{filter:drop-shadow(0 0 9px #3d9cff)}}#swiperGlobalChatABC.guest-quick-highlight{background:linear-gradient(145deg,#2e8cff,#1558c7)!important;color:#fff!important;box-shadow:0 0 0 3px #4da0ff44,0 0 18px #2e8cff66!important;animation:swiperQuickWordGlow 1.1s ease-in-out infinite}</style><button id="swiperGlobalChatLauncher" type="button" aria-label="Open Global Chat" aria-controls="swiperGlobalChat" aria-expanded="false">
+ <img src="https://raw.githubusercontent.com/playswiper/Swiper/main/IMG_2382.jpeg" alt="" draggable="false" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"><span id="swiperGlobalChatUnreadBadge" aria-label="Unread chat messages"></span>
 </button>
 
 <section id="swiperGlobalChat" hidden aria-label="Swiper Global Chat">
