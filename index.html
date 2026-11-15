@@ -479,6 +479,10 @@ body.swiper-practice-only .home-info{display:none!important}
 .swiper-global-quick-grid button:hover{background:#eaf2ff!important;border-color:#9bbcf0!important}
 .swiper-global-quick-grid button:active{transform:scale(.985)}
 @media(max-width:420px){.swiper-global-quick-grid{grid-template-columns:1fr!important}.swiper-global-quick-grid button{min-height:40px!important}}
+</style>\n<style id="swiper-chat-resize-fix">
+#swiperGlobalChat{position:fixed!important;box-sizing:border-box!important;overflow:hidden!important}
+#swiperGlobalChatResize{position:absolute!important;display:block!important;right:2px!important;bottom:2px!important;width:34px!important;height:34px!important;z-index:100!important;touch-action:none!important;pointer-events:auto!important;cursor:nwse-resize!important}
+#swiperGlobalChat .swiper-global-chat-main{min-height:0!important;min-width:0!important}
 </style>\n</head>
 <body>
 <div id="restrictedScreen" class="restricted-screen hidden" role="alert"><div class="restricted-card"><div class="restricted-mark">S</div><p class="eyebrow">SWIPER ACCOUNT STATUS</p><h1 id="restrictedTitle">Account restricted</h1><p id="restrictedText">This account cannot access Swiper right now.</p><p id="restrictedDetail" class="small"></p><a class="restrictedContact" href="mailto:messageswiper@gmail.com?subject=Swiper%20ban%20appeal">If you think this is a mistake, contact messageswiper@gmail.com</a><button id="restrictedLogout" class="primary">Sign out</button></div></div><audio id="swiperBgMusic" preload="auto" loop playsinline crossorigin="anonymous" aria-label="Swiper background music"><source src="https://raw.githubusercontent.com/Mystarnight-Extras/Swiper/main/1%20Hour%20Of%20Relaxed%20Scene-%5BAudioTrimmer.com%5D.mp3" type="audio/mpeg"></audio><div id="swiperLoading" role="status" aria-live="polite"><div class="swiper-loading-card"><div class="loading-brand">SWIPER</div><div class="loading-progress" role="img" aria-label="Loading animation"><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span></div><div class="loading-caption" id="swiperLoadingCaption">LOADING...</div><div id="swiperFirstVisitCheck" class="swiper-first-visit-check" hidden><p>Quick security check — complete this once to enter Swiper.</p><div id="swiperFirstVisitTurnstile"></div><button class="primary" id="swiperFirstVisitContinue" type="button" disabled>Continue to Swiper</button></div></div></div><div class="wrap">
@@ -1866,15 +1870,20 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
  <button id="swiperGlobalChatResize" type="button" aria-label="Resize chat window" title="Drag to resize"></button>
 </section>
 <script id="swiper-global-chat-window-controls">
-(()=>{const panel=document.getElementById("swiperGlobalChat"),header=panel?.querySelector(".swiper-global-chat-top"),grip=document.getElementById("swiperGlobalChatResize"),infoButton=document.getElementById("swiperGlobalChatInfoButton"),info=document.getElementById("swiperGlobalChatInfoCard");if(!panel||!header||!grip)return;
- const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));const apply=(left,top,width,height)=>{const w=clamp(width,300,Math.max(300,innerWidth-16)),h=clamp(height,340,Math.max(340,innerHeight-16)),x=clamp(left,8,Math.max(8,innerWidth-w-8)),y=clamp(top,8,Math.max(8,innerHeight-h-8));panel.style.left=x+"px";panel.style.top=y+"px";panel.style.right="auto";panel.style.bottom="auto";panel.style.width=w+"px";panel.style.height=h+"px"};
- try{const saved=JSON.parse(localStorage.getItem("swiperGlobalChatWindow")||"null");if(saved&&Number.isFinite(saved.left)&&Number.isFinite(saved.top)&&Number.isFinite(saved.width)&&Number.isFinite(saved.height))apply(saved.left,saved.top,saved.width,saved.height)}catch{}
+(()=>{const panel=document.getElementById("swiperGlobalChat"),header=panel?.querySelector(".swiper-global-chat-top"),grip=document.getElementById("swiperGlobalChatResize");if(!panel||!header||!grip)return;
+ const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+ const apply=(left,top,width,height)=>{const vw=window.innerWidth,vh=window.innerHeight,minW=Math.min(300,vw-16),minH=Math.min(340,vh-16),w=clamp(width,minW,vw-16),h=clamp(height,minH,vh-16),x=clamp(left,8,Math.max(8,vw-w-8)),y=clamp(top,8,Math.max(8,vh-h-8));panel.style.setProperty("left",x+"px");panel.style.setProperty("top",y+"px");panel.style.setProperty("right","auto");panel.style.setProperty("bottom","auto");panel.style.setProperty("width",w+"px");panel.style.setProperty("height",h+"px")};
  const persist=()=>{const r=panel.getBoundingClientRect();try{localStorage.setItem("swiperGlobalChatWindow",JSON.stringify({left:r.left,top:r.top,width:r.width,height:r.height}))}catch{}};
- const drag=(event,mode)=>{if(event.button!==0&&event.pointerType==="mouse")return;if(mode==="move"&&event.target.closest("button"))return;event.preventDefault();const r=panel.getBoundingClientRect(),startX=event.clientX,startY=event.clientY;const start={left:r.left,top:r.top,width:r.width,height:r.height};const move=e=>{if(mode==="move")apply(start.left+e.clientX-startX,start.top+e.clientY-startY,start.width,start.height);else apply(start.left,start.top,start.width+e.clientX-startX,start.height+e.clientY-startY)};const end=()=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",end);document.removeEventListener("pointercancel",end);persist()};document.addEventListener("pointermove",move);document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end)};
- header.addEventListener("pointerdown",e=>drag(e,"move"));grip.addEventListener("pointerdown",e=>drag(e,"resize"));
- infoButton?.addEventListener("click",()=>{const open=info.hidden;info.hidden=!open;infoButton.setAttribute("aria-expanded",String(open))});
- document.addEventListener("pointerdown",e=>{if(!info.hidden&&!info.contains(e.target)&&e.target!==infoButton){info.hidden=true;infoButton.setAttribute("aria-expanded","false")}});
- addEventListener("resize",()=>{if(panel.style.left){const r=panel.getBoundingClientRect();apply(r.left,r.top,r.width,r.height);persist()}});
+ try{const saved=JSON.parse(localStorage.getItem("swiperGlobalChatWindow")||"null");if(saved&&["left","top","width","height"].every(k=>Number.isFinite(saved[k])))apply(saved.left,saved.top,saved.width,saved.height)}catch{}
+ let active=null;
+ const begin=(event,mode)=>{if(event.pointerType==="mouse"&&event.button!==0)return;if(active)return;if(mode==="move"&&event.target.closest("button"))return;event.preventDefault();const r=panel.getBoundingClientRect();active={id:event.pointerId,mode,x:event.clientX,y:event.clientY,left:r.left,top:r.top,width:r.width,height:r.height};try{(mode==="resize"?grip:header).setPointerCapture(event.pointerId)}catch{}};
+ const move=event=>{if(!active||event.pointerId!==active.id)return;const dx=event.clientX-active.x,dy=event.clientY-active.y;if(active.mode==="resize")apply(active.left,active.top,active.width+dx,active.height+dy);else apply(active.left+dx,active.top+dy,active.width,active.height)};
+ const finish=event=>{if(!active||event.pointerId!==active.id)return;active=null;persist()};
+ header.addEventListener("pointerdown",e=>begin(e,"move"));
+ grip.addEventListener("pointerdown",e=>begin(e,"resize"));
+ window.addEventListener("pointermove",move,{passive:false});window.addEventListener("pointerup",finish);window.addEventListener("pointercancel",finish);
+ window.addEventListener("resize",()=>{if(panel.style.left){const r=panel.getBoundingClientRect();apply(r.left,r.top,r.width,r.height);persist()}});
+ grip.style.touchAction="none";header.style.touchAction="none";
 })();
 </script>
 
