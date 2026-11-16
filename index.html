@@ -933,6 +933,36 @@ function initSwiperGlobalChat(){
  launcher.dataset.ready="1";
  let refreshTimer=null,loading=false,lastSentAt=0,guestSlowUntil=0,guestSentTimes=[],activeTab="chat",chatRestricted=false;
  const setStatus=(text,error=false)=>{status.textContent=text;status.classList.toggle("is-error",!!error)};
+ let chatRulesCacheKey="",chatRulesCacheValue=false,chatRulesCacheReady=false;
+ const rulesGate=$("swiperChatRulesAgreement"),rulesAgree=$("swiperChatRulesAgree"),rulesCancel=$("swiperChatRulesCancel"),rulesGateStatus=$("swiperChatRulesAgreementStatus");
+ const hasAcceptedChatRules=async()=>{
+  const key=user?.id||"guest";
+  if(chatRulesCacheReady&&chatRulesCacheKey===key)return chatRulesCacheValue;
+  chatRulesCacheKey=key;chatRulesCacheReady=false;
+  if(user?.id){
+   const result=await db.from("swipe_profiles").select("chat_rules_accepted_at").eq("id",user.id).maybeSingle();
+   if(result.error)throw result.error;
+   chatRulesCacheValue=!!result.data?.chat_rules_accepted_at;
+  }else{
+   try{chatRulesCacheValue=localStorage.getItem("swiper-chat-rules-accepted-v1")==="yes"}catch{chatRulesCacheValue=false}
+  }
+  chatRulesCacheReady=true;return chatRulesCacheValue;
+ };
+ const showChatRulesAgreement=()=>{if(!rulesGate)return;rulesGate.hidden=false;rulesGateStatus.textContent="";rulesAgree.disabled=false;rulesAgree.focus()};
+ rulesCancel?.addEventListener("click",()=>{rulesGate.hidden=true});
+ rulesAgree?.addEventListener("click",async()=>{
+  rulesAgree.disabled=true;rulesGateStatus.textContent="Saving your choice…";
+  try{
+   if(user?.id){
+    const saved=await db.from("swipe_profiles").update({chat_rules_accepted_at:new Date().toISOString()}).eq("id",user.id).select("id").maybeSingle();
+    if(saved.error)throw saved.error;
+    if(!saved.data?.id)throw new Error("Your account profile could not save this agreement. Please sign in again and retry.");
+   }else{
+    try{localStorage.setItem("swiper-chat-rules-accepted-v1","yes")}catch{throw new Error("This browser could not save your agreement. Enable site storage and try again.")}
+   }
+   chatRulesCacheKey=user?.id||"guest";chatRulesCacheValue=true;chatRulesCacheReady=true;rulesGate.hidden=true;launcher.click();
+  }catch(error){rulesGateStatus.textContent=error?.message||"Could not save your agreement. Please try again.";rulesAgree.disabled=false}
+ });
  let globalLive=null,globalLiveReady=false,globalPresenceSeen=new Set();
  const onlineCount=()=>{if(!globalLive)return 0;return Object.values(globalLive.presenceState()||{}).reduce((n,a)=>n+(a||[]).length,0)};
  const updateGlobalOnline=()=>{const n=onlineCount();$("swiperGlobalChatHeading").textContent="Chat ("+n+" Online)";$("swiperGlobalChatOnline").textContent="("+n+" Online)"};
@@ -963,10 +993,10 @@ function initSwiperGlobalChat(){
   list.replaceChildren();
   if(!rows.length){const empty=document.createElement("div");empty.className="swiper-global-chat-empty";empty.textContent="It's quiet in here. Say hello!";list.append(empty);return}
   const ids=[...new Set(rows.map(x=>x.user_id))];
-  const [people,badges]=await Promise.all([
+  const [people,badges]=user?await Promise.all([
    db.from("swipe_profiles").select("id,username,display_name,is_verified").in("id",ids),
    db.from("swiper_moderator_badges").select("user_id").in("user_id",ids)
-  ]);
+  ]):[{data:[]},{data:[]}];
   if(people.error)console.warn("Global chat profile lookup failed:",people.error.message);
   if(badges.error)console.warn("Global chat moderator badge lookup failed:",badges.error.message);
   const profiles=new Map((people.data||[]).map(p=>[p.id,p]));
@@ -995,13 +1025,27 @@ function initSwiperGlobalChat(){
   list.scrollTop=list.scrollHeight;
  };
  const refresh=async()=>{
-  if(!user){list.replaceChildren();const note=document.createElement("div");note.className="swiper-global-chat-empty";note.textContent="Guests can use Quick Words only. Sign in for chat messages and voice-to-text.";list.append(note);input.disabled=true;send.disabled=true;input.placeholder="Sign in to send messages";setStatus("Guest mode · Quick Words only");return} const moderation=await db.from("swiper_chat_moderation").select("warning_active,chat_banned_until,website_banned_until,permanent_chat_ban,slow_mode_until,slow_mode_reason,spam_warning_until").eq("user_id",user.id).maybeSingle();if(moderation.error)console.warn("Chat moderation status unavailable:",moderation.error.message);const m=moderation.data||{};chatRestricted=!!m.permanent_chat_ban||(!!m.chat_banned_until&&new Date(m.chat_banned_until)>new Date());input.disabled=chatRestricted;send.disabled=chatRestricted;input.placeholder=chatRestricted?"Chat restricted · Quick Words only":"Message…";if(m.permanent_chat_ban)setStatus("Chat permanently suspended pending moderator review. Quick Words remain available.",true);else if(chatRestricted)setStatus("Chat suspended until "+new Date(m.chat_banned_until).toLocaleString()+". Quick Words remain available.",true);else if(m.warning_active)setStatus("Account warning: keep chat respectful. Further violations can restrict chat.",true);else if(m.spam_warning_until&&new Date(m.spam_warning_until)>new Date())setStatus("Warning: you reached 40 messages in one minute. Slow mode is active for 3 seconds.",true);else if(m.slow_mode_until&&new Date(m.slow_mode_until)>new Date())setStatus("Slow mode is active for 3 seconds. Please slow down.",true);else setStatus("Global chat · newest messages");
   if(loading)return;loading=true;
   try{
+   if(user){
+    const moderation=await db.from("swiper_chat_moderation").select("warning_active,chat_banned_until,website_banned_until,permanent_chat_ban,slow_mode_until,slow_mode_reason,spam_warning_until").eq("user_id",user.id).maybeSingle();
+    if(moderation.error)console.warn("Chat moderation status unavailable:",moderation.error.message);
+    const m=moderation.data||{};
+    chatRestricted=!!m.permanent_chat_ban||(!!m.chat_banned_until&&new Date(m.chat_banned_until)>new Date());
+    input.disabled=chatRestricted;send.disabled=chatRestricted;input.placeholder=chatRestricted?"Chat restricted · Quick Words only":"Message…";
+    if(m.permanent_chat_ban)setStatus("Chat permanently suspended pending moderator review. Quick Words remain available.",true);
+    else if(chatRestricted)setStatus("Chat suspended until "+new Date(m.chat_banned_until).toLocaleString()+". Quick Words remain available.",true);
+    else if(m.warning_active)setStatus("Account warning: keep chat respectful. Further violations can restrict chat.",true);
+    else if(m.spam_warning_until&&new Date(m.spam_warning_until)>new Date())setStatus("Warning: you reached 40 messages in one minute. Slow mode is active for 3 seconds.",true);
+    else if(m.slow_mode_until&&new Date(m.slow_mode_until)>new Date())setStatus("Slow mode is active for 3 seconds. Please slow down.",true);
+    else setStatus("Global chat · newest messages");
+   }else{
+    chatRestricted=false;input.disabled=true;send.disabled=true;input.placeholder="Sign in to send messages";setStatus("Guest view · Quick Words only");
+   }
    const result=await db.from("swiper_global_chat_messages").select("id,user_id,content,created_at").order("created_at",{ascending:false}).limit(60);
    if(result.error)throw result.error;
    await renderMessages((result.data||[]).reverse());
-   setStatus("Global chat · newest messages");
+   if(!user)setStatus("Guest view · Quick Words only");
   }catch(error){setStatus(error?.message||"Could not load chat.",true)}
   finally{loading=false}
  };
@@ -1022,9 +1066,26 @@ function initSwiperGlobalChat(){
  };
  $("menuGoToChat")?.addEventListener("click",()=>{if(panel.hidden)launcher.click();else panel.scrollIntoView({behavior:"smooth",block:"nearest"})});
  launcher.addEventListener("click",async()=>{
-  const opening=panel.hidden;panel.hidden=!opening;launcher.setAttribute("aria-expanded",String(opening));
-  if(opening){unreadChatCount=0;paintUnread();if(globalLive&&globalLiveReady){const tracked=await globalLive.track({display_name:profile?.display_name||profile?.username||(user?"Player":"Guest"),user_id:user?.id||null});if(tracked?.error)setStatus("Could not join online chat presence.",true);updateGlobalOnline()}if(!user){launcher.classList.add("quick-words-needed");$("swiperGlobalChatABC")?.classList.add("guest-quick-highlight");switchTab("quick");setStatus("Guest mode · Quick Words highlighted")}else{launcher.classList.remove("quick-words-needed");$("swiperGlobalChatABC")?.classList.remove("guest-quick-highlight");switchTab(activeTab)}await refresh();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}if(user)input.focus()}
-  else{if(globalLive&&globalLiveReady){await globalLive.untrack();updateGlobalOnline()}if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}}
+  if(document.body.classList.contains("swiper-practice-only")||document.body.classList.contains("swiper-practice-fallback"))return;
+  const opening=panel.hidden;
+  if(opening){
+   try{if(!await hasAcceptedChatRules()){showChatRulesAgreement();return}}
+   catch(error){setStatus("Could not check chat rules agreement. Please retry.",true);showChatRulesAgreement();return}
+  }
+  panel.hidden=!opening;launcher.setAttribute("aria-expanded",String(opening));
+  if(opening){
+   unreadChatCount=0;paintUnread();
+   if(globalLive&&globalLiveReady){const tracked=await globalLive.track({display_name:profile?.display_name||profile?.username||(user?"Player":"Guest"),user_id:user?.id||null});if(tracked?.error)setStatus("Could not join online chat presence.",true);updateGlobalOnline()}
+   if(!user){launcher.classList.add("quick-words-needed");$("swiperGlobalChatABC")?.classList.add("guest-quick-highlight");switchTab("quick")}
+   else{launcher.classList.remove("quick-words-needed");$("swiperGlobalChatABC")?.classList.remove("guest-quick-highlight");switchTab(activeTab)}
+   await refresh();
+   if(refreshTimer)clearInterval(refreshTimer);
+   refreshTimer=setInterval(()=>{if(!panel.hidden)refresh()},4000);
+   if(user)input.focus();
+  }else{
+   if(globalLive&&globalLiveReady){await globalLive.untrack();updateGlobalOnline()}
+   if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}
+  }
  });
  close.addEventListener("click",async()=>{panel.hidden=true;launcher.setAttribute("aria-expanded","false");if(globalLive&&globalLiveReady)await globalLive.untrack();if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null}});
  document.querySelectorAll("[data-swiper-chat-tab]").forEach(button=>button.addEventListener("click",()=>switchTab(button.dataset.swiperChatTab)));
@@ -1855,7 +1916,7 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
   <aside class="swiper-global-chat-rail" aria-label="Chat tools">
    <button id="swiperGlobalChatMic" type="button" aria-label="Start continuous voice chat" title="Say “send it” to send · “pause” to pause · “cancel” to stop"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button>
    <button id="swiperGlobalChatABC" type="button" data-swiper-chat-tab="quick" aria-label="Quick Words" title="Quick Words"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18 9 5h2l5 13M6 13h8M16 8h4m-2-2v12m-3-3h6"/></svg></button>
-   <button id="swiperGlobalChatInfo" type="button" data-swiper-chat-tab="info" aria-label="Chat information" title="Chat information"><span aria-hidden="true">i</span></button>
+   <button id="swiperGlobalChatInfo" type="button" data-swiper-chat-tab="info" aria-label="Chat rules" title="Chat rules"><span aria-hidden="true">i</span></button>
 
    <button id="swiperGlobalChatLeave" type="button" aria-label="Leave chat" title="Leave"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5m5 5H3m9-9h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/></svg></button>
   </aside>
@@ -1865,11 +1926,31 @@ body.swiper-practice-only #overlay #swiperReconnectUnlock:not([hidden]){display:
     <div id="swiperGlobalChatStatus" role="status">Connecting…</div>
    </div>
    <div id="swiperGlobalChatQuickView" hidden><div class="swiper-global-quick-toolbar"><button id="swiperGlobalChatQuickBack" type="button" aria-label="Back to chat">← Back to Chat</button><div class="swiper-global-quick-heading">Quick Words</div></div><input id="swiperGlobalQuickSearch" class="swiper-global-quick-search" type="search" placeholder="Search Quick Words…" autocomplete="off"><div class="swiper-global-quick-grid" aria-label="Preset messages"></div></div>
-   <div id="swiperGlobalChatInfoView" hidden><div class="swiper-global-info"><h3>Chat help</h3><p><b>Move:</b> Drag the blue title bar.</p><p><b>Resize:</b> Drag the grip in the bottom-right corner.</p><p><b>Voice:</b> Tap the microphone and speak. Say <b>“send it”</b> to send your message and keep listening. Say <b>“pause”</b> to pause, then tap the mic to resume. Say <b>“cancel”</b> to stop and clear your draft. Tap the mic while listening to stop.</p><p><b>Quick Words:</b> Tap ABC to send a preset phrase. Guests can use Quick Words; free-text chat and voice require an account.</p><button id="swiperGlobalChatInfoBack" type="button" data-swiper-chat-tab="chat">← Back to Chat</button></div></div>
+   <div id="swiperGlobalChatInfoView" hidden><div class="swiper-global-info swiper-chat-rules-page"><div class="swiper-chat-rules-kicker">SWIPER COMMUNITY</div><h3>Chat Rules</h3><p class="swiper-chat-rules-intro">Keep Global Chat safe, friendly, and fun for everyone.</p><section><h4>Be respectful</h4><p>No bullying, harassment, hate speech, slurs, threats, or telling people to hurt themselves.</p></section><section><h4>Keep it appropriate</h4><p>No profanity, sexual content, nudity, explicit messages, or links to inappropriate material.</p></section><section><h4>Protect your privacy</h4><p>Never share your address, school, phone number, passwords, private account details, or live location. Do not ask other players for theirs.</p></section><section><h4>No spam or harmful links</h4><p>Do not flood chat, impersonate others, advertise repeatedly, scam players, or post suspicious links.</p></section><section><h4>Moderation is active</h4><p>Messages are checked before they appear. Rule-breaking messages are blocked. Repeated violations can lead to a warning, a 1-day chat suspension, a 1-hour website suspension, or a permanent chat suspension pending moderator review. Spam controls and slow mode also apply.</p></section><section><h4>Need help?</h4><p>Leave the conversation, block or report where available, and tell a trusted adult if someone makes you feel unsafe. Never arrange to meet someone you only know from chat.</p></section><p class="swiper-chat-rules-note">By using Global Chat, you agree to follow these rules. Quick Words are available to guests; regular messages and voice require an account.</p><button id="swiperGlobalChatInfoBack" type="button" data-swiper-chat-tab="chat">Back to Chat</button></div></div>
 
   </div>
  </div>
  <button id="swiperGlobalChatResize" type="button" aria-label="Resize chat window" title="Drag to resize"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 20h6v-6M20 20 13 13M4 10V4h6M4 4l7 7"/></svg></button>
+</section>
+<section id="swiperChatRulesAgreement" hidden role="dialog" aria-modal="true" aria-labelledby="swiperChatRulesAgreementTitle">
+ <div class="swiper-chat-agreement-card">
+  <div class="swiper-chat-rules-kicker">BEFORE YOU CHAT</div>
+  <h2 id="swiperChatRulesAgreementTitle">Swiper Chat Rules</h2>
+  <p>Global Chat is shared with other players. Please agree to keep it safe and respectful.</p>
+  <ul>
+   <li>Be kind. No bullying, hate, slurs, harassment, or threats.</li>
+   <li>No profanity, sexual content, nudity, or explicit messages.</li>
+   <li>Never share personal details like your address, school, phone number, passwords, or live location.</li>
+   <li>No spam, scams, impersonation, or suspicious links.</li>
+   <li>Messages that break the rules are blocked. Repeated violations can lead to chat or website suspensions.</li>
+  </ul>
+  <p class="swiper-chat-agreement-foot">You only need to agree once on this account. Your choice is saved.</p>
+  <div class="swiper-chat-agreement-actions">
+   <button type="button" id="swiperChatRulesAgree">I Agree &amp; Continue</button>
+   <button type="button" id="swiperChatRulesCancel">Not Now</button>
+  </div>
+  <p id="swiperChatRulesAgreementStatus" role="status"></p>
+ </div>
 </section>
 <script id="swiper-global-chat-window-controls">
 (()=>{const panel=document.getElementById("swiperGlobalChat"),header=panel?.querySelector(".swiper-global-chat-top"),grip=document.getElementById("swiperGlobalChatResize");if(!panel||!header||!grip)return;
@@ -2079,4 +2160,32 @@ async function init(){const db=window.supabase.createClient("https://upghyzhawct
 #swiperCornerHub #swiperGlobalChatLauncher img{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;aspect-ratio:1/1!important;object-fit:cover!important;object-position:center!important;border:0!important;border-radius:50%!important;clip-path:circle(50% at 50% 50%)!important;outline:0!important;box-shadow:none!important}
 #swiperCornerHub #swiperGlobalChatLauncher:before,#swiperCornerHub #swiperGlobalChatLauncher:after{border-radius:50%!important;clip-path:circle(50% at 50% 50%)!important}
 @media(max-width:520px){#swiperCornerHub{width:78px!important;height:78px!important}#swiperCornerHub #swiperGlobalChatLauncher{width:78px!important;height:78px!important;min-width:78px!important;min-height:78px!important;max-width:78px!important;max-height:78px!important}}
+</style><style id="swiper-chat-rules-practice-and-global-feed">
+/* Practice Only is deliberately offline: no launcher, panel, or menu shortcut. */
+body.swiper-practice-only #swiperCornerHub,body.swiper-practice-only #swiperGlobalChat,body.swiper-practice-only #menuGoToChat,
+body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #swiperGlobalChat,body.swiper-practice-fallback #menuGoToChat{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#swiperChatRulesAgreement[hidden]{display:none!important}
+#swiperChatRulesAgreement{position:fixed;inset:0;z-index:100500;display:grid;place-items:center;padding:18px;background:#080b10ed;backdrop-filter:blur(12px);color:#f4f6fa;font-family:Fredoka,sans-serif}
+.swiper-chat-agreement-card{width:min(520px,100%);max-height:min(88dvh,760px);overflow:auto;padding:clamp(20px,4vw,30px);border:1px solid #394657;border-radius:23px;background:#10141e;box-shadow:0 28px 100px #000b}
+.swiper-chat-rules-kicker{color:#9ba6b5;font:700 11px Fredoka,sans-serif;letter-spacing:1.8px}
+.swiper-chat-agreement-card h2{margin:7px 0 9px;color:#f7f8fb;font:700 30px Fredoka,sans-serif}
+.swiper-chat-agreement-card p,.swiper-chat-agreement-card li{color:#c2cad5;font:400 15px/1.55 Fredoka,sans-serif}
+.swiper-chat-agreement-card ul{display:grid;gap:9px;padding-left:21px}
+.swiper-chat-agreement-card li::marker{color:#aeb8c6}
+.swiper-chat-agreement-foot{padding-top:12px;border-top:1px solid #293443;color:#929dad!important;font-size:13px!important}
+.swiper-chat-agreement-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}
+.swiper-chat-agreement-actions button{min-height:45px;padding:10px 16px;border:1px solid #3a4656;border-radius:12px;background:#222b38;color:#f6f7fa;font:600 14px Fredoka,sans-serif;cursor:pointer}
+#swiperChatRulesAgree{background:#303b4b;border-color:#667487}
+.swiper-chat-agreement-actions button:disabled{opacity:.55;cursor:wait}
+#swiperChatRulesAgreementStatus{min-height:18px;margin:10px 0 0;color:#aab5c4;font-size:12px}
+#swiperGlobalChatInfoView .swiper-chat-rules-page{height:100%;overflow:auto;padding:20px;background:#10141e!important;color:#f4f6fa!important}
+.swiper-chat-rules-page h3{margin:5px 0 8px!important;color:#f7f8fb!important;font:700 27px Fredoka,sans-serif!important}
+.swiper-chat-rules-intro{color:#aeb8c6!important}
+.swiper-chat-rules-page section{margin:12px 0;padding:13px 14px;border:1px solid #2d3745;border-radius:14px;background:#0c1017}
+.swiper-chat-rules-page section h4{margin:0 0 5px;color:#f1f3f6;font:600 16px Fredoka,sans-serif}
+.swiper-chat-rules-page section p{margin:0;color:#b8c1cd;font:400 13px/1.5 Fredoka,sans-serif}
+.swiper-chat-rules-note{padding:12px;border-left:3px solid #596779;background:#171d27;color:#aeb8c6!important;font-size:12px!important}
+#swiperGlobalChatInfoBack{min-height:42px;padding:0 16px!important;border:1px solid #3b4757!important;border-radius:12px!important;background:#222b38!important;color:#f4f6fa!important;font:600 14px Fredoka,sans-serif!important}
+@media(max-width:520px){.swiper-chat-agreement-card{padding:19px;border-radius:19px}.swiper-chat-agreement-card h2{font-size:26px}#swiperGlobalChatInfoView .swiper-chat-rules-page{padding:14px}}
+@media(prefers-reduced-motion:reduce){#swiperChatRulesAgreement *{animation:none!important;transition:none!important}}
 </style></body></html>
