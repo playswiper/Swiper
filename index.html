@@ -1060,6 +1060,7 @@ function initSwiperGlobalChat(){
   try{
    const result=await db.from("swiper_global_chat_messages").insert({user_id:user.id,content,is_quick_word:!!isPreset}).select("id").maybeSingle();
    if(result.error)throw result.error;
+   if(!result.data)throw Object.assign(new Error("Message was blocked by chat moderation."),{code:"SWIPER_MODERATION_BLOCKED"});
    lastSentAt=Date.now();input.value="";setStatus(isPreset?"Quick Word sent":"Message sent");globalBroadcast("chat-message",{display_name:profile?.display_name||profile?.username||"Player",content,preset:!!isPreset});if(isPreset)switchTab("chat");await refresh();
   }catch(error){
    let state=null;
