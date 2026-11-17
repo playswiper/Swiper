@@ -931,7 +931,7 @@ function initSwiperGlobalChat(){
  const launcher=$("swiperGlobalChatLauncher"),panel=$("swiperGlobalChat"),close=$("swiperGlobalChatClose"),input=$("swiperGlobalChatInput"),send=$("swiperGlobalChatSend"),list=$("swiperGlobalChatList"),status=$("swiperGlobalChatStatus");
  if(!launcher||!panel||launcher.dataset.ready==="1")return;
  launcher.dataset.ready="1";
- let refreshTimer=null,loading=false,lastSentAt=0,guestSlowUntil=0,guestSentTimes=[],activeTab="chat",chatRestricted=false;let lastViolationCount=0;
+ let refreshTimer=null,loading=false,lastSentAt=0,guestSlowUntil=0,guestSentTimes=[],activeTab="chat",chatRestricted=false;let lastNotifiedViolationCount=0;
  const setStatus=(text,error=false)=>{status.textContent=text;status.classList.toggle("is-error",!!error)};
  let chatRulesCacheKey="",chatRulesCacheValue=false,chatRulesCacheReady=false;
  const rulesGate=$("swiperChatRulesAgreement"),rulesAgree=$("swiperChatRulesAgree"),rulesCancel=$("swiperChatRulesCancel"),rulesGateStatus=$("swiperChatRulesAgreementStatus");
@@ -1030,7 +1030,7 @@ function initSwiperGlobalChat(){
    if(user){
     const moderation=await db.from("swiper_chat_moderation").select("violation_count,warning_active,chat_banned_until,website_banned_until,permanent_chat_ban,slow_mode_until,slow_mode_reason,spam_warning_until").eq("user_id",user.id).maybeSingle();
     if(moderation.error)console.warn("Chat moderation status unavailable:",moderation.error.message);
-    const m=moderation.data||{};lastViolationCount=Math.max(lastViolationCount,Number(m.violation_count)||0);
+    const m=moderation.data||{};
     chatRestricted=!!m.permanent_chat_ban||(!!m.chat_banned_until&&new Date(m.chat_banned_until)>new Date());
     input.disabled=chatRestricted;send.disabled=chatRestricted;input.placeholder=chatRestricted?"Chat restricted · Quick Words only":"Message…";
     if(m.permanent_chat_ban)setStatus("Chat permanently suspended pending moderator review. Quick Words remain available.",true);
@@ -1058,7 +1058,7 @@ function initSwiperGlobalChat(){
   if(Date.now()-lastSentAt<3000){setStatus("Slow mode: wait 3 seconds between messages.",true);return}
   send.disabled=true;
   try{
-   const result=await db.from("swiper_global_chat_messages").insert({user_id:user.id,content,is_quick_word:!!isPreset}).select("id").single();
+   const result=await db.from("swiper_global_chat_messages").insert({user_id:user.id,content,is_quick_word:!!isPreset}).select("id").maybeSingle();
    if(result.error)throw result.error;
    lastSentAt=Date.now();input.value="";setStatus(isPreset?"Quick Word sent":"Message sent");globalBroadcast("chat-message",{display_name:profile?.display_name||profile?.username||"Player",content,preset:!!isPreset});if(isPreset)switchTab("chat");await refresh();
   }catch(error){
@@ -1071,8 +1071,8 @@ function initSwiperGlobalChat(){
     const count=Number(state.violation_count)||0;
     chatRestricted=!!state.permanent_chat_ban||(!!state.chat_banned_until&&new Date(state.chat_banned_until)>new Date());
     input.disabled=chatRestricted;send.disabled=chatRestricted;
-    if(count>lastViolationCount){
-     lastViolationCount=count;
+    if(count>lastNotifiedViolationCount){
+     lastNotifiedViolationCount=count;
      const notices={
       1:"Chat warning (1 of 4): Your message broke the chat rules. Keep messages respectful and appropriate. Another violation will result in a 1-day chat suspension.",
       2:"Chat suspended for 1 day after your second chat-rule violation. Quick Words remain available.",
