@@ -2048,11 +2048,155 @@ button,input,select,textarea,summary{font-family:"Fredoka",sans-serif!important}
 #swiperNewUpdateDescription{white-space:pre-wrap;line-height:1.6;color:#d4deeb}
 #swiperNewUpdateDescription strong{color:white}
 @media(max-width:600px){.swiper-update-fields{grid-template-columns:1fr}.swiper-update-fields .wide{grid-column:auto}.swiper-update-card h3{font-size:20px}}
-</style><section id="swiperUpdatesOverlay" hidden aria-label="Swiper update log"><div class="swiper-updates-shell"><header class="swiper-updates-head"><div><div class="swiper-updates-kicker">WHAT'S NEW</div><h2> Swiper Updates</h2><p>Release notes, improvements and fixes.</p></div><button type="button" id="swiperUpdatesClose" aria-label="Close updates">Close</button></header><div class="swiper-updates-toolbar"><label class="swiper-updates-sort">Sort <select id="swiperUpdatesSort"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="version">Version</option></select></label><span id="swiperUpdatesCount">Loading updates…</span></div><div id="swiperUpdatesFeed" class="swiper-updates-feed" aria-live="polite"><div class="swiper-update-skeleton" aria-hidden="true"><i></i><i></i><i></i></div><div class="swiper-update-skeleton" aria-hidden="true"><i></i><i></i><i></i></div><div class="swiper-update-skeleton" aria-hidden="true"><i></i><i></i><i></i></div></div></div></section><section id="swiperNewUpdatePopup" class="swiper-new-update-popup" hidden role="dialog" aria-modal="true" aria-labelledby="swiperNewUpdateTitle"><div class="swiper-new-update-card"><button type="button" id="swiperNewUpdateDismiss" aria-label="Dismiss update">Dismiss</button><div class="swiper-update-kicker">JUST RELEASED</div><div id="swiperNewUpdateImage"></div><h2 id="swiperNewUpdateTitle"></h2><div id="swiperNewUpdateDescription"></div><button type="button" id="swiperNewUpdateRead">See what's new</button></div></section><script id="swiper-update-popup-and-controls">
-(()=>{const $=id=>document.getElementById(id),overlay=$("swiperUpdatesOverlay"),popup=$("swiperNewUpdatePopup"),feed=$("swiperUpdatesFeed");let updates=[];const close=()=>overlay.hidden=true;const rich=(text)=>{const frag=document.createDocumentFragment(),re=/\\(([^()\\n]{1,300})\\)/g;let at=0,m;while((m=re.exec(text||""))){frag.append(document.createTextNode(text.slice(at,m.index)));const b=document.createElement("strong");b.textContent=m[1];frag.append(b);at=re.lastIndex}frag.append(document.createTextNode((text||"").slice(at)));return frag};const render=()=>{const sort=$("swiperUpdatesSort").value,rows=[...updates];if(sort==="oldest")rows.sort((a,b)=>new Date(a.published_at)-new Date(b.published_at));else if(sort==="version")rows.sort((a,b)=>String(b.version).localeCompare(String(a.version),undefined,{numeric:true}));else rows.sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));feed.replaceChildren();$("swiperUpdatesCount").textContent=rows.length+" updates";if(!rows.length){const e=document.createElement("div");e.className="swiper-updates-empty";e.textContent="No updates published yet.";feed.append(e);return}rows.forEach(x=>{const card=document.createElement("article");card.className="swiper-update-card";if(x.image_url){const im=document.createElement("img");im.src=x.image_url;im.alt="";im.loading="lazy";im.onerror=()=>im.remove();card.append(im)}const body=document.createElement("div");body.className="swiper-update-card-body";const meta=document.createElement("div");meta.className="swiper-update-meta";meta.textContent="VERSION "+x.version+" · "+new Date(x.published_at).toLocaleString([],{month:"long",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"});const h=document.createElement("h3");h.textContent=x.title;const d=document.createElement("div");d.className="swiper-update-description";d.append(rich(x.description));body.append(meta,h,d);card.append(body);feed.append(card)})};const openUpdates=()=>{overlay.hidden=false;render()};$("menuUpdates").addEventListener("click",openUpdates);$("swiperUpdatesClose").addEventListener("click",close);$("swiperUpdatesSort").addEventListener("change",render);$("swiperNewUpdateDismiss").addEventListener("click",()=>popup.hidden=true);$("swiperNewUpdateRead").addEventListener("click",()=>{popup.hidden=true;openUpdates()});$("swiperNewUpdatePopup").addEventListener("click",e=>{if(e.target===popup)popup.hidden=true});
-const renderPopup=x=>{if(!x)return;const img=$("swiperNewUpdateImage");img.replaceChildren();if(x.image_url){const image=document.createElement("img");image.src=x.image_url;image.alt="";img.append(image)}$("swiperNewUpdateTitle").textContent=x.title;const d=$("swiperNewUpdateDescription");d.replaceChildren();d.append(rich(x.description));popup.hidden=false};
-async function init(){const db=window.supabase.createClient("https://upghyzhawctughyojwpo.supabase.co","sb_publishable_z70GOIzu3F_xdxdJiVa48A_SqvrA6-b");let dbRows=[];try{const r=await db.from("swiper_update_logs").select("id,version,published_at,image_url,title,description").order("published_at",{ascending:false}).limit(100);if(!r.error)dbRows=r.data||[]}catch(e){}let ghRows=[];try{const r=await fetch("https://raw.githubusercontent.com/playswiper/Swiper/main/update-logs.json",{cache:"no-store"});if(r.ok){const j=await r.json();ghRows=Array.isArray(j.updates)?j.updates:[]}}catch(e){}const map=new Map();const key=x=>String(x.version||"")+"|"+String(x.published_at||"")+"|"+String(x.title||"");ghRows.forEach((x,i)=>{const row={...x,published_at:x.published_at||new Date().toISOString()};map.set(key(row)||"gh"+i,row)});dbRows.forEach(x=>map.set(key(x)||x.id,x));updates=[...map.values()].sort((a,b)=>new Date(b.published_at)-new Date(a.published_at));render();if(updates.length){const latest=updates[0],id=String(latest.id||latest.version+"|"+latest.published_at+"|"+latest.title);const seen=localStorage.getItem("swiper:last-seen-update");if(seen!==id)renderPopup(latest);localStorage.setItem("swiper:last-seen-update",id)}}init().catch(e=>console.warn("Update log could not initialize",e));})();
+</style><section id="swiperUpdatesPopup" class="swiper-updates-popup" hidden role="dialog" aria-modal="true" aria-labelledby="swiperUpdatesTitle">
+  <div class="swiper-updates-popup-card">
+    <header class="swiper-updates-popup-head">
+      <div><div class="swiper-updates-kicker">SWIPER • WHAT'S NEW</div><h2 id="swiperUpdatesTitle">Updates</h2><p id="swiperUpdatesSubtitle">Everything new in Swiper, straight from the update feed.</p></div>
+      <button type="button" id="swiperUpdatesClose" aria-label="Close updates">Close</button>
+    </header>
+    <div id="swiperUpdatesContent" class="swiper-updates-content" aria-live="polite"><div class="swiper-update-loading">Loading updates…</div></div>
+  </div>
+</section>
+<script id="swiper-supabase-updates-popup">
+(()=> {
+  const $=id=>document.getElementById(id);
+  const popup=$("swiperUpdatesPopup"),content=$("swiperUpdatesContent");
+  if(!popup||!content||!$("menuUpdates"))return;
+  let rows=null,loading=null;
+  const dateLabel=value=>{
+    const date=new Date(value);
+    return Number.isNaN(date.getTime())?"Date not provided":date.toLocaleString([],{month:"long",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"});
+  };
+  const richDescription=value=>{
+    const root=document.createElement("div");
+    root.className="swiper-update-description";
+    const text=String(value||"No additional details were provided.");
+    const re=/\(([^()\n]{1,500})\)/g;
+    let at=0,m;
+    while((m=re.exec(text))){
+      root.append(document.createTextNode(text.slice(at,m.index)));
+      const strong=document.createElement("strong");
+      strong.textContent=m[1];
+      root.append(strong);
+      at=re.lastIndex;
+    }
+    root.append(document.createTextNode(text.slice(at)));
+    return root;
+  };
+  const render=()=>{
+    content.replaceChildren();
+    if(!rows||!rows.length){
+      const empty=document.createElement("div");
+      empty.className="swiper-updates-empty";
+      empty.textContent="No updates have been published yet. Check back here when a new Swiper update is released.";
+      content.append(empty);
+      return;
+    }
+    rows.forEach((item,index)=>{
+      const card=document.createElement("article");
+      card.className="swiper-update-card";
+      if(item.image_url){
+        const image=document.createElement("img");
+        image.src=item.image_url;
+        image.alt=item.title?String(item.title)+" update image":"Swiper update image";
+        image.loading=index===0?"eager":"lazy";
+        image.onerror=()=>image.remove();
+        card.append(image);
+      }
+      const body=document.createElement("div");
+      body.className="swiper-update-card-body";
+      const meta=document.createElement("div");
+      meta.className="swiper-update-meta";
+      meta.textContent=(item.version?"VERSION "+item.version+"  •  ":"")+dateLabel(item.published_at||item.created_at);
+      const title=document.createElement("h3");
+      title.textContent=item.title||"Swiper update";
+      const description=richDescription(item.description);
+      body.append(meta,title,description);
+      if(item.github_commit){
+        const link=document.createElement("a");
+        link.className="swiper-update-commit";
+        link.href="https://github.com/playswiper/Swiper/commit/"+encodeURIComponent(String(item.github_commit));
+        link.target="_blank";
+        link.rel="noopener noreferrer";
+        link.textContent="View related GitHub change";
+        body.append(link);
+      }
+      card.append(body);
+      content.append(card);
+    });
+  };
+  const load=async()=>{
+    if(rows)return rows;
+    if(loading)return loading;
+    loading=(async()=>{
+      try{
+        const db=window.supabase.createClient("https://upghyzhawctughyojwpo.supabase.co","sb_publishable_z70GOIzu3F_xdxdJiVa48A_SqvrA6-b");
+        const result=await db.from("swiper_update_logs")
+          .select("id,version,published_at,created_at,image_url,title,description,github_commit")
+          .order("published_at",{ascending:false}).limit(100);
+        if(result.error)throw result.error;
+        rows=Array.isArray(result.data)?result.data:[];
+        return rows;
+      }catch(error){
+        console.error("Could not load Swiper updates from the database",error);
+        content.replaceChildren();
+        const message=document.createElement("div");
+        message.className="swiper-updates-empty";
+        message.textContent="Updates could not load right now. Check your connection and try again.";
+        content.append(message);
+        throw error;
+      }finally{loading=null;}
+    })();
+    return loading;
+  };
+  const open=async()=>{
+    popup.hidden=false;
+    content.replaceChildren();
+    const loadingMessage=document.createElement("div");
+    loadingMessage.className="swiper-update-loading";
+    loadingMessage.textContent="Loading updates…";
+    content.append(loadingMessage);
+    try{await load();render();}catch(error){}
+  };
+  const close=()=>{popup.hidden=true;};
+  $("menuUpdates").addEventListener("click",open);
+  $("swiperUpdatesClose").addEventListener("click",close);
+  popup.addEventListener("click",event=>{if(event.target===popup)close();});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!popup.hidden)close();});
+  load().then(data=>{
+    if(!data.length)return;
+    const newest=data[0],id=String(newest.id||newest.version+"|"+newest.published_at+"|"+newest.title);
+    let seen="";
+    try{seen=localStorage.getItem("swiper:last-seen-update")||"";}catch(error){}
+    if(seen!==id){
+      open();
+      try{localStorage.setItem("swiper:last-seen-update",id);}catch(error){}
+    }
+  }).catch(()=>{});
+})();
 </script>
+<style id="swiper-updates-popup-theme">
+.swiper-updates-popup[hidden]{display:none!important}
+.swiper-updates-popup{position:fixed;inset:0;z-index:100300;display:grid;place-items:center;padding:16px;background:#080b10ed;backdrop-filter:blur(11px);color:#f5f7fb;font-family:Fredoka,sans-serif}
+.swiper-updates-popup-card{width:min(760px,100%);max-height:min(88dvh,900px);overflow:auto;padding:clamp(17px,3vw,28px);background:#11151e;border:1px solid #2b3442;border-radius:22px;box-shadow:0 24px 90px #000b}
+.swiper-updates-popup-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:17px;border-bottom:1px solid #29313e}
+.swiper-updates-kicker{color:#9ba6b5;font:700 11px Fredoka,sans-serif;letter-spacing:1.7px}
+.swiper-updates-popup-head h2{margin:5px 0;color:#f7f8fb;font:700 29px Fredoka,sans-serif}
+.swiper-updates-popup-head p{margin:0;color:#929dad;font:400 13px/1.5 Fredoka,sans-serif}
+.swiper-updates-popup-head>button{flex:none;padding:9px 14px;border:1px solid #394454;border-radius:11px;background:#202733;color:#edf1f6;font:600 14px Fredoka,sans-serif}
+.swiper-updates-content{display:grid;gap:13px;padding-top:17px}
+.swiper-updates-content .swiper-update-card{overflow:hidden;background:#0d1118;border:1px solid #2a3442;border-radius:16px}
+.swiper-updates-content .swiper-update-card>img{display:block;width:100%;max-height:300px;object-fit:cover;border-bottom:1px solid #2a3442;filter:grayscale(.2)}
+.swiper-updates-content .swiper-update-card-body{padding:17px}
+.swiper-updates-content .swiper-update-meta{color:#929eae;font:600 11px Fredoka,sans-serif;letter-spacing:.5px}
+.swiper-updates-content .swiper-update-card h3{margin:8px 0;color:#f5f7fa;font:700 21px/1.25 Fredoka,sans-serif}
+.swiper-updates-content .swiper-update-description{white-space:pre-wrap;color:#c2cad5;font:400 14px/1.65 Fredoka,sans-serif}
+.swiper-updates-content .swiper-update-description strong{color:#fff}
+.swiper-update-commit{display:inline-block;margin-top:13px;color:#aebbd0;font:500 12px Fredoka,sans-serif;text-decoration:underline;text-underline-offset:3px}
+.swiper-update-loading,.swiper-updates-empty{padding:25px;text-align:center;background:#0d1118;border:1px solid #2a3442;border-radius:14px;color:#9ba6b5;font:500 14px Fredoka,sans-serif}
+@media(max-width:520px){.swiper-updates-popup{padding:9px}.swiper-updates-popup-card{padding:15px;border-radius:17px}.swiper-updates-popup-head h2{font-size:25px}.swiper-updates-content .swiper-update-card-body{padding:14px}}
+@media(prefers-reduced-motion:reduce){.swiper-updates-popup *{animation:none!important;transition:none!important}}
+</style>
 
 <style id="swiper-corner-hub-theme">
 #swiperCornerHub{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:100200;width:68px;height:68px}
