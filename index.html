@@ -1097,7 +1097,7 @@ function initSwiperGlobalChat(){
     else if(state.spam_warning_until&&new Date(state.spam_warning_until)>new Date())setStatus("Warning: 40+ messages in one minute. Slow mode is active for 3 seconds.",true);
     else if(state.slow_mode_until&&new Date(state.slow_mode_until)>new Date())setStatus("Slow mode: wait 3 seconds before sending again.",true);
     else setStatus(error?.message||"Message could not be sent.",true);
-   }else setStatus(error?.message||"Message could not be sent.",true);
+   }else{const rawError=String(error?.message||"");const safeError=/row.level security|permission denied|42501/i.test(rawError)?"Chat is temporarily unavailable. Please refresh and try again.":rawError||"Message could not be sent.";setStatus(safeError,true);}
   }
   finally{send.disabled=chatRestricted}
  };
