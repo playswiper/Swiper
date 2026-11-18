@@ -1090,7 +1090,7 @@ function initSwiperGlobalChat(){
        return true;
       });
      }catch(noticeError){console.warn("Could not display/acknowledge moderation notice:",noticeError)}
-    }else if(state.website_banned_until&&new Date(state.website_banned_until)>new Date())setStatus("Website access is suspended for 1 hour.",true);
+    }else if(count>=3&&state.website_banned_until&&new Date(state.website_banned_until)>new Date())setStatus("Website access is suspended for 1 hour after your third chat-rule violation.",true);
     else if(state.permanent_chat_ban)setStatus("Chat permanently suspended pending moderator review. Quick Words remain available.",true);
     else if(state.chat_banned_until&&new Date(state.chat_banned_until)>new Date())setStatus("Chat suspended for 1 day. Quick Words remain available.",true);
     else if(state.warning_active)setStatus("Account warning: keep chat respectful. Further violations can restrict chat.",true);
