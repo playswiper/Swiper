@@ -973,14 +973,17 @@ async function checkSwiperDailyRewardOnLogin(){
   const today=new Date().toISOString().slice(0,10);
   const claimed=data?.last_claim_date===today;
   const popup=$("swiperDailyRewardPopup");
-  if(!popup||!popup.hidden)return;
-  $("swiperDailyRewardTitle").textContent=claimed?"Today's reward is already claimed!":"Your daily reward is ready!";
+  if(!popup)return;
+  // Only show the login popup when today's reward is available to claim.
+  if(claimed){popup.hidden=true;return}
+  if(!popup.hidden)return;
+  $("swiperDailyRewardTitle").textContent="Your daily reward is ready!";
   $("swiperDailyRewardStreak").textContent="🔥 "+Number(data?.streak_days||0)+" day streak";
-  $("swiperDailyRewardDescription").textContent=claimed?"You already collected today's reward. Come back tomorrow to keep your streak going.":"Claim 10 coins and keep your daily streak going. Every fifth consecutive day awards five Rare Crates with 8× luck.";
-  $("swiperDailyRewardStatus").textContent=claimed?"Today's reward is safely saved to your wallet.":"";
-  $("swiperDailyRewardClaim").disabled=claimed;
-  $("swiperDailyRewardClaim").textContent=claimed?"Claimed today":"Claim 10 coins";
-  $("swiperDailyRewardLater").textContent=claimed?"Close":"Later";
+  $("swiperDailyRewardDescription").textContent="Claim 10 coins and keep your daily streak going. Every fifth consecutive day awards five Rare Crates with 8× luck.";
+  $("swiperDailyRewardStatus").textContent="";
+  $("swiperDailyRewardClaim").disabled=false;
+  $("swiperDailyRewardClaim").textContent="Claim 10 coins";
+  $("swiperDailyRewardLater").textContent="Later";
   popup.hidden=false;
  }catch(error){console.warn("Daily login reward check failed:",error)}
  finally{swiperDailyRewardCheckBusy=false}
@@ -997,7 +1000,7 @@ $("swiperDailyRewardClaim").addEventListener("click",async()=>{
   $("swiperDailyRewardDescription").textContent="You received "+data.points_awarded+" coins"+(data.rare_crates_awarded?" and "+data.rare_crates_awarded+" Rare Crates with 5× luck.":"! Come back tomorrow for your next daily reward.");
   $("swiperDailyRewardStreak").textContent="🔥 "+Number(data.streak_days||0)+" day streak";
   button.textContent="Claimed";button.disabled=true;
-  $("swiperDailyRewardLater").textContent="Close";
+  $("swiperDailyRewardPopup").hidden=true;
  }catch(error){status.textContent=error.message||"Could not claim your daily reward.";button.disabled=false;button.textContent="Try again"}
 });
 async function syncAccountUnsafe(){const {data:{session}}=await db.auth.getSession();user=session?.user||null;window.__swiperActiveUserId=user?.id||null;profile=null;document.body.classList.toggle("guest-mode",!user);if(user&&await enforceSwiperAuthBan()){return}if(user){const {data,error}=await queryOwnSwipeProfile(user.id);if(error){console.error("Swiper profile sync failed:",error);msg("authMessage","SIGNED IN, BUT PROFILE SYNC FAILED: "+error.message+" — your account is still signed in; online profile features may not work.","error")}else if(data){profile=data}else{const candidate=String($("username").value.trim()||user.user_metadata?.username||user.user_metadata?.swipe_username||"").trim();if(validName(candidate)){const {data:made,error:ie}=await db.from("swipe_profiles").insert({id:user.id,username:candidate,avatar_color:"#FF402B",avatar_shape:"square"}).select("username,display_name,avatar_image_url,games_played,rank_name,avatar_color,avatar_shape,avatar_accent_color,avatar_explosion_color,avatar_trail,tournament_crowns,is_verified,avatar_preset").single();if(!ie)profile=made;else{console.error("Swiper profile creation failed:",ie);msg("authMessage","SIGNED IN, BUT PROFILE SETUP FAILED: "+ie.message+" — account is not in guest mode; fix the profile/database issue.","error")}}else{console.error("Swiper profile missing and no valid username is available for repair.");msg("authMessage","SIGNED IN, BUT YOUR SWIPER PROFILE IS MISSING. Enter your username in Account and try again.","error")}}}
