@@ -910,9 +910,10 @@ async function loadSwiperShop(){
  }catch(error){console.error("Swiper Shop load failed:",error);setShopStatus("Could not load your shop: "+(error.message||"Please refresh."),true);$("shopClaimDaily").disabled=true;$("shopClaimDaily").textContent="Unavailable"}
 }
 $("shopClaimDaily").addEventListener("click",async()=>{const button=$("shopClaimDaily");button.disabled=true;button.textContent="Claiming…";try{const {data,error}=await db.rpc("swiper_shop_claim_daily_reward");if(error)throw error;await loadSwiperShop();setShopStatus("Daily reward claimed: +"+data.points_awarded+" coins!"+(data.rare_crates_awarded?" 🎉 "+data.rare_crates_awarded+" Rare Crates with 5× luck awarded!":""))}catch(error){setShopStatus(error.message||"Could not claim daily reward.",true);button.disabled=false;button.textContent="Claim 10 coins"}});
+document.querySelectorAll("[data-crate-amount]").forEach(select=>select.addEventListener("change",()=>{const custom=document.querySelector("[data-crate-custom='"+select.dataset.crateAmount+"']");if(custom){custom.hidden=select.value!=="custom";if(!custom.hidden)custom.focus()}}));
 document.querySelectorAll("[data-buy-crate]").forEach(button=>button.addEventListener("click",async()=>{
  if(!user||isSwiperGuestSession()){setShopStatus("Sign in with an account to buy crates.",true);return}
- const type=button.dataset.buyCrate,choice=$("[data-crate-amount='"+type+"']")?.value||"5",custom=$("[data-crate-custom='"+type+"']");
+ const type=button.dataset.buyCrate,choice=document.querySelector("[data-crate-amount='"+type+"']")?.value||"5",custom=document.querySelector("[data-crate-custom='"+type+"']");
  const quantity=choice==="custom"?Number(custom?.value):Number(choice);
  if(choice==="custom"&&(!Number.isSafeInteger(quantity)||quantity<1||quantity>5000)){setShopStatus("Enter a whole number from 1 to 5,000.",true);custom?.focus();return}
  button.disabled=true;button.textContent="Buying…";
