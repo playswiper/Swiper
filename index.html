@@ -2485,7 +2485,7 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
  </div>
 </div>
 <style id="swiperRadioStyles">
-#swiperRadioDock{position:fixed;z-index:2147483000;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));font-family:"Fredoka",sans-serif;color:#f4f7fb}
+#swiperRadioDock{position:fixed;z-index:2147483000;left:max(18px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom));font-family:"Fredoka",sans-serif;color:#f4f7fb}
 #swiperRadioLauncher{display:flex;align-items:center;gap:10px;min-height:58px;padding:8px 15px 8px 9px;border:1px solid #3a4658;border-radius:18px;background:linear-gradient(145deg,#1b2432,#101722);color:#f5f7fb;box-shadow:0 12px 35px #0009;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
 #swiperRadioLauncher:hover{transform:translateY(-3px);border-color:#7795b8;box-shadow:0 16px 42px #000b}
 #swiperRadioArt{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(145deg,#26374c,#111a27);border:1px solid #4b607b;color:#e8f1ff;font-size:22px;position:relative;overflow:hidden}
@@ -2494,7 +2494,7 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
 #swiperRadioLauncherText{display:grid;text-align:left;line-height:1.15}
 #swiperRadioLauncherText strong{font-size:14px;font-weight:600}
 #swiperRadioLauncherText small{font-size:10px;color:#a5b1c1;margin-top:4px}
-#swiperRadioPanel{position:absolute;right:0;bottom:70px;width:min(360px,calc(100vw - 24px));padding:14px;border:1px solid #344154;border-radius:20px;background:linear-gradient(155deg,#171f2c,#0d131d);box-shadow:0 24px 75px #000c;display:none}
+#swiperRadioPanel{position:absolute;left:0;right:auto;bottom:70px;width:min(360px,calc(100vw - 24px));padding:14px;border:1px solid #344154;border-radius:20px;background:linear-gradient(155deg,#171f2c,#0d131d);box-shadow:0 24px 75px #000c;display:none}
 #swiperRadioPanel.open{display:block;animation:swiperRadioIn .22s ease-out}
 @keyframes swiperRadioIn{from{opacity:0;transform:translateY(9px) scale(.98)}to{opacity:1;transform:none}}
 #swiperRadioPanelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
@@ -2517,7 +2517,7 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
 #swiperRadioSelect{flex:1;min-width:0;height:40px;padding:0 9px;border:1px solid #344154;border-radius:11px;background:#0c131d;color:#edf2f8;font:12px "Fredoka",sans-serif}
 #swiperRadioBigScreen{display:block;text-align:center;margin-top:11px;color:#a9c9f1;font-size:11px;text-decoration:none}
 #swiperRadioStatus{min-height:14px;margin-top:7px;color:#9ba9ba;font-size:10px;text-align:center}
-@media(max-width:520px){#swiperRadioDock{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}#swiperRadioLauncher{min-height:52px;padding:6px 11px 6px 7px;border-radius:16px}#swiperRadioArt{width:37px;height:37px}#swiperRadioPanel{bottom:62px;right:-2px;width:min(350px,calc(100vw - 20px))}}
+@media(max-width:520px){#swiperRadioDock{left:12px;bottom:max(12px,env(safe-area-inset-bottom))}#swiperRadioLauncher{min-height:52px;padding:6px 11px 6px 7px;border-radius:16px}#swiperRadioArt{width:37px;height:37px}#swiperRadioPanel{bottom:62px;left:-2px;right:auto;width:min(350px,calc(100vw - 20px))}}
 @media(prefers-reduced-motion:reduce){#swiperRadioLauncher,#swiperRadioPanel{animation:none!important;transition:none!important}}
 </style>
 <div id="swiperRadioDock">
