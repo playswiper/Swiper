@@ -2483,4 +2483,84 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
   <div class="swiper-daily-popup-actions"><button id="swiperDailyRewardClaim" type="button">Claim 10 coins</button><button id="swiperDailyRewardLater" type="button">Later</button></div>
   <div id="swiperDailyRewardStatus" role="status" aria-live="polite"></div>
  </div>
-</div></body></html>
+</div>
+<style id="swiperRadioStyles">
+#swiperRadioDock{position:fixed;z-index:2147483000;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));font-family:"Fredoka",sans-serif;color:#f4f7fb}
+#swiperRadioLauncher{display:flex;align-items:center;gap:10px;min-height:58px;padding:8px 15px 8px 9px;border:1px solid #3a4658;border-radius:18px;background:linear-gradient(145deg,#1b2432,#101722);color:#f5f7fb;box-shadow:0 12px 35px #0009;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s}
+#swiperRadioLauncher:hover{transform:translateY(-3px);border-color:#7795b8;box-shadow:0 16px 42px #000b}
+#swiperRadioArt{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(145deg,#26374c,#111a27);border:1px solid #4b607b;color:#e8f1ff;font-size:22px;position:relative;overflow:hidden}
+#swiperRadioArt:before{content:"";position:absolute;width:29px;height:29px;border:2px solid #91a9c8;border-radius:50%;opacity:.6}
+#swiperRadioArt:after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:#f0c979;box-shadow:0 0 9px #f0c979}
+#swiperRadioLauncherText{display:grid;text-align:left;line-height:1.15}
+#swiperRadioLauncherText strong{font-size:14px;font-weight:600}
+#swiperRadioLauncherText small{font-size:10px;color:#a5b1c1;margin-top:4px}
+#swiperRadioPanel{position:absolute;right:0;bottom:70px;width:min(360px,calc(100vw - 24px));padding:14px;border:1px solid #344154;border-radius:20px;background:linear-gradient(155deg,#171f2c,#0d131d);box-shadow:0 24px 75px #000c;display:none}
+#swiperRadioPanel.open{display:block;animation:swiperRadioIn .22s ease-out}
+@keyframes swiperRadioIn{from{opacity:0;transform:translateY(9px) scale(.98)}to{opacity:1;transform:none}}
+#swiperRadioPanelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+#swiperRadioPanelHead strong{font-size:15px}
+#swiperRadioPanelHead small{display:block;color:#98a6b8;font-size:10px;margin-top:2px}
+#swiperRadioPanelHead button{width:30px;height:30px;border:1px solid #354255;border-radius:10px;background:#202b3a;color:#e8edf4;font-size:17px}
+#swiperRadioNow{display:flex;align-items:center;gap:10px;margin:10px 0}
+#swiperRadioCover{width:48px;height:48px;flex:0 0 48px;border-radius:11px;object-fit:cover;background:#253142}
+#swiperRadioSong{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#swiperRadioArtist{font-size:11px;color:#9eacbd;margin-top:3px}
+#swiperRadioYTWrap{width:100%;height:200px;min-height:200px;border-radius:13px;overflow:hidden;background:#05070a;border:1px solid #344154}
+#swiperRadioYTWrap iframe{width:100%;height:200px;border:0}
+#swiperRadioControls{display:flex;gap:8px;margin-top:10px}
+#swiperRadioControls button,#swiperRadioRequestRow button{min-height:40px;padding:8px 13px;border:1px solid #3a4b60;border-radius:12px;background:#263448;color:#f4f7fb;font:600 13px "Fredoka",sans-serif}
+#swiperRadioControls #swiperRadioPlay{flex:1;background:#dbeaff;border-color:#dbeaff;color:#121d2b}
+#swiperRadioProgress{height:4px;margin-top:10px;border-radius:8px;background:#303c4d;overflow:hidden}
+#swiperRadioProgress span{display:block;width:0;height:100%;background:linear-gradient(90deg,#7db6ff,#f1cb7a)}
+#swiperRadioTimes{display:flex;justify-content:space-between;color:#91a0b2;font-size:10px;margin-top:4px;font-variant-numeric:tabular-nums}
+#swiperRadioRequestRow{display:flex;gap:7px;margin-top:12px}
+#swiperRadioSelect{flex:1;min-width:0;height:40px;padding:0 9px;border:1px solid #344154;border-radius:11px;background:#0c131d;color:#edf2f8;font:12px "Fredoka",sans-serif}
+#swiperRadioBigScreen{display:block;text-align:center;margin-top:11px;color:#a9c9f1;font-size:11px;text-decoration:none}
+#swiperRadioStatus{min-height:14px;margin-top:7px;color:#9ba9ba;font-size:10px;text-align:center}
+@media(max-width:520px){#swiperRadioDock{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}#swiperRadioLauncher{min-height:52px;padding:6px 11px 6px 7px;border-radius:16px}#swiperRadioArt{width:37px;height:37px}#swiperRadioPanel{bottom:62px;right:-2px;width:min(350px,calc(100vw - 20px))}}
+@media(prefers-reduced-motion:reduce){#swiperRadioLauncher,#swiperRadioPanel{animation:none!important;transition:none!important}}
+</style>
+<div id="swiperRadioDock">
+ <section id="swiperRadioPanel" aria-label="Swiper Radio mini player">
+  <div id="swiperRadioPanelHead"><div><strong>Swiper Radio</strong><small>Shared station · Mini player</small></div><button id="swiperRadioClose" type="button" aria-label="Close radio">×</button></div>
+  <div id="swiperRadioYTWrap"><div id="swiperRadioYT"></div></div>
+  <div id="swiperRadioNow"><img id="swiperRadioCover" alt=""><div style="min-width:0"><div id="swiperRadioSong">Connecting to the station…</div><div id="swiperRadioArtist">Loading current track</div></div></div>
+  <div id="swiperRadioProgress"><span id="swiperRadioProgressFill"></span></div>
+  <div id="swiperRadioTimes"><span id="swiperRadioElapsed">0:00</span><span id="swiperRadioRemaining">--:-- left</span></div>
+  <div id="swiperRadioControls"><button id="swiperRadioPlay" type="button" disabled>Loading player…</button><button id="swiperRadioBig" type="button">Big Screen ↗</button></div>
+  <div id="swiperRadioRequestRow"><select id="swiperRadioSelect" aria-label="Request next song"><option value="">Choose next song…</option></select><button id="swiperRadioRequest" type="button">Request</button></div>
+  <div id="swiperRadioStatus" role="status" aria-live="polite">Connecting to shared station…</div>
+  <a id="swiperRadioBigScreen" href="https://radio.playswiper.com/bigscreen.html" target="_blank" rel="noopener">Open full Big Screen queue and controls ↗</a>
+ </section>
+ <button id="swiperRadioLauncher" type="button" aria-expanded="false" aria-controls="swiperRadioPanel"><span id="swiperRadioArt">♫</span><span id="swiperRadioLauncherText"><strong>Swiper Radio</strong><small id="swiperRadioLauncherSub">Open mini player</small></span></button>
+</div>
+<script id="swiperRadioScript">
+(()=>{'use strict';
+const U='https://upghyzhawctughyojwpo.supabase.co',K='sb_publishable_z70GOIzu3F_xdxdJiVa48A_SqvrA6-b';
+const $=id=>document.getElementById(id),H={apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'};
+let station=null,track=null,tracks=[],yt=null,ytReady=false,playing=false,playerState=-1,playerTrack=null,expanded=false;
+const fmt=n=>{n=Math.max(0,Math.floor(Number(n)||0));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
+const status=t=>{$('swiperRadioStatus').textContent=t};
+async function get(path){const r=await fetch(U+'/rest/v1/'+path,{headers:H});if(!r.ok)throw new Error('Radio connection failed ('+r.status+')');return r.json()}
+async function post(path,data){const r=await fetch(U+'/rest/v1/'+path,{method:'POST',headers:{...H,Prefer:'return=minimal'},body:JSON.stringify(data)});if(!r.ok){const e=await r.text();throw new Error(e.slice(0,150)||'Request failed')}}
+function render(){if(!track)return;$('swiperRadioSong').textContent=track.title;$('swiperRadioArtist').textContent=track.artist;$('swiperRadioCover').src=track.artwork_url||'';$('swiperRadioLauncherSub').textContent=track.title+' · '+track.artist}
+async function syncStation(){try{const rows=await get('radio_station?select=current_track_id,started_at,is_playing&id=eq.1');if(!rows[0])return;const s=rows[0],changed=!station||station.current_track_id!==s.current_track_id;station=s;if(changed&&s.current_track_id){const list=await get('radio_tracks?select=id,provider_track_id,title,artist,artwork_url,duration_seconds&id=eq.'+encodeURIComponent(s.current_track_id));const next=list[0];if(next){track=next;render();if(ytReady){const args={videoId:track.provider_track_id,startSeconds:Math.max(0,Math.floor((Date.now()-new Date(station.started_at).getTime())/1000))};if(playing)yt.loadVideoById(args);else yt.cueVideoById(args);playerTrack=track.id;}}}if(!track&&s.current_track_id)render();}catch(e){status(e.message)}}
+async function syncLibrary(){try{tracks=await get('radio_tracks?select=id,title,artist&is_active=eq.true&order=title.asc');$('swiperRadioSelect').innerHTML='<option value="">Choose next song…</option>'+tracks.map(t=>'<option value="'+t.id+'">'+escapeText(t.title)+' — '+escapeText(t.artist)+'</option>').join('')}catch(e){status(e.message)}}
+function escapeText(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function requestNext(){const id=$('swiperRadioSelect').value;if(!id){status('Choose a song first.');return}try{await post('radio_queue',{track_id:id,requester_name:'Swiper player',status:'pending'});$('swiperRadioSelect').value='';status('Added to the shared queue ✓')}catch(e){status(e.message)}}
+function openPanel(){expanded=true;$('swiperRadioPanel').classList.add('open');$('swiperRadioLauncher').setAttribute('aria-expanded','true')}
+function closePanel(){if(playing){status('Playback stays open so YouTube remains visible. Pause to close the mini player.');return}expanded=false;$('swiperRadioPanel').classList.remove('open');$('swiperRadioLauncher').setAttribute('aria-expanded','false')}
+$('swiperRadioLauncher').addEventListener('click',()=>expanded?closePanel():openPanel());
+$('swiperRadioClose').addEventListener('click',closePanel);
+$('swiperRadioBig').addEventListener('click',()=>window.open('https://radio.playswiper.com/bigscreen.html','_blank','noopener'));
+$('swiperRadioRequest').addEventListener('click',requestNext);
+$('swiperRadioPlay').addEventListener('click',()=>{if(!ytReady||!yt){status('Player is still loading.');return}if(playing){yt.pauseVideo()}else{openPanel();if(playerTrack!==track?.id&&track){yt.cueVideoById({videoId:track.provider_track_id,startSeconds:Math.floor((Date.now()-new Date(station.started_at).getTime())/1000)});playerTrack=track.id}yt.playVideo()}});
+function onYTReady(){ytReady=true;$('swiperRadioPlay').disabled=false;$('swiperRadioPlay').textContent='▶ Play here';if(track){yt.cueVideoById({videoId:track.provider_track_id,startSeconds:Math.floor((Date.now()-new Date(station.started_at).getTime())/1000)});playerTrack=track.id}status('Station ready · press Play once on this device')}
+window.onYouTubeIframeAPIReady=()=>{yt=new YT.Player('swiperRadioYT',{height:'200',width:'100%',videoId:track?.provider_track_id||'',playerVars:{playsinline:1,rel:0,controls:1,enablejsapi:1,origin:location.origin},events:{onReady:onYTReady,onStateChange:e=>{playerState=e.data;playing=e.data===YT.PlayerState.PLAYING;$('swiperRadioPlay').textContent=playing?'Ⅱ Pause':'▶ Play here';if(playing){openPanel();status('Playing · shared station')}else if(e.data===YT.PlayerState.PAUSED){status('Paused on this device')}if(e.data===YT.PlayerState.ENDED&&track){fetch(U+'/rest/v1/rpc/radio_advance_station',{method:'POST',headers:H,body:JSON.stringify({p_expected_track_id:track.id})}).then(()=>syncStation()).catch(()=>{})}},onAutoplayBlocked:()=>{playing=false;$('swiperRadioPlay').textContent='▶ Play here';status('Tap Play here to resume on this device')},onError:e=>status('YouTube player error '+e.data)}});};
+function installYT(){if(window.YT&&window.YT.Player){window.onYouTubeIframeAPIReady();return}const old=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{if(typeof old==='function')try{old()}catch(e){};if(!yt)window.onYouTubeIframeAPIReadyRadioInternal?.()};window.onYouTubeIframeAPIReadyRadioInternal=()=>{};const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';s.async=true;document.head.appendChild(s)}
+function tick(){if(!ytReady||!yt||!track)return;let e=playerTrack===track.id&&typeof yt.getCurrentTime==='function'&&playing?yt.getCurrentTime():Math.max(0,(Date.now()-new Date(station.started_at).getTime())/1000),d=track.duration_seconds||0;$('swiperRadioElapsed').textContent=fmt(e);$('swiperRadioRemaining').textContent=fmt(Math.max(0,d-e))+' left';$('swiperRadioProgressFill').style.width=(d?Math.min(100,e/d*100):0)+'%'}
+async function start(){try{await syncStation();await syncLibrary();installYT();status('Station connected')}catch(e){status(e.message)}}
+start();setInterval(()=>syncStation(),12000);setInterval(tick,1000);
+})();
+</script>
+</body></html>
