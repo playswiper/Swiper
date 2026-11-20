@@ -2494,7 +2494,7 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
 #swiperRadioPanel{position:fixed;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);width:min(410px,calc(100vw - 24px));max-height:min(78vh,720px);overflow:auto;padding:14px;border:1px solid #344154;border-radius:20px;background:linear-gradient(155deg,#171f2c,#0d131d);box-shadow:0 24px 75px #000c;display:none}
 #swiperRadioPanel.open{display:block;animation:swiperRadioIn .22s ease-out}
 @keyframes swiperRadioIn{from{opacity:0;transform:translate(-50%,-47%) scale(.98)}to{opacity:1;transform:translate(-50%,-50%)}}
-#swiperRadioPanelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-2px -2px 10px;padding:5px 3px;cursor:grab;touch-action:none;user-select:none}#swiperRadioPanelHead:active{cursor:grabbing}
+#swiperRadioPanelHead{display:grid;grid-template-columns:1fr;justify-items:center;align-items:center;gap:8px;margin:-2px -2px 10px;padding:5px 3px;text-align:center;cursor:default;user-select:none}
 #swiperRadioPanelHead strong{font-size:15px}
 #swiperRadioPanelHead small{display:block;color:#98a6b8;font-size:10px;margin-top:2px}
 #swiperRadioPanelHead button{width:30px;height:30px;border:1px solid #354255;border-radius:10px;background:#202b3a;color:#e8edf4;font-size:17px}
@@ -2513,8 +2513,25 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
 #swiperRadioSearch{display:grid;gap:8px;margin-top:12px}#swiperRadioSearchInput{width:100%;height:42px;padding:0 12px;border:1px solid #344154;border-radius:11px;background:#0c131d;color:#edf2f8;font:13px "Fredoka",sans-serif}#swiperRadioSearchResults{display:grid;gap:7px;max-height:220px;overflow:auto}#swiperRadioSearchResults .radio-result{display:flex;align-items:center;gap:8px;padding:7px;border:1px solid #2b394b;border-radius:11px;background:#0c131d}#swiperRadioSearchResults img{width:36px;height:36px;object-fit:cover;border-radius:8px}#swiperRadioSearchResults .radio-result-info{min-width:0;flex:1}#swiperRadioSearchResults strong,#swiperRadioSearchResults small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#swiperRadioSearchResults strong{font-size:12px}#swiperRadioSearchResults small{font-size:10px;color:#9eacbd}#swiperRadioSearchResults button,#swiperRadioLoadMore{border:1px solid #3a4b60;border-radius:9px;background:#263448;color:#f4f7fb;padding:7px 10px;font:600 11px "Fredoka",sans-serif}#swiperRadioLoadMore{width:100%;min-height:34px}#swiperRadioControls{justify-content:center}#swiperRadioControls #swiperRadioPlay{flex:0 1 150px}
 #swiperRadioBigScreen{display:block;text-align:center;margin-top:11px;color:#a9c9f1;font-size:11px;text-decoration:none}
 #swiperRadioStatus{min-height:14px;margin-top:7px;color:#9ba9ba;font-size:10px;text-align:center}
-@media(max-width:520px){#swiperRadioDock{left:50%;bottom:max(12px,env(safe-area-inset-bottom))}#swiperRadioLauncher{min-height:52px;padding:6px 11px 6px 7px;border-radius:16px}#swiperRadioArt{width:37px;height:37px}#swiperRadioPanel{left:50%;top:50%;right:auto;bottom:auto;width:min(390px,calc(100vw - 20px));max-height:78vh}}
+@media(max-width:520px){#swiperRadioDock{left:50%;bottom:max(12px,env(safe-area-inset-bottom))}#swiperRadioLauncher{min-height:52px;padding:6px 11px 6px 7px;border-radius:16px}#swiperRadioArt{width:37px;height:37px}#swiperRadioPanel{left:50%;top:auto;right:auto;bottom:calc(100% + 12px);width:min(390px,calc(100vw - 20px));max-height:min(72vh,650px)}}
 @media(prefers-reduced-motion:reduce){#swiperRadioLauncher,#swiperRadioPanel{animation:none!important;transition:none!important}}
+
+/* Fixed, centered radio popup anchored above its launcher */
+#swiperRadioDock{left:50%;right:auto;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);width:max-content;max-width:calc(100vw - 20px)}
+#swiperRadioPanel{position:absolute;left:50%;right:auto;top:auto;bottom:calc(100% + 12px);transform:translateX(-50%);width:min(410px,calc(100vw - 24px));max-height:min(72vh,680px);text-align:center}
+#swiperRadioPanel.open{animation:swiperRadioIn .22s ease-out}
+@keyframes swiperRadioIn{from{opacity:0;transform:translate(-50%,8px) scale(.98)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+#swiperRadioPanelHead strong{display:block;text-align:center}
+#swiperRadioPanelHead button{display:grid;place-items:center;margin:0 auto}
+#swiperRadioNow{justify-content:center;text-align:center}
+#swiperRadioNow>div{min-width:0;text-align:center}
+#swiperRadioSong,#swiperRadioArtist{text-align:center}
+#swiperRadioControls{justify-content:center}
+#swiperRadioControls button{flex:0 1 150px}
+#swiperRadioSearch{text-align:center}
+#swiperRadioSearchResults{ text-align:left}
+#swiperRadioBigScreen{display:block;text-align:center}
+@media(max-width:520px){#swiperRadioDock{left:50%;right:auto;bottom:max(12px,env(safe-area-inset-bottom));width:max-content;max-width:calc(100vw - 20px)}#swiperRadioPanel{left:50%;top:auto;right:auto;bottom:calc(100% + 12px);width:min(390px,calc(100vw - 20px));max-height:min(72vh,620px)}}
 </style>
 <div id="swiperRadioDock">
  <section id="swiperRadioPanel" aria-label="Swiper Radio mini player">
@@ -2545,10 +2562,6 @@ async function register(t){const x=norm(t),r=await fetch(U+'/rest/v1/rpc/radio_r
 async function bootstrap(){if(booting)return;booting=true;try{const st=await get('radio_station?select=current_track_id&id=eq.1');if(st[0]?.current_track_id){const cur=await get('radio_tracks?select=provider&id=eq.'+encodeURIComponent(st[0].current_track_id));if(cur[0]?.provider==='audius')return}let list=await api('/tracks/trending?time=week&limit=30');if(!list.length)list=await api('/tracks/trending?limit=30');let first=null;for(const t of list){try{const saved=await register(t);if(!first)first=saved}catch(e){console.warn(e)}}if(first)await fetch(U+'/rest/v1/rpc/radio_switch_to_audius',{method:'POST',headers:H,body:JSON.stringify({p_track_id:first.id})})}finally{booting=false}}
 function openPanel(){expanded=true;$('swiperRadioPanel').classList.add('open');$('swiperRadioLauncher').setAttribute('aria-expanded','true')}
 function closePanel(){expanded=false;$('swiperRadioPanel').classList.remove('open');$('swiperRadioLauncher').setAttribute('aria-expanded','false')}
-const dragHandle=$('swiperRadioPanelHead'),dragPanel=$('swiperRadioPanel');let dragState=null;
-dragHandle.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=dragPanel.getBoundingClientRect();dragState={pointerId:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top};dragPanel.style.animation='none';dragPanel.style.transform='none';dragPanel.style.left=r.left+'px';dragPanel.style.top=r.top+'px';dragHandle.setPointerCapture(e.pointerId);e.preventDefault()});
-dragHandle.addEventListener('pointermove',e=>{if(!dragState||dragState.pointerId!==e.pointerId)return;const w=dragPanel.offsetWidth,h=dragPanel.offsetHeight;const left=Math.max(8,Math.min(innerWidth-w-8,e.clientX-dragState.dx));const top=Math.max(8,Math.min(innerHeight-h-8,e.clientY-dragState.dy));dragPanel.style.left=left+'px';dragPanel.style.top=top+'px'});
-const stopDrag=e=>{if(dragState&&dragState.pointerId===e.pointerId)dragState=null};dragHandle.addEventListener('pointerup',stopDrag);dragHandle.addEventListener('pointercancel',stopDrag);
 function installAudio(){if(audio)return;audio=document.createElement('audio');audio.preload='none';audio.playsInline=true;audio.style.display='none';audio.addEventListener('play',()=>{playing=true;$('swiperRadioPlay').textContent='Ⅱ Pause';status('Playing live · synchronized station')});audio.addEventListener('pause',()=>{playing=false;$('swiperRadioPlay').textContent='▶ Play'});audio.addEventListener('error',()=>status('Audius could not stream this track'));audio.addEventListener('ended',async()=>{if(track)try{await post('rpc/radio_advance_station',{p_expected_track_id:track.id});await syncStation(true)}catch(e){status(e.message)}});document.body.appendChild(audio)}
 function render(){if(!track)return;const art=track.artwork_url||'https://raw.githubusercontent.com/playswiper/Swiper/main/Images/RadioMusicIcon.svg';$('swiperRadioSong').textContent=track.title;$('swiperRadioArtist').textContent=track.artist;$('swiperRadioCover').src=art;$('swiperRadioCover').onerror=()=>{$('swiperRadioCover').onerror=null;$('swiperRadioCover').src='https://raw.githubusercontent.com/playswiper/Swiper/main/Images/RadioMusicIcon.svg'};$('swiperRadioArt').src=art;$('swiperRadioArt').onerror=()=>{$('swiperRadioArt').onerror=null;$('swiperRadioArt').src='https://raw.githubusercontent.com/playswiper/Swiper/main/Images/RadioMusicIcon.svg'};$('swiperRadioLauncherSub').textContent=track.title+' · '+track.artist}
 function elapsed(){return station?.started_at?Math.max(0,(Date.now()-new Date(station.started_at).getTime())/1000):0}
