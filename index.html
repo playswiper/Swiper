@@ -2602,6 +2602,28 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
 .swiper-radio-next{display:flex;flex-direction:column;gap:3px;margin-top:12px;padding:10px 12px;border:1px solid #2c3a4d;border-radius:12px;background:#0b121c;text-align:left}
 .swiper-radio-next span{font-size:9px;letter-spacing:1.3px;color:#90a2b8}.swiper-radio-next strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.swiper-radio-next small{font-size:10px;color:#9eacbd}
 @media(max-width:520px){#swiperRadioDock{left:max(10px,env(safe-area-inset-left))!important;bottom:max(10px,env(safe-area-inset-bottom))!important;width:60px!important}#swiperRadioLauncher{width:60px!important;height:60px!important;min-width:60px!important;min-height:60px!important}}
+
+/* Radio three-tap flow: compact peek always includes current track, progress, remaining time and queued track. */
+#swiperRadioDock{left:max(12px,env(safe-area-inset-left))!important;right:auto!important;bottom:max(12px,env(safe-area-inset-bottom))!important;transform:none!important;width:64px!important}
+#swiperRadioLauncher{width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important;padding:4px!important;border-radius:15px!important}
+#swiperRadioArt{width:100%!important;height:100%!important;object-fit:cover!important}
+#swiperRadioPanel{left:0!important;right:auto!important;top:auto!important;bottom:calc(100% + 10px)!important;transform:none!important;width:min(360px,calc(100vw - 24px))!important}
+#swiperRadioPanel[data-stage="peek"] #swiperRadioPanelHead,
+#swiperRadioPanel[data-stage="peek"] #swiperRadioControls,
+#swiperRadioPanel[data-stage="peek"] #swiperRadioSearch,
+#swiperRadioPanel[data-stage="peek"] #swiperRadioStatus,
+#swiperRadioPanel[data-stage="peek"] #swiperRadioBigScreen{display:none!important}
+#swiperRadioPanel[data-stage="peek"] #swiperRadioNow{display:flex!important;align-items:center!important;margin:6px 0 8px!important}
+#swiperRadioPanel[data-stage="peek"] #swiperRadioProgress{display:block!important;height:6px!important;margin-top:10px!important}
+#swiperRadioPanel[data-stage="peek"] #swiperRadioTimes{display:flex!important;justify-content:space-between!important;gap:8px!important;flex-wrap:wrap!important;margin-top:6px!important}
+#swiperRadioPanel[data-stage="peek"] #swiperRadioElapsed,
+#swiperRadioPanel[data-stage="peek"] #swiperRadioRemaining,
+#swiperRadioPanel[data-stage="peek"] #swiperRadioDuration{display:inline!important;font-size:10px!important;color:#c5d2e2!important}
+#swiperRadioPanel[data-stage="peek"] #swiperRadioNext{display:flex!important;margin-top:11px!important}
+#swiperRadioPanel[data-stage="peek"] #swiperRadioTurnOn{display:grid!important}
+#swiperRadioPanel[data-stage="peek"] #swiperRadioAddSongs{display:block!important}
+#swiperRadioAddSongs{display:none;width:100%;margin-top:10px;padding:11px 13px;border:1px solid #526985;border-radius:12px;background:#1d2b3d;color:#eaf2fc;font:700 12px "Fredoka",sans-serif;cursor:pointer}
+@media(max-width:520px){#swiperRadioDock{left:max(10px,env(safe-area-inset-left))!important;bottom:max(10px,env(safe-area-inset-bottom))!important;width:58px!important}#swiperRadioLauncher{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important}}
 </style>
 <div id="swiperRadioDock">
  <section id="swiperRadioPanel" aria-label="Swiper Radio mini player">
