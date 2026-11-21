@@ -1826,7 +1826,7 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
   function boot(){
     if(finished||window.__swiperBooted||!window.supabase||typeof window.__bootSwiper!=="function")return false;
     window.__swiperBooted=true;
-    try{window.__bootSwiper();return true}
+    try{window.__bootSwiper();finished=true;return true}
     catch(e){window.__swiperBooted=false;showStartupError("Swiper could not start",(e&&e.name?e.name+": ":"")+(e&&e.message?e.message:String(e)));return false}
   }
   function loadNextSource(){
@@ -2683,7 +2683,8 @@ function renderResults(append=false){const html=lastBatch.map(t=>'<div class="ra
 async function searchSongs(q,more=false,requestToken=null){q=q.trim();if(!q){searchResults=[];$('swiperRadioSearchResults').innerHTML='';$('swiperRadioLoadMore').hidden=true;return}if(!more){searchQuery=q;searchOffset=0;searchResults=[];$('swiperRadioSearchResults').innerHTML='<small>Searching…</small>'}const token=requestToken??++searchToken;status('Searching songs…');try{const batch=await api('/tracks/search?query='+encodeURIComponent(searchQuery)+'&limit='+PAGE+'&offset='+searchOffset);if(token!==searchToken)return;lastBatch=batch;searchResults=more?searchResults.concat(batch):batch;searchOffset+=batch.length;renderResults(!more);status(searchResults.length?'':'No matching songs')}catch(e){if(token===searchToken)status(e.message)}}
 async function addSearchTrack(id){const raw=searchResults.find(t=>String(t.id)===String(id));if(!raw)return;const auth=window.__swiperSupabaseClient;if(!auth){status('Sign in to request a song.');return}try{const {data:{session},error:sessionError}=await auth.auth.getSession();if(sessionError)throw sessionError;if(!session?.user||session.user.is_anonymous||session.user.app_metadata?.provider==='anonymous'||session.user.app_metadata?.providers?.includes('anonymous')){status('Sign in with a registered account to request songs.');return}status('Requesting for 750 coins…');const saved=await register(raw);const {data,error}=await auth.rpc('radio_request_track',{p_track_id:saved.id});if(error)throw error;const result=typeof data==='string'?JSON.parse(data):data;status('Song requested - 750 coins spent - '+Number(result?.points_remaining||0).toLocaleString()+' coins left');if($('shopPointsBalance'))$('shopPointsBalance').textContent=Number(result?.points_remaining||0).toLocaleString()+' coins';}catch(e){status(e.message||'Could not request this song.')}}
 $('swiperRadioLauncher').addEventListener('click',()=>setRadioStage((radioStage+1)%3));
-$('swiperRadioAddSongs').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setRadioStage(2)});\n$('swiperRadioPanel').addEventListener('click',e=>{if(radioStage===1&&!e.target.closest('#swiperRadioTurnOn button'))setRadioStage(2)});
+$('swiperRadioAddSongs').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setRadioStage(2)});
+$('swiperRadioPanel').addEventListener('click',e=>{if(radioStage===1&&!e.target.closest('#swiperRadioTurnOn button'))setRadioStage(2)});
 document.addEventListener('pointerdown',e=>{if(radioStage>0&&!e.target.closest('#swiperRadioDock'))closePanel()});
 $('swiperRadioTurnOnYes').addEventListener('click',async()=>{ $('swiperRadioTurnOn').hidden=true;installAudio();if(!track){status('The station is still connecting - try again in a moment');return}try{if(audio.dataset.track!==track.id){audio.src=A+'/tracks/'+encodeURIComponent(track.provider_track_id)+'/stream?app_name='+APP;audio.dataset.track=track.id;audio.load()}if(Math.abs(audio.currentTime-elapsed())>3)audio.currentTime=elapsed();await audio.play()}catch(e){status('Tap Play to start the radio - '+e.message)}});
 $('swiperRadioTurnOnNo').textContent='Dismiss';$('swiperRadioTurnOnNo').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();$('swiperRadioTurnOn').hidden=true;closePanel()});
@@ -2701,4 +2702,13 @@ async function start(){installAudio();$('swiperRadioPlay').disabled=false;$('swi
 start();setInterval(()=>syncStation(),10000);setInterval(tick,1000);
 })();
 </script>
+
+<style id="swiper-hide-chat-with-touch-controls">
+/* Keep the chat launcher out of the way while the in-game lane buttons are visible. */
+body:has(#laneControlButtons.enabled) #swiperCornerHub,
+body:has(#laneControlButtons.enabled) #swiperGlobalChat,
+body:has(#laneControlButtons.enabled) #swiperGlobalChatLauncher{
+ display:none!important;visibility:hidden!important;pointer-events:none!important
+}
+</style>
 </body></html>
