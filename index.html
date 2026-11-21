@@ -2705,9 +2705,9 @@ start();setInterval(()=>syncStation(),10000);setInterval(tick,1000);
 
 <style id="swiper-hide-chat-with-touch-controls">
 /* Keep the chat launcher out of the way while the in-game lane buttons are visible. */
-body:has(#laneControlButtons.enabled) #swiperCornerHub,
-body:has(#laneControlButtons.enabled) #swiperGlobalChat,
-body:has(#laneControlButtons.enabled) #swiperGlobalChatLauncher{
+body.playing-fullscreen:has(#laneControlButtons.enabled) #swiperCornerHub,
+body.playing-fullscreen:has(#laneControlButtons.enabled) #swiperGlobalChat,
+body.playing-fullscreen:has(#laneControlButtons.enabled) #swiperGlobalChatLauncher{
  display:none!important;visibility:hidden!important;pointer-events:none!important
 }
 </style>
