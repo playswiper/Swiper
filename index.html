@@ -1020,7 +1020,7 @@ async function loadSwiperShop(){
   setShopStatus("Your shop is synced.");
  }catch(error){console.error("Swiper Shop load failed:",error);setShopStatus("Could not load your shop: "+(error.message||"Please refresh."),true);$("shopClaimDaily").disabled=true;$("shopClaimDaily").textContent="Unavailable"}
 }
-$("shopClaimDaily").addEventListener("click",async()=>{const button=$("shopClaimDaily");button.disabled=true;button.textContent="Claiming…";try{const {data,error}=await db.rpc("swiper_shop_claim_daily_reward");if(error)throw error;await loadSwiperShop();setShopStatus("Daily reward claimed: +"+data.points_awarded+" coins!"+(data.rare_crates_awarded?" "+data.rare_crates_awarded+" Item Packs with 8× luck awarded!":""))}catch(error){setShopStatus(error.message||"Could not claim daily reward.",true);button.disabled=false;button.textContent="Claim 10 coins"}});
+$("shopClaimDaily").addEventListener("click",async()=>{const button=$("shopClaimDaily");button.disabled=true;button.textContent="Claiming…";try{const {data,error}=await db.rpc("swiper_shop_claim_daily_reward");if(error)throw error;await loadSwiperShop();setShopStatus("Daily reward claimed: +"+data.points_awarded+" coins!"+(data.item_packs_awarded?" "+data.item_packs_awarded+" Item Packs with 8× luck awarded!":""))}catch(error){setShopStatus(error.message||"Could not claim daily reward.",true);button.disabled=false;button.textContent="Claim 10 coins"}});
 document.querySelectorAll("[data-crate-amount]").forEach(select=>select.addEventListener("change",()=>{const custom=document.querySelector("[data-crate-custom='"+select.dataset.crateAmount+"']");if(custom){custom.hidden=select.value!=="custom";if(!custom.hidden)custom.focus()}}));
 document.querySelectorAll("[data-buy-crate]").forEach(button=>button.addEventListener("click",async()=>{
  if(!user||isSwiperGuestSession()){setShopStatus("Sign in with an account to buy crates.",true);return}
@@ -1091,7 +1091,7 @@ $("swiperDailyRewardClaim").addEventListener("click",async()=>{
   if(error)throw error;
   if(screen==="shop")await loadSwiperShop();
   $("swiperDailyRewardTitle").textContent="Reward claimed!";
-  $("swiperDailyRewardDescription").textContent="You received "+data.points_awarded+" coins"+(data.rare_crates_awarded?" and "+data.rare_crates_awarded+" Rare Crates with 5× luck.":"! Come back tomorrow for your next daily reward.");
+  $("swiperDailyRewardDescription").textContent="You received "+data.points_awarded+" coins"+(data.item_packs_awarded?" and "+data.item_packs_awarded+" Rare Crates with 5× luck.":"! Come back tomorrow for your next daily reward.");
   $("swiperDailyRewardStreak").textContent="🔥 "+Number(data.streak_days||0)+" day streak";
   button.textContent="Claimed";button.disabled=true;
   $("swiperDailyRewardPopup").hidden=true;
