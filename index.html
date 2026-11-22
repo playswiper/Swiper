@@ -2671,7 +2671,6 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
    <span>More Options</span>
    <button id="swiperRadioMiniExpand" type="button" aria-label="Open all radio controls" title="Open all radio controls">+</button>
   </div>
-  <span id="swiperRadioMiniOpenLabel" aria-hidden="true">Open</span>
   <div id="swiperRadioMiniLegacyControls" hidden aria-hidden="true">
    <button id="swiperRadioMiniPlay" type="button" aria-label="Play radio" title="Play or pause radio">▶</button>
    <button id="swiperRadioMiniSkip" type="button" aria-label="Skip current song" title="Skip current song">»</button>
@@ -3166,4 +3165,23 @@ body.playing-fullscreen:has(#laneControlButtons.enabled) #swiperGlobalChatLaunch
  }
  #swiperRadioMiniControls.expanded{padding-bottom:9px!important}
 }
+</style>
+
+<style id="swiper-radio-final-mini-polish">
+/* Keep the expanded mini-player clean: no redundant OPEN caption. */
+#swiperRadioMiniOpenLabel{display:none!important}
+/* Center the plus glyph optically and geometrically in its button. */
+#swiperRadioMiniMore #swiperRadioMiniExpand{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ box-sizing:border-box!important;
+ padding:0!important;
+ line-height:1!important;
+ text-align:center!important;
+ font-size:32px!important;
+ font-weight:400!important;
+}
+#swiperRadioMiniMore #swiperRadioMiniExpand::before,
+#swiperRadioMiniMore #swiperRadioMiniExpand::after{content:none!important}
 </style>
