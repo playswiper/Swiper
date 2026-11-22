@@ -3138,3 +3138,32 @@ body.playing-fullscreen:has(#laneControlButtons.enabled) #swiperGlobalChatLaunch
  #swiperRadioMiniControls.song-arrival,#swiperRadioMiniControls.song-arrival #swiperRadioArt{animation:none!important}
 }
 </style>
+
+<style id="swiper-radio-bottom-safe-fix">
+/* Keep the whole radio widget above the iOS home indicator and viewport edge. */
+#swiperRadioDock{
+ bottom:max(30px,calc(env(safe-area-inset-bottom) + 20px))!important;
+ height:auto!important;min-height:0!important;overflow:visible!important;
+ padding:0 0 4px!important;box-sizing:border-box!important;
+}
+#swiperRadioMiniControls{box-sizing:border-box!important;overflow:visible!important}
+#swiperRadioMiniControls.expanded{
+ height:auto!important;min-height:0!important;
+ padding-bottom:10px!important;box-sizing:border-box!important;
+}
+#swiperRadioMiniControls.expanded #swiperRadioMiniOpenLabel{
+ padding-bottom:1px!important;line-height:14px!important;
+}
+#swiperRadioLauncher{box-sizing:border-box!important}
+#swiperRadioArt{
+ box-sizing:border-box!important;object-fit:contain!important;
+ object-position:center center!important;
+}
+@media(max-width:520px){
+ #swiperRadioDock{
+  bottom:max(34px,calc(env(safe-area-inset-bottom) + 22px))!important;
+  padding-bottom:5px!important;
+ }
+ #swiperRadioMiniControls.expanded{padding-bottom:9px!important}
+}
+</style>
