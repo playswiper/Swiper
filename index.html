@@ -2697,7 +2697,7 @@ function setRadioStage(stage){radioStage=stage;if(stage===0){expanded=false;$('s
 function openPanel(){setRadioStage(2)}
 function closePanel(){setRadioStage(0)}
 function installAudio(){if(audio)return;audio=document.createElement('audio');audio.preload='none';audio.playsInline=true;audio.style.display='none';audio.addEventListener('play',()=>{playing=true;$('swiperRadioPlay').textContent='Ⅱ Pause';syncMiniControls();status('Playing live - synchronized station')});audio.addEventListener('pause',()=>{playing=false;$('swiperRadioPlay').textContent='▶ Play';syncMiniControls()});audio.addEventListener('error',()=>status('Audius could not stream this track'));audio.addEventListener('ended',()=>advanceFinished());document.body.appendChild(audio)}
-function render(){if(!track)return;const fallback='https://raw.githubusercontent.com/playswiper/Swiper/main/Images/RadioMusicIcon.svg',art=track.artwork_url||fallback;$('swiperRadioSong').textContent=track.title;$('swiperRadioArtist').textContent=track.artist;$('swiperRadioMiniSong').textContent=track.title;$('swiperRadioMiniArtist').textContent=track.artist;$('swiperRadioCover').src=art;$('swiperRadioCover').onerror=()=>{$('swiperRadioCover').onerror=null;$('swiperRadioCover').src=fallback};const miniArt=$('swiperRadioArt');miniArt.onerror=()=>{miniArt.onerror=null;miniArt.src=fallback;miniArt.classList.add('fallback-art')};miniArt.classList.remove('fallback-art');miniArt.src=art;$('swiperRadioLauncherSub').textContent=track.title+' - '+track.artist;const dock=$('swiperRadioMiniControls');dock.classList.remove('song-arrival');void dock.offsetWidth;dock.classList.add('song-arrival');setMiniExpanded(true)}
+function render(){if(!track)return;const fallback='https://raw.githubusercontent.com/playswiper/Swiper/main/Images/RadioMusicIcon.svg',art=String(track.artwork_url||'').trim();$('swiperRadioSong').textContent=track.title;$('swiperRadioArtist').textContent=track.artist;$('swiperRadioMiniSong').textContent=track.title;$('swiperRadioMiniArtist').textContent=track.artist;const cover=$('swiperRadioCover');cover.onerror=()=>{cover.onerror=null;cover.src=fallback};cover.src=art||fallback;const miniArt=$('swiperRadioArt');miniArt.classList.remove('has-song-art');miniArt.classList.toggle('fallback-art',!art);miniArt.onload=()=>{if(art)miniArt.classList.add('has-song-art');else miniArt.classList.remove('has-song-art')};miniArt.onerror=()=>{miniArt.onerror=null;miniArt.onload=null;miniArt.classList.remove('has-song-art');miniArt.classList.add('fallback-art');miniArt.src=fallback};miniArt.src=art||fallback;$('swiperRadioLauncherSub').textContent=track.title+' - '+track.artist;const dock=$('swiperRadioMiniControls');dock.classList.remove('song-arrival');void dock.offsetWidth;dock.classList.add('song-arrival');setMiniExpanded(true)}
 function elapsed(){return station?.started_at?Math.max(0,(Date.now()-new Date(station.started_at).getTime())/1000):0}
 async function syncStation(force=false){try{const rows=await get('radio_station?select=current_track_id,started_at,is_playing&id=eq.1');if(!rows[0])return;const s=rows[0],changed=!station||station.current_track_id!==s.current_track_id;station=s;if(changed){$('swiperRadioSkip').textContent='Skip (0/3)';$('swiperRadioSkip').disabled=false}if(changed||force){if(!s.current_track_id)return;const list=await get('radio_tracks?select=id,provider,provider_track_id,title,artist,artwork_url,duration_seconds&id=eq.'+encodeURIComponent(s.current_track_id));const next=list[0];if(!next)return;if(next.provider!=='audius'){status('Moving station to Audius…');return}track=next;render();installAudio();const src=A+'/tracks/'+encodeURIComponent(track.provider_track_id)+'/stream?app_name='+APP;if(audio.dataset.track!==track.id){audio.pause();audio.dataset.track=track.id;audio.src=src;audio.load();audio.onloadedmetadata=()=>{const pos=Math.max(0,elapsed());if(Number.isFinite(audio.duration)&&pos<audio.duration-2)audio.currentTime=pos;audio.play().catch(()=>status('Tap Play once to enable sound'))}}else{const pos=elapsed();if(audio.readyState>=1&&Math.abs(audio.currentTime-pos)>3)audio.currentTime=pos;audio.play().catch(()=>status('Tap Play once to enable sound'))}}}catch(e){status(e.message)}}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -3184,4 +3184,28 @@ body.playing-fullscreen:has(#laneControlButtons.enabled) #swiperGlobalChatLaunch
 }
 #swiperRadioMiniMore #swiperRadioMiniExpand::before,
 #swiperRadioMiniMore #swiperRadioMiniExpand::after{content:none!important}
+</style>
+
+
+<style id="swiper-radio-artwork-ring">
+/* A continuous circular outline around the complete radio artwork. */
+#swiperRadioLauncher{position:relative!important;overflow:visible!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important}
+#swiperRadioArt{
+ display:block!important;position:relative!important;z-index:1!important;
+ width:100%!important;height:100%!important;box-sizing:border-box!important;
+ border:2px solid #91a6c3!important;border-radius:50%!important;
+ outline:2px solid #34465e!important;outline-offset:2px!important;
+ object-fit:contain!important;object-position:center!important;
+ background:#101722!important;overflow:hidden!important;
+ transition:border-color .25s ease,outline-color .25s ease,transform .3s ease!important;
+}
+#swiperRadioArt.has-song-art{border-color:#d7e4f5!important;outline-color:#7894b8!important}
+#swiperRadioArt.fallback-art{border-color:#718198!important;outline-color:#34465e!important}
+#swiperRadioMiniControls.song-arrival #swiperRadioArt{animation:swiperRadioArtworkFound .85s cubic-bezier(.2,.85,.25,1) both!important}
+@keyframes swiperRadioArtworkFound{
+ 0%{transform:scale(.78);filter:brightness(.65)}
+ 55%{transform:scale(1.1);filter:brightness(1.2)}
+ 100%{transform:scale(1);filter:brightness(1)}
+}
+@media(prefers-reduced-motion:reduce){#swiperRadioArt{transition:none!important}#swiperRadioMiniControls.song-arrival #swiperRadioArt{animation:none!important}}
 </style>
