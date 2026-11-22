@@ -600,7 +600,23 @@ body.swiper-practice-only .home-info{display:none!important}
 #player[data-shape="double-point"]{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%,25% 50%)}
 #player[data-shape="badge-shield"]{clip-path:polygon(50% 0,95% 18%,88% 70%,50% 100%,12% 70%,5% 18%)}
 @media(prefers-reduced-motion:reduce){#player.shop-has-trail{filter:drop-shadow(0 0 4px var(--shop-trail-color))}}
-</style></head>
+</style><style id="swiper-item-pack-system">
+.shop-pack-config{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:18px;padding:18px;border:1px solid #35465c;border-radius:18px;background:linear-gradient(145deg,#121e2d,#090f18)}
+.shop-pack-visual{display:flex;align-items:center;gap:15px;min-height:150px}.shop-pack-visual strong,.shop-pack-visual small{display:block}.shop-pack-visual strong{color:#f2f6fd;font-size:15px;letter-spacing:1.2px}.shop-pack-visual small{margin-top:6px;color:#8fa2bb;font-size:11px}
+.shop-pack-box{position:relative;width:92px;height:92px;flex:0 0 92px;border:2px solid #8398b5;border-radius:17px;background:linear-gradient(145deg,#344b67,#142238 70%);box-shadow:inset 0 1px #fff3,0 12px 25px #0008;transform:rotate(-7deg)}
+.shop-pack-box:before{content:"";position:absolute;left:0;right:0;top:23px;height:12px;background:#8da5c4}.shop-pack-box:after{content:"";position:absolute;top:0;bottom:0;left:39px;width:12px;background:#8da5c4}.shop-pack-box span{position:absolute;z-index:2;left:29px;top:30px;width:32px;height:32px;border:3px solid #dbe6f4;border-radius:8px;transform:rotate(45deg);background:#1b2c43}
+.shop-luck-control{min-width:0;padding:12px 14px;border:1px solid #2b3c52;border-radius:14px;background:#0b121d}.shop-luck-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.shop-luck-head label{color:#b9c6d8;font-weight:700;font-size:13px}.shop-luck-head strong{color:#f1d18a;font-size:20px;font-variant-numeric:tabular-nums}
+#shopLuckSlider{display:block;width:100%;margin:15px 0 6px;accent-color:#8bb9ee;cursor:pointer}.shop-luck-range{display:flex;justify-content:space-between;color:#73869f;font-size:10px}.shop-pack-purchase{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:15px;padding-top:13px;border-top:1px solid #28384d}.shop-pack-purchase small,.shop-pack-purchase strong{display:block}.shop-pack-purchase small{color:#8294aa;font-size:10px}.shop-pack-purchase strong{margin-top:3px;color:#f2f5fa;font-size:16px}.shop-pack-purchase button{white-space:nowrap}.shop-pack-note{margin:10px 0 0;color:#7e91aa;font-size:10px;line-height:1.5}
+.shop-item-svg{display:block;width:100%;height:100%;overflow:visible}.shop-cosmetic-art{display:grid;place-items:center;min-height:104px;padding:10px;border-radius:13px;background:radial-gradient(circle at 50% 45%,#293b53,#101925 72%);border:1px solid #2e4058}.shop-cosmetic-art .shop-item-svg{width:88px;height:88px}.shop-cosmetic-card h4{min-height:38px}.shop-cosmetic-grid .shop-load-more{grid-column:1/-1;width:100%;min-height:44px}
+#shopItemCollection{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px}#shopItemCollection .shop-emoji-card{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px;border:1px solid #34455b;border-radius:13px;background:#0e1723;min-width:0}#shopItemCollection .shop-item-svg{width:76px;height:76px;padding:5px;border-radius:12px;background:#152235}#shopItemCollection strong{font-size:11px;text-align:center;color:#e7edf7}#shopItemCollection small{color:#91a3ba}#shopItemCollection button{width:100%;font-size:11px}
+#player{position:relative!important;overflow:visible!important}.swiper-equipped-item{position:absolute;z-index:45;right:-27px;top:-20px;width:36px;height:36px;display:grid;place-items:center;pointer-events:none;filter:drop-shadow(0 3px 7px #000c);animation:swiperEquippedItemFloat 2.7s ease-in-out infinite;transform-origin:50% 80%}.swiper-equipped-item svg{width:100%;height:100%}@keyframes swiperEquippedItemFloat{0%,100%{transform:translate3d(0,0,0) rotate(-8deg)}50%{transform:translate3d(0,-8px,0) rotate(8deg)}}
+.shop-reveal-crate{width:88px;height:88px;display:grid;place-items:center;border:3px solid #a9bdd8;border-radius:17px;background:linear-gradient(145deg,#405b7c,#17273e);box-shadow:inset 0 1px #fff4,0 15px 35px #0009;transform:rotate(-6deg)}.shop-reveal-crate:before{content:"";position:absolute;left:0;right:0;top:25px;height:12px;background:#a9bdd8}.shop-reveal-crate:after{content:"";position:absolute;top:0;bottom:0;left:37px;width:12px;background:#a9bdd8}.shop-reveal-crate span{z-index:2;width:24px;height:24px;border:3px solid #f4d78c;border-radius:6px;transform:rotate(45deg);background:#263b55}
+.shop-reveal-emoji{width:94px;height:94px;display:grid;place-items:center;opacity:0;transform:scale(.1) rotate(-25deg)}.shop-reveal-emoji .shop-item-svg{width:100%;height:100%}.shop-reveal-stage.revealed .shop-reveal-emoji{animation:shopEmojiPremium 1.05s cubic-bezier(.16,1,.3,1) .12s forwards!important}
+.shop-reveal-particle{width:6px;height:6px;border-radius:2px;background:#e5c77e;box-shadow:0 0 10px #e5c77e}.shop-reveal-particle:nth-child(3n){background:#8dc4f8;box-shadow:0 0 10px #8dc4f8}.shop-reveal-particle:nth-child(4n){width:4px;height:4px;background:#fff}
+@media(max-width:620px){.shop-pack-config{grid-template-columns:1fr;gap:10px}.shop-pack-visual{min-height:92px}.shop-pack-box{width:74px;height:74px;flex-basis:74px}.shop-pack-box:after{left:31px}.shop-pack-box span{left:22px;top:26px;width:26px;height:26px}.shop-pack-purchase{align-items:flex-end}.shop-pack-purchase button{font-size:11px;padding:10px}}
+@media(prefers-reduced-motion:reduce){.swiper-equipped-item{animation:none!important}}
+</style>
+</head>
 <body>
 <div id="restrictedScreen" class="restricted-screen hidden" role="alert"><div class="restricted-card"><div class="restricted-mark">S</div><p class="eyebrow">SWIPER ACCOUNT STATUS</p><h1 id="restrictedTitle">Account restricted</h1><p id="restrictedText">This account cannot access Swiper right now.</p><p id="restrictedDetail" class="small"></p><a class="restrictedContact" href="mailto:messageswiper@gmail.com?subject=Swiper%20ban%20appeal">If you think this is a mistake, contact messageswiper@gmail.com</a><button id="restrictedLogout" class="primary">Sign out</button></div></div><audio id="swiperBgMusic" preload="auto" loop playsinline crossorigin="anonymous" aria-label="Swiper background music"><source src="https://raw.githubusercontent.com/Mystarnight-Extras/Swiper/main/1%20Hour%20Of%20Relaxed%20Scene-%5BAudioTrimmer.com%5D.mp3" type="audio/mpeg"></audio><div id="swiperLoading" role="status" aria-live="polite"><div class="swiper-loading-card"><div class="loading-brand">SWIPER</div><div class="loading-progress" role="img" aria-label="Loading animation"><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span></div><div class="loading-caption" id="swiperLoadingCaption">LOADING...</div><div id="swiperFirstVisitCheck" class="swiper-first-visit-check" hidden><p>Quick security check — complete this once to enter Swiper.</p><div id="swiperFirstVisitTurnstile"></div><button class="primary" id="swiperFirstVisitContinue" type="button" disabled>Continue to Swiper</button></div></div></div><div class="wrap">
 <header class="top"><div class="brand"><div class="brand-copy"><div class="brand-title-row"><img class="swiper-header-logo" src="Images/Swiper%20Image%20Logo.jpg?v=20261119-3" alt="Swiper logo"><h1>SWIPER</h1></div><p>One move can save your run.</p></div></div><div class="status" id="accountStatus">Guest mode<br>Scores stay on this device</div></header>
@@ -1642,6 +1658,114 @@ syncAccount().then(async()=>{const requestedLevel=new URLSearchParams(location.s
  refreshNotices().catch(e=>console.warn("Swiper notices refresh failed:",e));
  setInterval(()=>refreshNotices().catch(e=>console.warn("Swiper notices refresh failed:",e)),30000);
  initSwiperGlobalChat();
+
+// Shop runtime shares the game's authenticated Supabase and UI scope.
+
+let swiperShopEquippedItems=[];
+const swiperShopOriginalApplyAvatar=applyAvatar;
+const shopItemShapes={
+ visor:'<path d="M17 35h66l-8 24H25z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M25 42h50l-5 10H30z" fill="#0b1421"/>',
+ helmet:'<path d="M20 62V43a30 30 0 0 1 60 0v19H20z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M17 62h66v9H17z" fill="#172235" stroke="#eaf2ff" stroke-width="3"/>',
+ mask:'<path d="M24 30h52v42L50 86 24 72z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M31 45h13m12 0h13M43 62h14" stroke="#111827" stroke-width="5" stroke-linecap="round"/>',
+ shield:'<path d="M50 12 82 25v24c0 20-13 34-32 45C31 83 18 69 18 49V25z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M50 24v55M29 45h42" stroke="#fff" stroke-width="4" opacity=".7"/>',
+ blade:'<path d="M61 12 78 24 43 68 31 56z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="m22 70 18-18 9 9-18 18z" fill="#8b99aa" stroke="#eaf2ff" stroke-width="3"/><path d="m18 82 10-10" stroke="#eaf2ff" stroke-width="5" stroke-linecap="round"/>',
+ hammer:'<path d="M23 25h54v24H23z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M47 47h10v43H47z" fill="#aab7c8" stroke="#eaf2ff" stroke-width="3"/>',
+ jetpack:'<rect x="23" y="22" width="54" height="55" rx="13" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M33 75v12m34-12v12M36 36h28M36 48h28" stroke="#eaf2ff" stroke-width="4" stroke-linecap="round"/>',
+ drone:'<circle cx="50" cy="50" r="18" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M50 32 27 20M50 32l23-12M50 68 27 80m23-12 23 12" stroke="#eaf2ff" stroke-width="4"/><circle cx="25" cy="18" r="8" fill="none" stroke="#eaf2ff" stroke-width="4"/><circle cx="75" cy="18" r="8" fill="none" stroke="#eaf2ff" stroke-width="4"/><circle cx="25" cy="82" r="8" fill="none" stroke="#eaf2ff" stroke-width="4"/><circle cx="75" cy="82" r="8" fill="none" stroke="#eaf2ff" stroke-width="4"/>',
+ staff:'<path d="M50 20v66" stroke="#dce7f6" stroke-width="8" stroke-linecap="round"/><path d="M50 10 67 27 50 44 33 27z" fill="COLOR" stroke="#fff" stroke-width="4"/>',
+ bow:'<path d="M24 15Q76 50 24 85M76 15Q24 50 76 85M24 15 76 85" fill="none" stroke="COLOR" stroke-width="7" stroke-linecap="round"/>',
+ gauntlet:'<path d="M31 76 22 48q-3-10 6-13 7-2 11 8l-4-19q-1-10 8-11 9 0 10 10l2 17 4-14q3-9 11-6 8 3 5 12l-4 18 5-7q6-7 12-1 5 5 0 12L66 82q-8 9-19 5z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/>',
+ orb:'<circle cx="50" cy="50" r="29" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M33 50q17-25 34 0-17 25-34 0z" fill="none" stroke="#fff" stroke-width="4"/><circle cx="50" cy="50" r="7" fill="#fff"/>',
+ boots:'<path d="M27 16h24v42l22 9q8 4 6 14H22q-7-9 3-19z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M25 68h48" stroke="#fff" stroke-width="4"/>',
+ wings:'<path d="M50 48Q10 5 14 58q8 28 36 18Q78 86 86 58 90 5 50 48z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M50 46v35" stroke="#fff" stroke-width="3"/>',
+ scanner:'<rect x="18" y="22" width="64" height="55" rx="10" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><circle cx="50" cy="49" r="14" fill="#0b1421" stroke="#fff" stroke-width="4"/><path d="M50 35v28M36 49h28" stroke="#fff" stroke-width="3"/>'
+};
+function shopItemArtwork(item){
+ const parts=String(item?.effect_value||"visor|#8fb7e8").split("|"),kind=parts[0],color=/^#[0-9a-f]{6}$/i.test(parts[1]||"")?parts[1]:"#8fb7e8";
+ return '<svg class="shop-item-svg" viewBox="0 0 100 100" role="img" aria-label="'+shopSafeText(item?.name||"Collectible item")+'"><g>'+String(shopItemShapes[kind]||shopItemShapes.visor).replaceAll("COLOR",color)+'</g></svg>';
+}
+function updateEquippedEmojiOrbit(){if(!player)return;player.querySelectorAll(".swiper-equipped-emoji-orbit").forEach(node=>node.remove())}
+function swiperApplyAvatarExtended(){
+ swiperShopOriginalApplyAvatar();const runner=document.getElementById("player");if(!runner)return;
+ runner.querySelectorAll(".swiper-equipped-emoji-orbit,.swiper-equipped-item").forEach(node=>node.remove());
+ const item=swiperShopEquippedItems.find(x=>x.category==="item");if(!item)return;
+ const node=document.createElement("div");node.className="swiper-equipped-item";node.setAttribute("aria-label","Equipped item: "+item.name);node.title=item.name;node.innerHTML=shopItemArtwork(item);runner.append(node);
+}
+applyAvatar=swiperApplyAvatarExtended;
+let shopCatalogCache=[],shopOwnedCache=new Map(),shopVisibleCount=80;
+function renderSwiperItems(){
+ const grid=document.getElementById("shopItemCollection");if(!grid)return;
+ const query=(document.getElementById("shopCosmeticSearch")?.value||"").trim().toLowerCase();
+ const rows=shopCatalogCache.filter(x=>!query||[x.name,x.description,x.rarity].some(v=>String(v||"").toLowerCase().includes(query)));
+ const shown=rows.slice(0,shopVisibleCount);
+ grid.innerHTML=shown.map(x=>{
+  const own=shopOwnedCache.get(x.item_id),equipped=!!own?.equipped;
+  return '<article class="shop-cosmetic-card rarity-'+shopSafeText(x.rarity.toLowerCase())+'"><div class="shop-cosmetic-art">'+shopItemArtwork(x)+'</div><div class="shop-cosmetic-meta"><span class="shop-cosmetic-type">'+(own?'OWNED · '+Number(own.quantity||1)+'×':'COLLECTIBLE')+'</span><span class="shop-cosmetic-rarity">'+shopSafeText(x.rarity)+'</span></div><h4>'+shopSafeText(x.name)+'</h4><p>'+shopSafeText(x.description)+'</p><div class="shop-cosmetic-footer"><strong>'+Number(x.price).toLocaleString()+' <small>coins</small></strong>'+(own?'<button class="secondary" data-shop-equip="'+shopSafeText(x.item_id)+'">'+(equipped?"Equipped":"Equip")+'</button>':'<button class="primary" data-shop-buy-item="'+shopSafeText(x.item_id)+'">Buy</button>')+'</div></article>'
+ }).join("")||'<div class="shop-empty">No items match that search.</div>';
+ if(rows.length>shown.length)grid.insertAdjacentHTML("beforeend",'<button class="secondary shop-load-more" id="shopLoadMore" type="button">Load more items ('+(rows.length-shown.length)+' remaining)</button>');
+ grid.querySelectorAll("[data-shop-buy-item]").forEach(b=>b.onclick=async()=>{b.disabled=true;b.textContent="Buying…";try{const {data,error}=await db.rpc("swiper_shop_buy_item",{p_item_id:b.dataset.shopBuyItem});if(error)throw error;await loadSwiperShop();setShopStatus("Item purchased. "+Number(data.points_remaining).toLocaleString()+" coins remaining.")}catch(e){setShopStatus(e.message||"Could not buy that item.",true);b.disabled=false;b.textContent="Buy"}});
+ grid.querySelectorAll("[data-shop-equip]").forEach(b=>b.onclick=async()=>{b.disabled=true;b.textContent="Equipping…";try{const {error}=await db.rpc("swiper_shop_equip_item",{p_item_id:b.dataset.shopEquip});if(error)throw error;await loadSwiperShop();applyAvatar();setShopStatus("Equipped "+(shopCatalogCache.find(x=>x.item_id===b.dataset.shopEquip)?.name||"item")+". Only one item floats beside your avatar.")}catch(e){setShopStatus(e.message||"Could not equip that item.",true);b.disabled=false;b.textContent="Equip"}});
+ document.getElementById("shopLoadMore")?.addEventListener("click",()=>{shopVisibleCount+=80;renderSwiperItems()});
+}
+async function swiperLoadShopExtended(){
+ if(!user||isSwiperGuestSession()){
+  document.getElementById("shopPointsBalance").textContent="Sign in required";
+  document.getElementById("shopCrateInventory").innerHTML='<div class="shop-empty">Sign in to buy and open Item Packs.</div>';
+  document.getElementById("shopSellDuplicates").disabled=true;setShopStatus("Sign in with an account to save coins and collectible items.",true);return;
+ }
+ setShopStatus("Loading your item collection…");
+ try{
+  const [walletRes,crateRes,dailyRes,catalogRes,inventoryRes]=await Promise.all([
+   db.from("swiper_shop_wallets").select("points").eq("user_id",user.id).maybeSingle(),
+   db.from("swiper_shop_crates").select("id,crate_type,luck_multiplier,created_at").eq("user_id",user.id).is("opened_at",null).order("created_at",{ascending:true}),
+   db.from("swiper_daily_reward_state").select("last_claim_date,streak_days").eq("user_id",user.id).maybeSingle(),
+   db.from("swiper_shop_catalog").select("item_id,name,category,description,icon,rarity,price,effect_value,sort_order").eq("active",true).eq("category","item").order("sort_order"),
+   db.from("swiper_shop_inventory").select("item_id,equipped,quantity").eq("user_id",user.id)
+  ]);
+  for(const r of [walletRes,crateRes,dailyRes,catalogRes,inventoryRes])if(r.error)throw r.error;
+  document.getElementById("shopPointsBalance").textContent=Number(walletRes.data?.points||0).toLocaleString()+" coins";
+  shopCatalogCache=catalogRes.data||[];shopOwnedCache=new Map((inventoryRes.data||[]).map(x=>[x.item_id,x]));
+  swiperShopEquippedItems=shopCatalogCache.filter(x=>shopOwnedCache.get(x.item_id)?.equipped);
+  const countBadge=document.querySelector(".shop-cosmetic-heading .shop-pill");if(countBadge)countBadge.textContent=shopCatalogCache.length.toLocaleString()+" items";
+  const daily=dailyRes.data||{last_claim_date:null,streak_days:0},today=new Date().toISOString().slice(0,10),claimed=daily.last_claim_date===today;
+  document.getElementById("shopStreak").textContent=Number(daily.streak_days||0)+" day streak";
+  document.getElementById("shopDailyTitle").textContent=claimed?"Today's reward claimed":"Your daily reward is ready";
+  document.getElementById("shopDailyDescription").textContent=claimed?"Come back tomorrow to continue your streak. Every fifth day gives five Item Packs with 8× luck.":"Claim 10 coins today. Claim on 5 consecutive days to earn five Item Packs with 8× luck.";
+  document.getElementById("shopClaimDaily").disabled=claimed;document.getElementById("shopClaimDaily").textContent=claimed?"Claimed today":"Claim 10 coins";
+  const crates=crateRes.data||[];document.getElementById("shopCrateCount").textContent=crates.length+" unopened";
+  document.getElementById("shopOpenAll").disabled=!crates.length;document.getElementById("shopOpenAll").textContent=crates.length?"Open All ("+crates.length+")":"Open All";
+  document.getElementById("shopCrateInventory").innerHTML=crates.length?crates.map(x=>'<div class="shop-crate-row"><div><strong>Item Pack</strong><small>'+Number(x.luck_multiplier)+'× luck</small></div><button class="primary shop-open-crate" type="button" data-open-crate="'+shopSafeText(x.id)+'">Open</button></div>').join(""):'<div class="shop-empty">No unopened Item Packs. Choose a luck level above to buy one.</div>';
+  document.getElementById("shopCrateInventory").querySelectorAll("[data-open-crate]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;b.textContent="Opening…";try{const {data,error}=await db.rpc("swiper_shop_open_crate",{p_crate_id:b.dataset.openCrate});if(error)throw error;await loadSwiperShop();queueShopReveals([data])}catch(e){setShopStatus(e.message||"Could not open that Item Pack.",true);b.disabled=false;b.textContent="Open"}}));
+  document.getElementById("shopOpenAll").onclick=async()=>{const b=document.getElementById("shopOpenAll");if(b.disabled)return;b.disabled=true;b.textContent="Opening…";try{const {data,error}=await db.rpc("swiper_shop_open_all_crates");if(error)throw error;await loadSwiperShop();queueShopReveals(data?.rewards||[])}catch(e){setShopStatus(e.message||"Could not open all Item Packs.",true);b.disabled=false;b.textContent="Try Again"}};
+  const ownedItems=shopCatalogCache.filter(x=>shopOwnedCache.has(x.item_id));
+  document.getElementById("shopItemCount").textContent=ownedItems.reduce((n,x)=>n+Number(shopOwnedCache.get(x.item_id)?.quantity||1),0)+" owned";
+  document.getElementById("shopSellDuplicates").disabled=!ownedItems.some(x=>Number(shopOwnedCache.get(x.item_id)?.quantity||1)>1);
+  document.getElementById("shopSellDuplicates").onclick=async()=>{const b=document.getElementById("shopSellDuplicates");if(b.disabled||b.dataset.busy==="1")return;if(!confirm("Sell duplicate items and keep one of each item? This cannot be undone."))return;b.dataset.busy="1";b.disabled=true;b.textContent="Selling…";try{const {data,error}=await db.rpc("swiper_shop_sell_duplicates");if(error)throw error;await loadSwiperShop();setShopStatus("Sold "+Number(data.duplicates_sold||0)+" duplicate items for "+Number(data.coins_earned||0).toLocaleString()+" coins.")}catch(e){setShopStatus(e.message||"Could not sell duplicate items.",true);b.disabled=false;b.textContent="Sell duplicates"}finally{delete b.dataset.busy}};
+  renderSwiperItems();setShopStatus("Your item collection is synced.");
+ }catch(e){console.error("Swiper item shop failed:",e);setShopStatus(e.message||"Could not load your item shop.",true)}
+}
+loadSwiperShop=swiperLoadShopExtended;
+const luckSlider=document.getElementById("shopLuckSlider");
+function updatePackLuckPreview(){if(!luckSlider)return;const luck=Math.max(1,Math.min(100,Number(luckSlider.value)||1));document.getElementById("shopLuckValue").textContent=luck+"×";document.getElementById("shopPackPrice").textContent=(luck*10).toLocaleString()+" coins";const base=[50,27,14,6,2,.7,.2,.07,.025,.005],weights=base.map((v,i)=>v*Math.pow(luck,i/4)),total=weights.reduce((a,b)=>a+b,0);document.querySelectorAll(".shop-odds-grid b").forEach((el,i)=>{const pct=weights[i]/total*100;el.textContent=(pct>=1?pct.toFixed(1):pct>=.01?pct.toFixed(2):pct>=.0001?pct.toFixed(4):"<0.0001")+"%"})}
+luckSlider?.addEventListener("input",updatePackLuckPreview);
+document.getElementById("shopBuyPack")?.addEventListener("click",async()=>{const b=document.getElementById("shopBuyPack");if(b.disabled)return;const luck=Math.max(1,Math.min(100,Number(luckSlider?.value)||1));b.disabled=true;b.textContent="Buying…";try{const {data,error}=await db.rpc("swiper_shop_buy_pack",{p_quantity:1,p_luck:luck});if(error)throw error;await loadSwiperShop();setShopStatus("Bought one Item Pack with "+luck+"× luck. "+Number(data.points_remaining).toLocaleString()+" coins remaining.")}catch(e){setShopStatus(e.message||"Could not buy Item Pack.",true)}finally{b.disabled=false;b.textContent="Buy Item Pack"}});
+document.getElementById("shopCosmeticSearch")?.addEventListener("input",()=>{shopVisibleCount=80;renderSwiperItems()});
+loadSwiperShop=swiperLoadShopExtended;
+function showShopReveal(){
+ if(shopRevealIndex>=shopRevealQueue.length){closeShopReveal();loadSwiperShop();setShopStatus("All item reveals complete.");return}
+ if(shopRevealTimer)clearTimeout(shopRevealTimer);if(shopRevealAnimationTimer)clearTimeout(shopRevealAnimationTimer);
+ const reward=shopRevealQueue[shopRevealIndex],stage=document.getElementById("shopRevealStage"),rarity=String(reward.rarity||"Common").toLowerCase();
+ stage.classList.remove("revealed");stage.dataset.rarity=rarity;void stage.offsetWidth;
+ document.getElementById("shopRevealItemArtwork").innerHTML=shopItemArtwork({name:reward.name,effect_value:reward.effect_value});
+ document.getElementById("shopRevealTitle").textContent="You found "+(reward.name||"a collectible item");
+ document.getElementById("shopRevealRarity").textContent=String(reward.rarity||"Common").toUpperCase();
+ document.getElementById("shopRevealRarity").className="shop-reveal-rarity rarity-"+rarity;
+ document.getElementById("shopRevealCount").textContent=(shopRevealIndex+1)+" of "+shopRevealQueue.length+" items";
+ const particles=document.getElementById("shopRevealParticles");particles.replaceChildren();
+ for(let i=0;i<24;i++){const p=document.createElement("span");p.className="shop-reveal-particle";p.style.setProperty("--angle",(i*137.5)+"deg");p.style.setProperty("--distance",(72+(i%5)*16)+"px");p.style.setProperty("--delay",((i%6)*22)+"ms");particles.append(p)}
+ shopRevealAnimationTimer=setTimeout(()=>stage.classList.add("revealed"),65);shopRevealTimer=setTimeout(()=>advanceShopReveal(false),2800);
+}
+
 
 })();
 })();
@@ -2986,112 +3110,7 @@ body.playing-fullscreen:has(#laneControlButtons.enabled) #swiperGlobalChatLaunch
 
 </style>
 
-<script id="swiper-expanded-shop-runtime">
-let swiperShopEquippedItems=[];
-const swiperShopOriginalApplyAvatar=applyAvatar;
-const shopItemShapes={
- visor:'<path d="M17 35h66l-8 24H25z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M25 42h50l-5 10H30z" fill="#0b1421"/>',
- helmet:'<path d="M20 62V43a30 30 0 0 1 60 0v19H20z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M17 62h66v9H17z" fill="#172235" stroke="#eaf2ff" stroke-width="3"/>',
- mask:'<path d="M24 30h52v42L50 86 24 72z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M31 45h13m12 0h13M43 62h14" stroke="#111827" stroke-width="5" stroke-linecap="round"/>',
- shield:'<path d="M50 12 82 25v24c0 20-13 34-32 45C31 83 18 69 18 49V25z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M50 24v55M29 45h42" stroke="#fff" stroke-width="4" opacity=".7"/>',
- blade:'<path d="M61 12 78 24 43 68 31 56z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="m22 70 18-18 9 9-18 18z" fill="#8b99aa" stroke="#eaf2ff" stroke-width="3"/><path d="m18 82 10-10" stroke="#eaf2ff" stroke-width="5" stroke-linecap="round"/>',
- hammer:'<path d="M23 25h54v24H23z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M47 47h10v43H47z" fill="#aab7c8" stroke="#eaf2ff" stroke-width="3"/>',
- jetpack:'<rect x="23" y="22" width="54" height="55" rx="13" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M33 75v12m34-12v12M36 36h28M36 48h28" stroke="#eaf2ff" stroke-width="4" stroke-linecap="round"/>',
- drone:'<circle cx="50" cy="50" r="18" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M50 32 27 20M50 32l23-12M50 68 27 80m23-12 23 12" stroke="#eaf2ff" stroke-width="4"/><circle cx="25" cy="18" r="8" fill="none" stroke="#eaf2ff" stroke-width="4"/><circle cx="75" cy="18" r="8" fill="none" stroke="#eaf2ff" stroke-width="4"/><circle cx="25" cy="82" r="8" fill="none" stroke="#eaf2ff" stroke-width="4"/><circle cx="75" cy="82" r="8" fill="none" stroke="#eaf2ff" stroke-width="4"/>',
- staff:'<path d="M50 20v66" stroke="#dce7f6" stroke-width="8" stroke-linecap="round"/><path d="M50 10 67 27 50 44 33 27z" fill="COLOR" stroke="#fff" stroke-width="4"/>',
- bow:'<path d="M24 15Q76 50 24 85M76 15Q24 50 76 85M24 15 76 85" fill="none" stroke="COLOR" stroke-width="7" stroke-linecap="round"/>',
- gauntlet:'<path d="M31 76 22 48q-3-10 6-13 7-2 11 8l-4-19q-1-10 8-11 9 0 10 10l2 17 4-14q3-9 11-6 8 3 5 12l-4 18 5-7q6-7 12-1 5 5 0 12L66 82q-8 9-19 5z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/>',
- orb:'<circle cx="50" cy="50" r="29" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M33 50q17-25 34 0-17 25-34 0z" fill="none" stroke="#fff" stroke-width="4"/><circle cx="50" cy="50" r="7" fill="#fff"/>',
- boots:'<path d="M27 16h24v42l22 9q8 4 6 14H22q-7-9 3-19z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M25 68h48" stroke="#fff" stroke-width="4"/>',
- wings:'<path d="M50 48Q10 5 14 58q8 28 36 18Q78 86 86 58 90 5 50 48z" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><path d="M50 46v35" stroke="#fff" stroke-width="3"/>',
- scanner:'<rect x="18" y="22" width="64" height="55" rx="10" fill="COLOR" stroke="#eaf2ff" stroke-width="4"/><circle cx="50" cy="49" r="14" fill="#0b1421" stroke="#fff" stroke-width="4"/><path d="M50 35v28M36 49h28" stroke="#fff" stroke-width="3"/>'
-};
-function shopItemArtwork(item){
- const parts=String(item?.effect_value||"visor|#8fb7e8").split("|"),kind=parts[0],color=/^#[0-9a-f]{6}$/i.test(parts[1]||"")?parts[1]:"#8fb7e8";
- return '<svg class="shop-item-svg" viewBox="0 0 100 100" role="img" aria-label="'+shopSafeText(item?.name||"Collectible item")+'"><g>'+String(shopItemShapes[kind]||shopItemShapes.visor).replaceAll("COLOR",color)+'</g></svg>';
-}
-function updateEquippedEmojiOrbit(){if(!player)return;player.querySelectorAll(".swiper-equipped-emoji-orbit").forEach(node=>node.remove())}
-function swiperApplyAvatarExtended(){
- swiperShopOriginalApplyAvatar();const runner=document.getElementById("player");if(!runner)return;
- runner.querySelectorAll(".swiper-equipped-emoji-orbit,.swiper-equipped-item").forEach(node=>node.remove());
- const item=swiperShopEquippedItems.find(x=>x.category==="item");if(!item)return;
- const node=document.createElement("div");node.className="swiper-equipped-item";node.setAttribute("aria-label","Equipped item: "+item.name);node.title=item.name;node.innerHTML=shopItemArtwork(item);runner.append(node);
-}
-applyAvatar=swiperApplyAvatarExtended;
-let shopCatalogCache=[],shopOwnedCache=new Map(),shopVisibleCount=80;
-function renderSwiperItems(){
- const grid=document.getElementById("shopItemCollection");if(!grid)return;
- const query=(document.getElementById("shopCosmeticSearch")?.value||"").trim().toLowerCase();
- const rows=shopCatalogCache.filter(x=>!query||[x.name,x.description,x.rarity].some(v=>String(v||"").toLowerCase().includes(query)));
- const shown=rows.slice(0,shopVisibleCount);
- grid.innerHTML=shown.map(x=>{
-  const own=shopOwnedCache.get(x.item_id),equipped=!!own?.equipped;
-  return '<article class="shop-cosmetic-card rarity-'+shopSafeText(x.rarity.toLowerCase())+'"><div class="shop-cosmetic-art">'+shopItemArtwork(x)+'</div><div class="shop-cosmetic-meta"><span class="shop-cosmetic-type">'+(own?'OWNED · '+Number(own.quantity||1)+'×':'COLLECTIBLE')+'</span><span class="shop-cosmetic-rarity">'+shopSafeText(x.rarity)+'</span></div><h4>'+shopSafeText(x.name)+'</h4><p>'+shopSafeText(x.description)+'</p><div class="shop-cosmetic-footer"><strong>'+Number(x.price).toLocaleString()+' <small>coins</small></strong>'+(own?'<button class="secondary" data-shop-equip="'+shopSafeText(x.item_id)+'">'+(equipped?"Equipped":"Equip")+'</button>':'<button class="primary" data-shop-buy-item="'+shopSafeText(x.item_id)+'">Buy</button>')+'</div></article>'
- }).join("")||'<div class="shop-empty">No items match that search.</div>';
- if(rows.length>shown.length)grid.insertAdjacentHTML("beforeend",'<button class="secondary shop-load-more" id="shopLoadMore" type="button">Load more items ('+(rows.length-shown.length)+' remaining)</button>');
- grid.querySelectorAll("[data-shop-buy-item]").forEach(b=>b.onclick=async()=>{b.disabled=true;b.textContent="Buying…";try{const {data,error}=await db.rpc("swiper_shop_buy_item",{p_item_id:b.dataset.shopBuyItem});if(error)throw error;await loadSwiperShop();setShopStatus("Item purchased. "+Number(data.points_remaining).toLocaleString()+" coins remaining.")}catch(e){setShopStatus(e.message||"Could not buy that item.",true);b.disabled=false;b.textContent="Buy"}});
- grid.querySelectorAll("[data-shop-equip]").forEach(b=>b.onclick=async()=>{b.disabled=true;b.textContent="Equipping…";try{const {error}=await db.rpc("swiper_shop_equip_item",{p_item_id:b.dataset.shopEquip});if(error)throw error;await loadSwiperShop();applyAvatar();setShopStatus("Equipped "+(shopCatalogCache.find(x=>x.item_id===b.dataset.shopEquip)?.name||"item")+". Only one item floats beside your avatar.")}catch(e){setShopStatus(e.message||"Could not equip that item.",true);b.disabled=false;b.textContent="Equip"}});
- document.getElementById("shopLoadMore")?.addEventListener("click",()=>{shopVisibleCount+=80;renderSwiperItems()});
-}
-async function swiperLoadShopExtended(){
- if(!user||isSwiperGuestSession()){
-  document.getElementById("shopPointsBalance").textContent="Sign in required";
-  document.getElementById("shopCrateInventory").innerHTML='<div class="shop-empty">Sign in to buy and open Item Packs.</div>';
-  document.getElementById("shopSellDuplicates").disabled=true;setShopStatus("Sign in with an account to save coins and collectible items.",true);return;
- }
- setShopStatus("Loading your item collection…");
- try{
-  const [walletRes,crateRes,dailyRes,catalogRes,inventoryRes]=await Promise.all([
-   db.from("swiper_shop_wallets").select("points").eq("user_id",user.id).maybeSingle(),
-   db.from("swiper_shop_crates").select("id,crate_type,luck_multiplier,created_at").eq("user_id",user.id).is("opened_at",null).order("created_at",{ascending:true}),
-   db.from("swiper_daily_reward_state").select("last_claim_date,streak_days").eq("user_id",user.id).maybeSingle(),
-   db.from("swiper_shop_catalog").select("item_id,name,category,description,icon,rarity,price,effect_value,sort_order").eq("active",true).eq("category","item").order("sort_order"),
-   db.from("swiper_shop_inventory").select("item_id,equipped,quantity").eq("user_id",user.id)
-  ]);
-  for(const r of [walletRes,crateRes,dailyRes,catalogRes,inventoryRes])if(r.error)throw r.error;
-  document.getElementById("shopPointsBalance").textContent=Number(walletRes.data?.points||0).toLocaleString()+" coins";
-  shopCatalogCache=catalogRes.data||[];shopOwnedCache=new Map((inventoryRes.data||[]).map(x=>[x.item_id,x]));
-  swiperShopEquippedItems=shopCatalogCache.filter(x=>shopOwnedCache.get(x.item_id)?.equipped);
-  const countBadge=document.querySelector(".shop-cosmetic-heading .shop-pill");if(countBadge)countBadge.textContent=shopCatalogCache.length.toLocaleString()+" items";
-  const daily=dailyRes.data||{last_claim_date:null,streak_days:0},today=new Date().toISOString().slice(0,10),claimed=daily.last_claim_date===today;
-  document.getElementById("shopStreak").textContent=Number(daily.streak_days||0)+" day streak";
-  document.getElementById("shopDailyTitle").textContent=claimed?"Today's reward claimed":"Your daily reward is ready";
-  document.getElementById("shopDailyDescription").textContent=claimed?"Come back tomorrow to continue your streak. Every fifth day gives five Item Packs with 8× luck.":"Claim 10 coins today. Claim on 5 consecutive days to earn five Item Packs with 8× luck.";
-  document.getElementById("shopClaimDaily").disabled=claimed;document.getElementById("shopClaimDaily").textContent=claimed?"Claimed today":"Claim 10 coins";
-  const crates=crateRes.data||[];document.getElementById("shopCrateCount").textContent=crates.length+" unopened";
-  document.getElementById("shopOpenAll").disabled=!crates.length;document.getElementById("shopOpenAll").textContent=crates.length?"Open All ("+crates.length+")":"Open All";
-  document.getElementById("shopCrateInventory").innerHTML=crates.length?crates.map(x=>'<div class="shop-crate-row"><div><strong>Item Pack</strong><small>'+Number(x.luck_multiplier)+'× luck</small></div><button class="primary shop-open-crate" type="button" data-open-crate="'+shopSafeText(x.id)+'">Open</button></div>').join(""):'<div class="shop-empty">No unopened Item Packs. Choose a luck level above to buy one.</div>';
-  document.getElementById("shopCrateInventory").querySelectorAll("[data-open-crate]").forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;b.textContent="Opening…";try{const {data,error}=await db.rpc("swiper_shop_open_crate",{p_crate_id:b.dataset.openCrate});if(error)throw error;await loadSwiperShop();queueShopReveals([data])}catch(e){setShopStatus(e.message||"Could not open that Item Pack.",true);b.disabled=false;b.textContent="Open"}}));
-  document.getElementById("shopOpenAll").onclick=async()=>{const b=document.getElementById("shopOpenAll");if(b.disabled)return;b.disabled=true;b.textContent="Opening…";try{const {data,error}=await db.rpc("swiper_shop_open_all_crates");if(error)throw error;await loadSwiperShop();queueShopReveals(data?.rewards||[])}catch(e){setShopStatus(e.message||"Could not open all Item Packs.",true);b.disabled=false;b.textContent="Try Again"}};
-  const ownedItems=shopCatalogCache.filter(x=>shopOwnedCache.has(x.item_id));
-  document.getElementById("shopItemCount").textContent=ownedItems.reduce((n,x)=>n+Number(shopOwnedCache.get(x.item_id)?.quantity||1),0)+" owned";
-  document.getElementById("shopSellDuplicates").disabled=!ownedItems.some(x=>Number(shopOwnedCache.get(x.item_id)?.quantity||1)>1);
-  document.getElementById("shopSellDuplicates").onclick=async()=>{const b=document.getElementById("shopSellDuplicates");if(b.disabled||b.dataset.busy==="1")return;if(!confirm("Sell duplicate items and keep one of each item? This cannot be undone."))return;b.dataset.busy="1";b.disabled=true;b.textContent="Selling…";try{const {data,error}=await db.rpc("swiper_shop_sell_duplicates");if(error)throw error;await loadSwiperShop();setShopStatus("Sold "+Number(data.duplicates_sold||0)+" duplicate items for "+Number(data.coins_earned||0).toLocaleString()+" coins.")}catch(e){setShopStatus(e.message||"Could not sell duplicate items.",true);b.disabled=false;b.textContent="Sell duplicates"}finally{delete b.dataset.busy}};
-  renderSwiperItems();setShopStatus("Your item collection is synced.");
- }catch(e){console.error("Swiper item shop failed:",e);setShopStatus(e.message||"Could not load your item shop.",true)}
-}
-loadSwiperShop=swiperLoadShopExtended;
-const luckSlider=document.getElementById("shopLuckSlider");
-function updatePackLuckPreview(){if(!luckSlider)return;const luck=Math.max(1,Math.min(100,Number(luckSlider.value)||1));document.getElementById("shopLuckValue").textContent=luck+"×";document.getElementById("shopPackPrice").textContent=(luck*10).toLocaleString()+" coins";const base=[50,27,14,6,2,.7,.2,.07,.025,.005],weights=base.map((v,i)=>v*Math.pow(luck,i/4)),total=weights.reduce((a,b)=>a+b,0);document.querySelectorAll(".shop-odds-grid b").forEach((el,i)=>{const pct=weights[i]/total*100;el.textContent=(pct>=1?pct.toFixed(1):pct>=.01?pct.toFixed(2):pct>=.0001?pct.toFixed(4):"<0.0001")+"%"})}
-luckSlider?.addEventListener("input",updatePackLuckPreview);
-document.getElementById("shopBuyPack")?.addEventListener("click",async()=>{const b=document.getElementById("shopBuyPack");if(b.disabled)return;const luck=Math.max(1,Math.min(100,Number(luckSlider?.value)||1));b.disabled=true;b.textContent="Buying…";try{const {data,error}=await db.rpc("swiper_shop_buy_pack",{p_quantity:1,p_luck:luck});if(error)throw error;await loadSwiperShop();setShopStatus("Bought one Item Pack with "+luck+"× luck. "+Number(data.points_remaining).toLocaleString()+" coins remaining.")}catch(e){setShopStatus(e.message||"Could not buy Item Pack.",true)}finally{b.disabled=false;b.textContent="Buy Item Pack"}});
-document.getElementById("shopCosmeticSearch")?.addEventListener("input",()=>{shopVisibleCount=80;renderSwiperItems()});
-window.__swiperLoadShopExtended=swiperLoadShopExtended;window.loadSwiperShop=swiperLoadShopExtended;window.addEventListener("load",()=>swiperLoadShopExtended());
-function showShopReveal(){
- if(shopRevealIndex>=shopRevealQueue.length){closeShopReveal();loadSwiperShop();setShopStatus("All item reveals complete.");return}
- if(shopRevealTimer)clearTimeout(shopRevealTimer);if(shopRevealAnimationTimer)clearTimeout(shopRevealAnimationTimer);
- const reward=shopRevealQueue[shopRevealIndex],stage=document.getElementById("shopRevealStage"),rarity=String(reward.rarity||"Common").toLowerCase();
- stage.classList.remove("revealed");stage.dataset.rarity=rarity;void stage.offsetWidth;
- document.getElementById("shopRevealItemArtwork").innerHTML=shopItemArtwork({name:reward.name,effect_value:reward.effect_value});
- document.getElementById("shopRevealTitle").textContent="You found "+(reward.name||"a collectible item");
- document.getElementById("shopRevealRarity").textContent=String(reward.rarity||"Common").toUpperCase();
- document.getElementById("shopRevealRarity").className="shop-reveal-rarity rarity-"+rarity;
- document.getElementById("shopRevealCount").textContent=(shopRevealIndex+1)+" of "+shopRevealQueue.length+" items";
- const particles=document.getElementById("shopRevealParticles");particles.replaceChildren();
- for(let i=0;i<24;i++){const p=document.createElement("span");p.className="shop-reveal-particle";p.style.setProperty("--angle",(i*137.5)+"deg");p.style.setProperty("--distance",(72+(i%5)*16)+"px");p.style.setProperty("--delay",((i%6)*22)+"ms");particles.append(p)}
- shopRevealAnimationTimer=setTimeout(()=>stage.classList.add("revealed"),65);shopRevealTimer=setTimeout(()=>advanceShopReveal(false),2800);
-}
-</script></body></html>
+</body></html>
 
 <style id="swiper-radio-mini-final-layout">
 /* Closed state is artwork only — no pill, text, empty frame, or stretched dock. */
@@ -3366,19 +3385,3 @@ function showShopReveal(){
 
 </style>
 
-<style id="swiper-item-pack-system">
-.shop-pack-config{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:18px;padding:18px;border:1px solid #35465c;border-radius:18px;background:linear-gradient(145deg,#121e2d,#090f18)}
-.shop-pack-visual{display:flex;align-items:center;gap:15px;min-height:150px}.shop-pack-visual strong,.shop-pack-visual small{display:block}.shop-pack-visual strong{color:#f2f6fd;font-size:15px;letter-spacing:1.2px}.shop-pack-visual small{margin-top:6px;color:#8fa2bb;font-size:11px}
-.shop-pack-box{position:relative;width:92px;height:92px;flex:0 0 92px;border:2px solid #8398b5;border-radius:17px;background:linear-gradient(145deg,#344b67,#142238 70%);box-shadow:inset 0 1px #fff3,0 12px 25px #0008;transform:rotate(-7deg)}
-.shop-pack-box:before{content:"";position:absolute;left:0;right:0;top:23px;height:12px;background:#8da5c4}.shop-pack-box:after{content:"";position:absolute;top:0;bottom:0;left:39px;width:12px;background:#8da5c4}.shop-pack-box span{position:absolute;z-index:2;left:29px;top:30px;width:32px;height:32px;border:3px solid #dbe6f4;border-radius:8px;transform:rotate(45deg);background:#1b2c43}
-.shop-luck-control{min-width:0;padding:12px 14px;border:1px solid #2b3c52;border-radius:14px;background:#0b121d}.shop-luck-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.shop-luck-head label{color:#b9c6d8;font-weight:700;font-size:13px}.shop-luck-head strong{color:#f1d18a;font-size:20px;font-variant-numeric:tabular-nums}
-#shopLuckSlider{display:block;width:100%;margin:15px 0 6px;accent-color:#8bb9ee;cursor:pointer}.shop-luck-range{display:flex;justify-content:space-between;color:#73869f;font-size:10px}.shop-pack-purchase{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:15px;padding-top:13px;border-top:1px solid #28384d}.shop-pack-purchase small,.shop-pack-purchase strong{display:block}.shop-pack-purchase small{color:#8294aa;font-size:10px}.shop-pack-purchase strong{margin-top:3px;color:#f2f5fa;font-size:16px}.shop-pack-purchase button{white-space:nowrap}.shop-pack-note{margin:10px 0 0;color:#7e91aa;font-size:10px;line-height:1.5}
-.shop-item-svg{display:block;width:100%;height:100%;overflow:visible}.shop-cosmetic-art{display:grid;place-items:center;min-height:104px;padding:10px;border-radius:13px;background:radial-gradient(circle at 50% 45%,#293b53,#101925 72%);border:1px solid #2e4058}.shop-cosmetic-art .shop-item-svg{width:88px;height:88px}.shop-cosmetic-card h4{min-height:38px}.shop-cosmetic-grid .shop-load-more{grid-column:1/-1;width:100%;min-height:44px}
-#shopItemCollection{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px}#shopItemCollection .shop-emoji-card{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px;border:1px solid #34455b;border-radius:13px;background:#0e1723;min-width:0}#shopItemCollection .shop-item-svg{width:76px;height:76px;padding:5px;border-radius:12px;background:#152235}#shopItemCollection strong{font-size:11px;text-align:center;color:#e7edf7}#shopItemCollection small{color:#91a3ba}#shopItemCollection button{width:100%;font-size:11px}
-#player{position:relative!important;overflow:visible!important}.swiper-equipped-item{position:absolute;z-index:45;right:-27px;top:-20px;width:36px;height:36px;display:grid;place-items:center;pointer-events:none;filter:drop-shadow(0 3px 7px #000c);animation:swiperEquippedItemFloat 2.7s ease-in-out infinite;transform-origin:50% 80%}.swiper-equipped-item svg{width:100%;height:100%}@keyframes swiperEquippedItemFloat{0%,100%{transform:translate3d(0,0,0) rotate(-8deg)}50%{transform:translate3d(0,-8px,0) rotate(8deg)}}
-.shop-reveal-crate{width:88px;height:88px;display:grid;place-items:center;border:3px solid #a9bdd8;border-radius:17px;background:linear-gradient(145deg,#405b7c,#17273e);box-shadow:inset 0 1px #fff4,0 15px 35px #0009;transform:rotate(-6deg)}.shop-reveal-crate:before{content:"";position:absolute;left:0;right:0;top:25px;height:12px;background:#a9bdd8}.shop-reveal-crate:after{content:"";position:absolute;top:0;bottom:0;left:37px;width:12px;background:#a9bdd8}.shop-reveal-crate span{z-index:2;width:24px;height:24px;border:3px solid #f4d78c;border-radius:6px;transform:rotate(45deg);background:#263b55}
-.shop-reveal-emoji{width:94px;height:94px;display:grid;place-items:center;opacity:0;transform:scale(.1) rotate(-25deg)}.shop-reveal-emoji .shop-item-svg{width:100%;height:100%}.shop-reveal-stage.revealed .shop-reveal-emoji{animation:shopEmojiPremium 1.05s cubic-bezier(.16,1,.3,1) .12s forwards!important}
-.shop-reveal-particle{width:6px;height:6px;border-radius:2px;background:#e5c77e;box-shadow:0 0 10px #e5c77e}.shop-reveal-particle:nth-child(3n){background:#8dc4f8;box-shadow:0 0 10px #8dc4f8}.shop-reveal-particle:nth-child(4n){width:4px;height:4px;background:#fff}
-@media(max-width:620px){.shop-pack-config{grid-template-columns:1fr;gap:10px}.shop-pack-visual{min-height:92px}.shop-pack-box{width:74px;height:74px;flex-basis:74px}.shop-pack-box:after{left:31px}.shop-pack-box span{left:22px;top:26px;width:26px;height:26px}.shop-pack-purchase{align-items:flex-end}.shop-pack-purchase button{font-size:11px;padding:10px}}
-@media(prefers-reduced-motion:reduce){.swiper-equipped-item{animation:none!important}}
-</style>
