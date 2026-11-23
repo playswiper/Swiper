@@ -1171,18 +1171,18 @@ async function loadTradeCenter(){
   const names=new Map((profilesResult.data||[]).map(p=>[p.id,p.username])),orbMap=new Map((ownedDefsResult.data||[]).map(o=>[o.id,o]));
   const invMap=new Map((inventoryResult.data||[]).map(i=>[i.orb_id,i]));
   const items=itemsResult.data||[];
-  const renderSide=(trade,owner)=>{const list=items.filter(i=>i.trade_id===trade.id&&i.owner_id===owner);return '<div class="trade-side"><strong>'+orbSafe(names.get(owner)||"Player")+'</strong><div class="trade-side-items">'+(list.length?list.map(i=>{const o=orbMap.get(i.orb_id);return '<div class="trade-item-line">'+(o?'<img src="'+orbSafe(o.image_url)+'" alt="">':'')+'<span>'+orbSafe(o?.name||"Orb")+' × '+Number(i.quantity)+'</span></div>'}).join(""):'<span class="small">No orbs offered yet</span>')+'</div></div>'};
+  const renderSide=(trade,owner)=>{const list=items.filter(i=>i.trade_id===trade.id&&i.owner_id===owner),editable=["open","confirming"].includes(trade.status)&&Date.parse(trade.expires_at)>Date.now();return '<div class="trade-side"><strong>'+orbSafe(names.get(owner)||"Player")+'</strong><div class="trade-side-items">'+(list.length?list.map(i=>{const o=orbMap.get(i.orb_id),remove=editable&&owner===user.id?'<button class="secondary" data-trade-remove="'+orbSafe(trade.id)+'" data-orb-id="'+orbSafe(i.orb_id)+'">Remove</button>':"";return '<div class="trade-item-line">'+(o?'<img src="'+orbSafe(o.image_url)+'" alt="">':'')+'<span>'+orbSafe(o?.name||"Orb")+' × '+Number(i.quantity)+'</span>'+remove+'</div>'}).join(""):'<span class="small">No orbs offered yet</span>')+'</div></div>'};
   $("tradeList").innerHTML=trades.length?trades.map(t=>{
    const mine=t.requester_id===user.id,other=mine?t.recipient_id:t.requester_id,expired=Date.parse(t.expires_at)<=Date.now()&&!["completed","declined","cancelled","expired"].includes(t.status);
    const status=expired?"Expired":t.status==="requested"?(mine?"Request sent":"Incoming request"):t.status==="open"?"Offer negotiation":t.status==="confirming"?"Waiting for both confirmations":t.status[0].toUpperCase()+t.status.slice(1);
    const canOffer=["open","confirming"].includes(t.status)&&!expired;
-   const options=orbInventoryCache.length?orbInventoryCache.map(o=>'<option value="'+orbSafe(o.id)+'">'+orbSafe(o.name)+' ('+Number(o.quantity-o.reserved_quantity)+' available)</option>').join(""):"";
+   const availableOrbs=orbInventoryCache.filter(o=>!o.equipped&&Number(o.quantity)>Number(o.reserved_quantity));const options=availableOrbs.length?availableOrbs.map(o=>'<option value="'+orbSafe(o.id)+'">'+orbSafe(o.name)+' ('+Number(o.quantity-o.reserved_quantity)+' available)</option>').join(""):"";
    const offerBox=canOffer?'<div class="trade-offer-row"><select data-trade-orb="'+orbSafe(t.id)+'">'+options+'</select><input type="number" min="1" max="999" step="1" value="1" aria-label="Offer quantity" data-trade-qty="'+orbSafe(t.id)+'"><button class="secondary" data-trade-add="'+orbSafe(t.id)+'">Add orb</button></div>':"";
    const actions=t.status==="requested"&&!mine?'<button class="primary" data-trade-accept="'+orbSafe(t.id)+'">Accept</button><button class="secondary" data-trade-decline="'+orbSafe(t.id)+'">Decline</button>':canOffer?'<button class="primary" data-trade-confirm="'+orbSafe(t.id)+'">'+((mine?t.requester_confirmed:t.recipient_confirmed)?"Confirmed":"Confirm trade")+'</button><button class="secondary" data-trade-cancel="'+orbSafe(t.id)+'">Cancel</button>':["requested","open","confirming"].includes(t.status)?'<button class="secondary" data-trade-cancel="'+orbSafe(t.id)+'">Cancel</button>':"";
    return '<article class="trade-card" data-trade-id="'+orbSafe(t.id)+'"><div class="trade-card-head"><strong>Trade with '+orbSafe(names.get(other)||"Player")+'</strong><span class="small">'+status+'</span></div><div class="trade-sides">'+renderSide(t,t.requester_id)+renderSide(t,t.recipient_id)+'</div>'+offerBox+'<div class="trade-actions">'+actions+'</div><div class="small">Expires '+new Date(t.expires_at).toLocaleString()+'</div></article>';
   }).join(""):'<div class="empty">No trade requests yet. Search for a username above to start one.</div>';
   $("tradeNotifications").innerHTML=(noticeResult.data||[]).length?noticeResult.data.map(n=>'<div class="trade-notice">'+orbSafe(n.event_type.replaceAll("_"," "))+' · '+new Date(n.created_at).toLocaleString()+'</div>').join(""):'<div class="empty">No notifications yet.</div>';
-  orbInventoryCache=(inventoryResult.data||[]).map(i=>{const o=orbMap.get(i.orb_id);return o?{...o,quantity:i.quantity,reserved_quantity:i.reserved_quantity}:null}).filter(Boolean);
+  orbInventoryCache=(inventoryResult.data||[]).map(i=>{const o=orbMap.get(i.orb_id);return o?{...o,quantity:i.quantity,reserved_quantity:i.reserved_quantity,equipped:orbEquippedCache.some(e=>e.id===i.orb_id)}:null}).filter(Boolean);
   tradeSetStatus("");
  }catch(error){tradeSetStatus(error.message||"Could not load trades.",true)}
 }
@@ -1195,13 +1195,14 @@ $("tradeSendRequest").addEventListener("click",async()=>{
 });
 $("tradeRefresh").addEventListener("click",loadTradeCenter);
 $("tradeList").addEventListener("click",async e=>{
- const b=e.target.closest("button[data-trade-accept],button[data-trade-decline],button[data-trade-cancel],button[data-trade-add],button[data-trade-confirm]");if(!b)return;
+ const b=e.target.closest("button[data-trade-accept],button[data-trade-decline],button[data-trade-cancel],button[data-trade-add],button[data-trade-confirm],button[data-trade-remove]");if(!b)return;
  b.disabled=true;
  try{
   let result;
   if(b.dataset.tradeAccept)result=await db.rpc("swiper_trade_respond",{p_trade_id:b.dataset.tradeAccept,p_accept:true});
   else if(b.dataset.tradeDecline)result=await db.rpc("swiper_trade_respond",{p_trade_id:b.dataset.tradeDecline,p_accept:false});
   else if(b.dataset.tradeCancel)result=await db.rpc("swiper_trade_cancel",{p_trade_id:b.dataset.tradeCancel});
+  else if(b.dataset.tradeRemove)result=await db.rpc("swiper_trade_set_offer",{p_trade_id:b.dataset.tradeRemove,p_orb_id:b.dataset.orbId,p_quantity:0});
   else if(b.dataset.tradeConfirm)result=await db.rpc("swiper_trade_confirm",{p_trade_id:b.dataset.tradeConfirm});
   else if(b.dataset.tradeAdd){const id=b.dataset.tradeAdd,orb=$("tradeList").querySelector('[data-trade-orb="'+id+'"]')?.value,qty=Number($("tradeList").querySelector('[data-trade-qty="'+id+'"]')?.value||1);if(!orb)throw new Error("Choose an orb to offer.");result=await db.rpc("swiper_trade_set_offer",{p_trade_id:id,p_orb_id:orb,p_quantity:qty})}
   if(result?.error)throw result.error;
