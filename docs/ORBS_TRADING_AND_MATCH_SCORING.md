@@ -59,6 +59,10 @@ Pack luck multiplies that weight by:
 
 The database normalizes by the sum of all active weights and selects the reward server-side. The pack row is locked and marked opened in the same transaction that increments the owner's orb inventory. A pack cannot award twice.
 
+## Buying and opening packs
+
+The Orbs screen lets a signed-in player buy one pack at a time and choose a luck multiplier from 1× to 100×. It uses the existing `swiper_shop_buy_pack(p_quantity, p_luck)` wallet transaction; the current price is `ceil(luck × 10)` coins. Pack purchases create the existing `item_pack` crate rows, which are opened through the orb reward function.
+
 ## Inventory and equipment
 
 - `swiper_orb_inventory` stores each account's quantity and trade-reserved quantity.
