@@ -621,7 +621,7 @@ body.swiper-practice-only .home-info{display:none!important}
 #shopPanel{min-height:calc(100dvh - 28px);display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 38%,#142a35 0%,#08151d 54%,#050d13 100%);border:1px solid #263d4b!important;border-radius:24px!important;overflow:hidden;position:relative}#shopPanel .shop-maintenance{width:min(560px,100%);margin:auto;padding:clamp(32px,7vw,68px) 24px;text-align:center;display:flex;align-items:center;flex-direction:column;gap:16px}#shopPanel .shop-maintenance-mark{font-family:Fredoka,sans-serif;font-size:clamp(30px,7vw,48px);font-weight:700;letter-spacing:.14em;color:#eaf4f7;text-shadow:0 0 30px #63b9d344;margin-bottom:8px}#shopPanel .shop-maintenance-kicker{font-size:11px;font-weight:800;letter-spacing:.2em;color:#83b6c9}#shopPanel .shop-maintenance h2{margin:0;color:#f4f7f9;font-family:Fredoka,sans-serif;font-size:clamp(27px,6vw,38px)}#shopPanel .shop-maintenance p{max-width:390px;margin:0;color:#9aabb6;font-size:15px;line-height:1.7}#shopPanel .shop-maintenance-home{min-width:180px;margin-top:12px;padding:13px 24px;border-radius:13px;background:#172b36;border:1px solid #385363;color:#f5f8fa;font-weight:700}#shopPanel .shop-maintenance-home:hover{background:#203b49;border-color:#5b8497}
 </style>
 
-<style id="swiper-orbs-trades-style">
+<style id="swiper-orbs-trades-style">.orb-pack-buy{background:#0d121b;border:1px solid #2b3547;border-radius:15px;padding:14px;margin:16px 0 20px}.orb-pack-buy input[type="range"]{width:100%;accent-color:#8ca8cb;margin:12px 0}.orb-pack-buy-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}.orb-pack-buy-foot button{min-width:135px}
 #orbPanel,#tradePanel{display:none}
 .layout:not(.view-orbs) #orbPanel,.layout:not(.view-trade) #tradePanel{display:none!important}
 .layout.view-orbs #orbPanel,.layout.view-trade #tradePanel{display:block!important;position:relative;min-height:100dvh;width:100%;padding:clamp(14px,3vw,28px);border-radius:0;border:0;background:#101722}
@@ -779,6 +779,7 @@ body.swiper-practice-only .home-info{display:none!important}
  <button class="secondary nav-back" data-back>← Main menu</button>
  <div class="sectionhead"><h2>Orbs</h2><span class="small" id="orbInventoryCount">Your collection</span></div>
  <p class="small">Open packs to discover orbs. Equip up to six to orbit your character in online matches.</p>
+ <div class="orb-pack-buy"><div class="sectionhead"><h3>Get an Orb Pack</h3><span class="small" id="orbWalletBalance">Loading coins…</span></div><label for="orbLuck">Pack luck: <strong id="orbLuckValue">1×</strong></label><input id="orbLuck" type="range" min="1" max="100" step="1" value="1"><div class="orb-pack-buy-foot"><span class="small" id="orbPackCost">10 coins</span><button class="primary" id="orbBuyPack">Buy 1 pack</button></div></div>
  <div class="orb-center-status message" id="orbCenterStatus" role="status"></div>
  <div class="orb-pack-section"><div class="sectionhead"><h3>Unopened packs</h3><span class="small">Luck is shown on each pack</span></div><div class="orb-pack-list" id="orbPackList"><div class="empty">Loading packs…</div></div></div>
  <div class="sectionhead"><h3>Your Orbs</h3><span class="small" id="orbEquippedCount">0 / 6 equipped</span></div>
@@ -1107,12 +1108,14 @@ async function loadOrbCenter(){
  if(!user||isSwiperGuestSession()){orbSetStatus("Sign in with an account to open packs and manage orbs.",true);$("orbPackList").innerHTML='<div class="empty">Sign in to access your packs and collection.</div>';$("orbInventoryGrid").innerHTML='<div class="empty">Your orb inventory is saved to your account.</div>';return}
  orbSetStatus("Loading your orbs…");
  try{
-  const [inventoryResult,equippedResult,packResult]=await Promise.all([
+  const [inventoryResult,equippedResult,packResult,walletResult]=await Promise.all([
    db.from("swiper_orb_inventory").select("orb_id,quantity,reserved_quantity").eq("user_id",user.id).gt("quantity",0),
    db.from("swiper_equipped_orbs").select("orb_id,slot").eq("user_id",user.id).order("slot"),
-   db.from("swiper_shop_crates").select("id,crate_type,luck_multiplier,created_at").eq("user_id",user.id).is("opened_at",null).eq("crate_type","item_pack").order("created_at",{ascending:true}).limit(100)
+   db.from("swiper_shop_crates").select("id,crate_type,luck_multiplier,created_at").eq("user_id",user.id).is("opened_at",null).eq("crate_type","item_pack").order("created_at",{ascending:true}).limit(100),
+   db.from("swiper_shop_wallets").select("points").eq("user_id",user.id).maybeSingle()
   ]);
-  if(inventoryResult.error)throw inventoryResult.error;if(equippedResult.error)throw equippedResult.error;if(packResult.error)throw packResult.error;
+  if(inventoryResult.error)throw inventoryResult.error;if(equippedResult.error)throw equippedResult.error;if(packResult.error)throw packResult.error;if(walletResult.error)throw walletResult.error;
+  const walletPoints=Number(walletResult.data?.points)||0;$("orbWalletBalance").textContent=walletPoints.toLocaleString()+" coins";updateOrbPackCost();
   orbPackCache=packResult.data||[];
   const rows=inventoryResult.data||[],ids=[...new Set(rows.map(x=>x.orb_id))];
   let defs=[];
@@ -1128,6 +1131,9 @@ async function loadOrbCenter(){
   orbSetStatus("");
  }catch(error){orbSetStatus(error.message||"Could not load your orb inventory.",true)}
 }
+function updateOrbPackCost(){const luck=Math.max(1,Math.min(100,Number($("orbLuck")?.value)||1)),cost=Math.ceil(luck*10);if($("orbLuckValue"))$("orbLuckValue").textContent=luck+"×";if($("orbPackCost"))$("orbPackCost").textContent=cost.toLocaleString()+" coins";if($("orbBuyPack"))$("orbBuyPack").disabled=!user||isSwiperGuestSession()||Number((document.getElementById("orbWalletBalance")?.textContent||"").replace(/[^0-9]/g,""))<cost}
+$("orbLuck").addEventListener("input",updateOrbPackCost);
+$("orbBuyPack").addEventListener("click",async()=>{const button=$("orbBuyPack");button.disabled=true;button.textContent="Buying…";try{const luck=Math.max(1,Math.min(100,Number($("orbLuck").value)||1));const {data,error}=await db.rpc("swiper_shop_buy_pack",{p_quantity:1,p_luck:luck});if(error)throw error;await loadOrbCenter();orbSetStatus("Bought one Orb Pack with "+luck+"× luck for "+Number(data.points_spent||0).toLocaleString()+" coins.");}catch(error){orbSetStatus(error.message||"Could not buy an Orb Pack.",true)}finally{button.textContent="Buy 1 pack";updateOrbPackCost()}});
 $("orbInventoryGrid").addEventListener("click",async e=>{
  const button=e.target.closest("[data-orb-equip]");if(!button)return;
  const id=button.dataset.orbEquip;button.disabled=true;
