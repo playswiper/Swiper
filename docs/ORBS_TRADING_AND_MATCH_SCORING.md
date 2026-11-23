@@ -55,7 +55,7 @@ For every active orb, its base weight is:
 
 Pack luck multiplies that weight by:
 
-`luck_multiplier ^ ((rarity.level - 1) / 3)`
+`luck_multiplier ^ ((rarity.level - 1) / 12)`
 
 The database normalizes by the sum of all active weights and selects the reward server-side. The pack row is locked and marked opened in the same transaction that increments the owner's orb inventory. A pack cannot award twice.
 
