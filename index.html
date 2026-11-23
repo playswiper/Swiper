@@ -988,23 +988,14 @@ async function handleQuickRunEnd(){
   quickSubmitFailed=false;
   if(user&&profile&&!isSwiperGuestSession()){
     let leaderboardSaved=false;
+    const finalMatchScore=Number(data?.players?.find(p=>Number(p.player_number)===Number(data?.player_number))?.score)||0;
     if(!quickLeaderboardSubmitted){
       quickLeaderboardSubmitted=true;
-      const {error:scoreError}=await db.from("swipe_scores").insert({
-        player_name:profile.username,
-        score:Number(data?.players?.find(p=>Number(p.player_number)===Number(data?.player_number))?.score)||0,
-        mode:"quick",
-        difficulty:null,
-        user_id:user.id
-      });
-      if(scoreError){
-        quickLeaderboardSubmitted=false;
-        console.warn("Quick Play leaderboard score could not be saved:",scoreError.message);
-      }else{leaderboardSaved=true;window.swiperGlobalChatAnnounceScore?.(profile.username,score,"Quick Play");$("overlayText").textContent=String($("overlayText").textContent||"")+" - You earned "+Math.max(0,Math.floor(Number(score)||0))+" coins."; }
+      leaderboardSaved=true;
+      window.swiperGlobalChatAnnounceScore?.(profile.username,finalMatchScore,"Quick Play");
     }
-
     if(matchRoomId!==roomId||matchSearchGeneration!==runGeneration)return;
-    const finalMatchScore=Number(data?.players?.find(p=>Number(p.player_number)===Number(data?.player_number))?.score)||0;const {data:ranked,error:rankError}=await db.rpc("swipe_record_game",{p_score:finalMatchScore});
+    const {data:ranked,error:rankError}=await db.rpc("swipe_record_game",{p_score:finalMatchScore});
     if(rankError)console.warn("Quick Play game statistics could not be updated:",rankError.message);
     else{
       profile={...profile,games_played:ranked.games_played,rank_name:ranked.rank_name};
