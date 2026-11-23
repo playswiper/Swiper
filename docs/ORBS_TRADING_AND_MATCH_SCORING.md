@@ -92,7 +92,7 @@ Offers reserve inventory. Both participants must offer at least one orb and conf
 
 ## Competitive online scores
 
-Competitive match score is calculated from the server-side `score_started_at` clock; the client-provided `p_score` argument is ignored. The first heartbeat after the shared lobby countdown anchors the scoring clock to the in-game countdown. The server records one `swipe_scores` row per user/room and one `swipe_match_results` row per participant when the match is completed.
+Competitive match score is calculated from the server-side `score_started_at` clock; the client-provided `p_score` argument is ignored. The first heartbeat after the shared lobby countdown anchors the scoring clock to the in-game countdown. Only normal elimination completion writes one `swipe_scores` row per registered user/room and one `swipe_match_results` row per participant. Disconnects and manual exits are recorded as no-contest and never enter the competitive leaderboard. `swipe_record_completed_match` uses `stats_recorded_at` to make profile game-count updates idempotent.
 
 - Direct client writes to `swipe_room_players` and `swipe_rooms` are revoked.
 - Direct `quick` leaderboard inserts are rejected; Practice and Bot submissions retain their existing path.
