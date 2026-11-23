@@ -1113,7 +1113,7 @@ async function refreshEquippedOrbCache(){
  }catch(error){console.warn("Could not load equipped orbs:",error.message)}
 }
 async function loadOrbCenter(){
- if(!user||isSwiperGuestSession()){orbSetStatus("Sign in with an account to open packs and manage orbs.",true);$("orbPackList").innerHTML='<div class="empty">Sign in to access your packs and collection.</div>';$("orbInventoryGrid").innerHTML='<div class="empty">Your orb inventory is saved to your account.</div>';return}
+ if(!user||isSwiperGuestSession()){orbSetStatus("Sign in with an account to open packs and manage orbs.",true);$("orbPackList").innerHTML=orbPackCache.length?orbPackCache.map(pack=>`<div class="orb-pack-card"><div class="orb-art" aria-hidden="true">✦</div><div class="pack-copy"><div class="orb-name">${orbSafe(pack.crate_type==="item_pack"?"Orb Pack":pack.crate_type)}</div><div class="small">${Number(pack.luck_multiplier||1)}× luck · Unopened</div></div><button class="primary" data-open-orb-pack="${orbSafe(pack.id)}">Open pack</button></div>`).join(""):'<div class="empty">No unopened packs. Packs you own will appear here.</div>';
  orbSetStatus("Loading your orbs…");
  try{
   const [inventoryResult,equippedResult,packResult]=await Promise.all([
