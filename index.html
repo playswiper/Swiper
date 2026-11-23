@@ -667,6 +667,16 @@ body.swiper-practice-only .home-info{display:none!important}
 .orb-character-orbit img{display:block;width:14px;height:14px;object-fit:contain;filter:drop-shadow(0 0 5px var(--orb-glow,#9db5c8))}
 .orb-character-orbit[data-effect="violet-glow"] img,.orb-character-orbit[data-effect="gold-glow"] img,.orb-character-orbit[data-effect="ember"] img,.orb-character-orbit[data-effect="pulse"] img,.orb-character-orbit[data-effect="halo"] img,.orb-character-orbit[data-effect="orbit"] img,.orb-character-orbit[data-effect="cosmic"] img{filter:drop-shadow(0 0 7px var(--orb-glow,#9db5c8))}
 @keyframes swiper-orb-spin{from{transform:rotate(var(--orb-start,0deg)) translateX(var(--orb-radius,30px)) rotate(0deg)}to{transform:rotate(calc(var(--orb-start,0deg) + 360deg)) translateX(var(--orb-radius,30px)) rotate(-360deg)}}
+.orb-character-orbit[data-effect="gold-glow"]::before,.orb-character-orbit[data-effect="halo"]::before,.orb-character-orbit[data-effect="cosmic"]::before,.orb-character-orbit[data-effect="origin"]::before{content:"";position:absolute;inset:-5px;border:1px solid var(--orb-glow);border-radius:50%;opacity:.7;animation:orb-halo-pulse 2.2s ease-in-out infinite}
+.orb-character-orbit[data-effect="ember"] img{animation:orb-ember-flicker 1.4s ease-in-out infinite}
+.orb-character-orbit[data-effect="pulse"] img,.orb-character-orbit[data-effect="infinite"] img{animation:orb-rare-pulse 1.7s ease-in-out infinite}
+.orb-character-orbit[data-effect="cosmic"]::after,.orb-character-orbit[data-effect="origin"]::after{content:"";position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;top:-5px;right:-4px;box-shadow:0 0 7px var(--orb-glow)}
+.orb-reveal-art[data-effect="gold-glow"] img,.orb-reveal-art[data-effect="halo"] img,.orb-reveal-art[data-effect="cosmic"] img,.orb-reveal-art[data-effect="origin"] img{animation:orb-reveal-rare 1.8s ease-in-out infinite}
+@keyframes orb-halo-pulse{50%{transform:scale(1.45);opacity:.18}}
+@keyframes orb-ember-flicker{50%{transform:scale(1.13) rotate(5deg)}}
+@keyframes orb-rare-pulse{50%{transform:scale(1.25)}}
+@keyframes orb-reveal-rare{50%{transform:scale(1.08) rotate(5deg)}}
+
 @media(max-width:600px){.trade-search-row{flex-direction:column}.trade-sides{grid-template-columns:1fr}.orb-inventory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.orb-pack-card{align-items:flex-start}.orb-pack-card button{padding:8px}}
 </style></head>
 <body>
@@ -1146,7 +1156,7 @@ $("orbPackList").addEventListener("click",async e=>{
  try{
   const {data,error}=await db.rpc("swiper_orb_open_pack",{p_pack_id:button.dataset.openOrbPack});if(error)throw error;
   $("orbRevealArt").innerHTML='<img src="'+orbSafe(data.image_url)+'" alt="'+orbSafe(data.name)+'">';
-  $("orbRevealArt").style.setProperty("--orb-color",data.rarity_color||"#9aa8bd");
+  $("orbRevealArt").style.setProperty("--orb-color",data.rarity_color||"#9aa8bd");$("orbRevealArt").dataset.effect=data.rarity_effect||"none";
   $("orbRevealName").textContent=data.name;$("orbRevealRarity").textContent=data.rarity;$("orbRevealRarity").style.color=data.rarity_color||"#9aa8bd";
   $("orbRevealCard").style.borderColor=data.rarity_color||"#3b4b63";
   $("orbRevealOverlay").hidden=false;await loadOrbCenter();
