@@ -1842,16 +1842,21 @@ function showShopReveal(){
     try{window.crypto.getRandomValues(bytes)}catch(e){for(let i=0;i<7;i++)bytes[i]=Math.floor(Math.random()*256)}
     return Array.from(bytes,b=>alphabet[b%alphabet.length]).join("");
   }
-  let finished=false,attempt=0,activeScript=null;
+  let finished=false,attempt=0,activeScript=null,recoveryShown=false,practiceSelected=false,retryTimer=null;
   const sources=[
     "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
     "https://unpkg.com/@supabase/supabase-js@2",
     "https://esm.sh/@supabase/supabase-js@2"
   ];
   function showStartupError(title,detail){
-    if(finished)return;
-    finished=true;
+    if(finished||practiceSelected)return;
     const code=makeErrorCode();
+    if(recoveryShown){
+      const caption=document.getElementById("swiperLoadingCaption");
+      if(caption)caption.textContent="RETRYING ONLINE CONNECTION…";
+      return;
+    }
+    recoveryShown=true;
     console.error("[Swiper "+code+"] "+title,detail||"");
     const loading=document.getElementById("swiperLoading");
     if(!loading)return;
@@ -1948,7 +1953,7 @@ function showShopReveal(){
       }
     };
 
-    practiceButton.addEventListener("click",enterPracticeOnly);
+    practiceButton.addEventListener("click",()=>{practiceSelected=true;if(retryTimer){clearTimeout(retryTimer);retryTimer=null}if(activeScript){activeScript.remove();activeScript=null}enterPracticeOnly()});
     practiceWrap.append(practiceButton,practiceTimer);
     const progress=card.querySelector(".loading-progress");
     if(progress)card.insertBefore(practiceWrap,progress);
@@ -1956,17 +1961,30 @@ function showShopReveal(){
 
   }
   function boot(){
-    if(finished||window.__swiperBooted||!window.supabase||typeof window.__bootSwiper!=="function")return false;
+    if(finished||practiceSelected||window.__swiperBooted||!window.supabase||typeof window.__bootSwiper!=="function")return false;
     window.__swiperBooted=true;
-    try{window.__bootSwiper();finished=true;return true}
-    catch(e){window.__swiperBooted=false;showStartupError("Swiper could not start",(e&&e.name?e.name+": ":"")+(e&&e.message?e.message:String(e)));return false}
+    try{
+      window.__bootSwiper();
+      finished=true;
+      recoveryShown=false;
+      if(retryTimer){clearTimeout(retryTimer);retryTimer=null}
+      document.getElementById("swiperPracticeOnlyRecovery")?.remove();
+      return true;
+    }catch(e){
+      window.__swiperBooted=false;
+      showStartupError("Swiper could not start",(e&&e.name?e.name+": ":"")+(e&&e.message?e.message:String(e)));
+      return false;
+    }
   }
   function loadNextSource(){
-    if(finished||window.__swiperBooted)return;
+    if(finished||practiceSelected||window.__swiperBooted)return;
     if(window.supabase&&boot())return;
     if(activeScript){activeScript.remove();activeScript=null}
     if(attempt>=sources.length){
-      showStartupError("Swiper could not load its required app library","Swiper tried three independent CDN sources, but none provided a working online service client. Check your internet connection, DNS, or content blocker, then retry.");
+      showStartupError("Swiper could not load its required app library","Swiper tried three independent CDN sources, but none provided a working online service client.");
+      attempt=0;
+      if(retryTimer)clearTimeout(retryTimer);
+      retryTimer=setTimeout(()=>{retryTimer=null;if(!finished&&!practiceSelected&&!window.__swiperBooted)loadNextSource()},2000);
       return;
     }
     const url=sources[attempt++];
@@ -1998,11 +2016,11 @@ function showShopReveal(){
   /* Try immediately, then keep retrying if the browser delays script execution. */
   loadNextSource();
   const bootWatch=setInterval(()=>{
-    if(finished||window.__swiperBooted){clearInterval(bootWatch);return}
-    if(window.supabase&&typeof window.__bootSwiper==="function"){boot();clearInterval(bootWatch)}
+    if(finished||practiceSelected||window.__swiperBooted){clearInterval(bootWatch);return}
+    if(window.supabase&&typeof window.__bootSwiper==="function"&&boot())clearInterval(bootWatch);
   },250);
   setTimeout(()=>{
-    if(!finished&&!window.__swiperBooted)showStartupError("Swiper could not finish starting","The app did not become ready after trying three library sources. Reload the page. If it repeats, send the 7-character error code to support.");
+    if(!finished&&!practiceSelected&&!window.__swiperBooted)showStartupError("Swiper could not finish starting","Online startup is still retrying automatically every 2 seconds. Choose Practice Only only if you want to play offline.");
   },23000);
 })();
 </script>
