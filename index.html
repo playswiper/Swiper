@@ -814,6 +814,40 @@ body.swiper-practice-only .home-info{display:none!important}
 .runner.tomato-avatar{background:transparent!important;border:0!important;box-shadow:none!important;clip-path:none!important;border-radius:0!important;font-size:39px;line-height:1;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 2px 2px #0008)}
 .avatar-preview.tomato-avatar{background:transparent!important;outline:0!important;border:0!important;clip-path:none!important;font-size:76px;line-height:1;display:flex;align-items:center;justify-content:center}
 </style>
+
+<style id="swiper-practice-retry-accessibility">
+/* Keep Practice Only reachable while the online CDN retry loop continues. */
+#swiperPracticeOnlyRecovery{
+ position:fixed!important;
+ left:50%!important;
+ right:auto!important;
+ bottom:max(16px,env(safe-area-inset-bottom))!important;
+ top:auto!important;
+ transform:translateX(-50%)!important;
+ width:min(calc(100vw - 28px),390px)!important;
+ margin:0!important;
+ padding:12px!important;
+ border:1px solid #35445b!important;
+ border-radius:18px!important;
+ background:#111925f5!important;
+ box-shadow:0 14px 48px #000b!important;
+ z-index:2147483647!important;
+ pointer-events:auto!important;
+ isolation:isolate!important;
+}
+#swiperPracticeOnlyRecovery button{
+ position:relative!important;
+ z-index:1!important;
+ width:100%!important;
+ min-height:52px!important;
+ pointer-events:auto!important;
+ touch-action:manipulation!important;
+}
+#swiperPracticeOnlyRecovery p{max-width:34ch}
+@media(max-width:520px){
+ #swiperPracticeOnlyRecovery{bottom:max(12px,env(safe-area-inset-bottom))!important;width:calc(100vw - 24px)!important}
+}
+</style>
 </head>
 <body>
 <div id="restrictedScreen" class="restricted-screen hidden" role="alert"><div class="restricted-card"><div class="restricted-mark">S</div><p class="eyebrow">SWIPER ACCOUNT STATUS</p><h1 id="restrictedTitle">Account restricted</h1><p id="restrictedText">This account cannot access Swiper right now.</p><p id="restrictedDetail" class="small"></p><a class="restrictedContact" href="mailto:messageswiper@gmail.com?subject=Swiper%20ban%20appeal">If you think this is a mistake, contact messageswiper@gmail.com</a><button id="restrictedLogout" class="primary">Sign out</button></div></div><audio id="swiperBgMusic" preload="auto" loop playsinline crossorigin="anonymous" aria-label="Swiper background music"><source src="https://raw.githubusercontent.com/Mystarnight-Extras/Swiper/main/1%20Hour%20Of%20Relaxed%20Scene-%5BAudioTrimmer.com%5D.mp3" type="audio/mpeg"></audio><div id="swiperLoading" role="status" aria-live="polite"><div class="swiper-loading-card"><div class="loading-brand">SWIPER</div><div class="loading-progress" role="img" aria-label="Loading animation"><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span></div><div class="loading-caption" id="swiperLoadingCaption">LOADING...</div><div id="swiperFirstVisitCheck" class="swiper-first-visit-check" hidden><p>Quick security check — complete this once to enter Swiper.</p><div id="swiperFirstVisitTurnstile"></div><button class="primary" id="swiperFirstVisitContinue" type="button" disabled>Continue to Swiper</button></div></div></div><div class="wrap">
@@ -1267,6 +1301,16 @@ async function refreshEquippedOrbCache(){
  }catch(error){console.warn("Could not load equipped orbs:",error.message)}
 }
 async function loadOrbCenter(){
+ // Re-read the live Supabase identity before deciding this player is a guest.
+ // Linked email/OAuth accounts can retain "anonymous" in the provider list.
+ try{
+  const authState=await db.auth.getUser();
+  if(!authState.error){
+   user=authState.data?.user||null;
+   window.__swiperActiveUserId=user?.id||null;
+   if(user&&!profile)await syncAccount();
+  }
+ }catch(authRefreshError){console.warn("Could not refresh the signed-in Shop identity:",authRefreshError?.message||authRefreshError)}
  if(!user||isSwiperGuestSession()){orbSetStatus("Sign in with an account to open packs and manage orbs.",true);$("orbWalletBalance").textContent="Sign in required";updateOrbPackCost();$("orbPackList").innerHTML='<div class="empty">Sign in to access your packs and collection.</div>';$("orbInventoryGrid").innerHTML='<div class="empty">Your orb inventory is saved to your account.</div>';return}
  orbSetStatus("Loading your orbs…");
  try{
@@ -1396,7 +1440,14 @@ document.querySelectorAll("[data-buy-crate]").forEach(button=>button.addEventLis
 
 
 async function uploadSwiperImage(file,kind){if(!file)return null;const allowed=["image/png","image/jpeg","image/webp","image/gif","image/avif"];if(!allowed.includes(file.type))throw new Error("Choose a PNG, JPG, WEBP, GIF, or AVIF image.");if(file.size>5*1024*1024)throw new Error("Images must be 5 MB or smaller.");if(!user||isSwiperGuestSession())throw new Error("Create an account or sign in to upload custom images.");const ext=({ "image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/gif":"gif","image/avif":"avif"})[file.type];const path=user.id+"/"+kind+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+ext;const {data,error}=await db.storage.from("swiper-uploads").upload(path,file,{contentType:file.type,upsert:false,cacheControl:"3600"});if(error)throw new Error("Image upload failed: "+error.message);return db.storage.from("swiper-uploads").getPublicUrl(data.path).data.publicUrl}
-function isSwiperGuestSession(){return user?.is_anonymous===true||user?.app_metadata?.provider==="anonymous"||user?.app_metadata?.providers?.includes("anonymous")===true}
+function isSwiperGuestSession(){
+ if(!user)return false;
+ const meta=user.app_metadata||{};
+ const providers=Array.isArray(meta.providers)?meta.providers:[];
+ const hasLinkedIdentity=!!(user.email||user.phone||providers.some(provider=>provider&&provider!=="anonymous")||(meta.provider&&meta.provider!=="anonymous"));
+ if(hasLinkedIdentity)return false;
+ return user.is_anonymous===true||meta.provider==="anonymous"||providers.includes("anonymous");
+}
 $("restrictedLogout").addEventListener("click",async()=>{if(swiperBanLock)return;await db.auth.signOut();profile=null;user=null;$("restrictedScreen").classList.add("hidden");document.querySelector(".layout").classList.remove("hidden");document.querySelector(".wrap")?.classList.remove("hidden");await syncAccount();showScreen("account");msg("authMessage","You have been signed out.","good")});
 const swiperMusicAudio=$("swiperBgMusic");let swiperMusicOn=false,swiperMusicBlocked=false,swiperMusicEverPlayed=false;
 function updateSwiperMusicButton(){const btn=$("musicToggle"),status=$("musicStatus");if(!btn)return;const playing=!swiperMusicAudio.paused&&!swiperMusicAudio.ended;btn.textContent=playing?"Music: On":(swiperMusicOn&&swiperMusicBlocked?"Play music": "Music: Off");btn.setAttribute("aria-pressed",String(swiperMusicOn));if(status)status.textContent=swiperMusicAudio.error?"Music could not load. Check your connection and tap Play music to retry.":(swiperMusicBlocked?"Autoplay was blocked by your browser. Tap Play music.":(playing?"Playing loops when finished":"Looping MP3 Autoplay is attempted; tap Music: Off to start if needed."))}
