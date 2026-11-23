@@ -88,7 +88,7 @@ Use the RPCs rather than writing those tables directly:
 - `swiper_trade_cancel(p_trade_id)`
 - `swiper_trade_cleanup_expired()`
 
-Offers reserve inventory. Both participants must offer at least one orb and confirm the same offer state. The final confirmation locks both players' inventory rows in deterministic order, revalidates reserved quantities, transfers both sides in one transaction, and writes notifications. Equipped orbs cannot be offered; reserved orbs cannot be equipped. Active trades expire after ten minutes and release their reservations.
+Offers reserve inventory. Both participants must offer at least one orb and confirm the same offer state. The final confirmation locks both players' inventory rows in deterministic order, revalidates reserved quantities, transfers both sides in one transaction, and writes notifications. Equipped orbs cannot be offered; reserved orbs cannot be equipped. Active trades expire after ten minutes and release their reservations. A Supabase Cron job runs the expiry cleanup every minute.
 
 ## Competitive online scores
 
