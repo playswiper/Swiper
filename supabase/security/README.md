@@ -60,7 +60,7 @@ All four Edge Functions are ACTIVE. Their gateway `verify_jwt=false` setting is 
 ### Performance
 
 - 14 unindexed foreign keys.
-- 16 Auth/RLS initialization-plan notices.
+- 14 Auth/RLS initialization-plan notices.
 - 39 indexes currently reported unused.
 - The two multiple-permissive-policy warnings were removed by consolidating global-chat reads and splitting moderator update-log writes from public reads.
 
