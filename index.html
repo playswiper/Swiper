@@ -1225,7 +1225,7 @@ body.swiper-practice-fallback #swiperReaderModeNotice{display:block}
  <p class="small">Open packs to discover orbs. Equip up to six to orbit your character in online matches.</p>
  <div class="orb-pack-buy"><div class="sectionhead"><h3>Get an Orb Pack</h3><span class="small" id="orbWalletBalance">Loading coins…</span></div><label for="orbLuck">Pack luck: <strong id="orbLuckValue">1×</strong></label><input id="orbLuck" type="range" min="1" max="100" step="1" value="1"><div class="orb-pack-buy-foot"><span class="small" id="orbPackCost">10 coins</span><button class="primary" id="orbBuyPack">Buy 1 pack</button></div></div>
  <div class="orb-center-status message" id="orbCenterStatus" role="status"></div>
- <div class="orb-pack-section"><div class="sectionhead"><h3>Unopened packs</h3><span class="small">Luck is shown on each pack</span></div><div class="orb-pack-list" id="orbPackList"><div class="empty">Loading packs…</div></div></div>
+ <div class="orb-pack-section"><div class="sectionhead"><h3>Unopened packs</h3><button class="secondary" id="orbOpenAllPacks" type="button" disabled>Open all packs</button><span class="small" id="orbPackCount">Luck is shown on each pack</span></div><div class="orb-pack-list" id="orbPackList"><div class="empty">Loading packs…</div></div></div>
  <div class="sectionhead"><h3>Your Orbs</h3><span class="small" id="orbEquippedCount">0 / 6 equipped</span></div>
  <div class="orb-inventory-grid" id="orbInventoryGrid"><div class="empty">Sign in to view your collection.</div></div>
  <div class="orb-reveal-overlay" id="orbRevealOverlay" hidden><div class="orb-reveal-card" id="orbRevealCard"><div class="orb-reveal-kicker">PACK OPENED</div><div class="orb-reveal-art" id="orbRevealArt"></div><h2 id="orbRevealName">Orb discovered</h2><div class="orb-reveal-rarity" id="orbRevealRarity"></div><button class="primary" id="orbRevealClose">Continue</button></div></div>
@@ -1599,6 +1599,7 @@ async function loadOrbCenter(){
   $("orbInventoryCount").textContent=orbInventoryCache.reduce((n,o)=>n+Number(o.quantity||0),0)+" total";
   $("orbEquippedCount").textContent=orbEquippedCache.length+" / 6 equipped";
   $("orbPackList").innerHTML=orbPackCache.length?orbPackCache.map(pack=>`<div class="orb-pack-card"><div class="orb-art" aria-hidden="true">✦</div><div class="pack-copy"><div class="orb-name">${orbSafe(pack.crate_type==="item_pack"?"Orb Pack":pack.crate_type)}</div><div class="small">${Number(pack.luck_multiplier||1)}× luck · Unopened</div></div><button class="primary" data-open-orb-pack="${orbSafe(pack.id)}">Open pack</button></div>`).join(""):'<div class="empty">No unopened packs. Packs you own will appear here.</div>';
+  const openAllButton=$("orbOpenAllPacks");if(openAllButton){openAllButton.disabled=!orbPackCache.length;openAllButton.textContent=orbPackCache.length?"Open all packs ("+orbPackCache.length+")":"Open all packs"}if($("orbPackCount"))$("orbPackCount").textContent=orbPackCache.length+" unopened";
   $("orbInventoryGrid").innerHTML=orbInventoryCache.length?orbInventoryCache.map(o=>'<article class="orb-card" data-equipped="'+o.equipped+'" style="border-color:'+orbSafe(o.rarity_color)+'66"><img class="orb-art" src="'+orbSafe(o.image_url)+'" alt="'+orbSafe(o.name)+'" loading="lazy"><div class="orb-name">'+orbSafe(o.name)+'</div><div class="orb-rarity" style="color:'+orbSafe(o.rarity_color)+'">'+orbSafe(o.rarity)+'</div><div class="small">Quantity: '+Number(o.quantity)+' · '+(o.equipped?"Equipped":"Not equipped")+'</div><div class="orb-card-actions"><button class="secondary" data-orb-equip="'+orbSafe(o.id)+'" data-equipped="'+o.equipped+'">'+(o.equipped?"Unequip":"Equip")+'</button></div></article>').join(""):'<div class="empty">No orbs yet. Open a pack to discover your first orb.</div>';
   orbSetStatus("");
  }catch(error){orbSetStatus(error.message||"Could not load your orb inventory.",true)}
@@ -1612,19 +1613,59 @@ $("orbInventoryGrid").addEventListener("click",async e=>{
  try{const {error}=await db.rpc(button.dataset.equipped==="true"?"swiper_orb_unequip":"swiper_orb_equip",button.dataset.equipped==="true"?{p_orb_id:id}:{p_orb_id:id,p_slot:null});if(error)throw error;await loadOrbCenter();orbSetStatus(button.dataset.equipped==="true"?"Orb unequipped.":"Orb equipped.");}
  catch(error){orbSetStatus(error.message||"Could not update equipped orbs.",true);button.disabled=false}
 });
+let orbRevealQueue=[],orbRevealIndex=0,orbOpeningAll=false;
+function showOrbReveal(reward){
+ const overlay=$("orbRevealOverlay");
+ if(overlay.parentElement!==document.body)document.body.appendChild(overlay);
+ $("orbRevealArt").innerHTML='<img src="'+orbSafe(reward.image_url)+'" alt="'+orbSafe(reward.name)+'">';
+ $("orbRevealArt").style.setProperty("--orb-color",reward.rarity_color||"#9aa8bd");$("orbRevealArt").dataset.effect=reward.rarity_effect||"none";
+ $("orbRevealName").textContent=reward.name||"Orb discovered";$("orbRevealRarity").textContent=reward.rarity||"Common";$("orbRevealRarity").style.color=reward.rarity_color||"#9aa8bd";
+ $("orbRevealCard").style.borderColor=reward.rarity_color||"#3b4b63";
+ $("orbRevealCard").classList.remove("orb-reveal-enter");void $("orbRevealCard").offsetWidth;$("orbRevealCard").classList.add("orb-reveal-enter");
+ $("orbRevealClose").textContent=orbRevealIndex<orbRevealQueue.length-1?"Next orb ("+(orbRevealIndex+1)+"/"+orbRevealQueue.length+")":"Done";
+ overlay.hidden=false;document.body.classList.add("swiper-orb-reveal-open");
+}
+function queueOrbReveals(rewards){
+ if(!Array.isArray(rewards)||!rewards.length)return;
+ orbRevealQueue=rewards;orbRevealIndex=0;showOrbReveal(orbRevealQueue[0]);
+}
+function advanceOrbReveal(){
+ orbRevealIndex++;
+ if(orbRevealIndex>=orbRevealQueue.length){
+  $("orbRevealOverlay").hidden=true;document.body.classList.remove("swiper-orb-reveal-open");
+  orbRevealQueue=[];orbRevealIndex=0;loadOrbCenter();return;
+ }
+ showOrbReveal(orbRevealQueue[orbRevealIndex]);
+}
 $("orbPackList").addEventListener("click",async e=>{
- const button=e.target.closest("[data-open-orb-pack]");if(!button)return;
+ const button=e.target.closest("[data-open-orb-pack]");if(!button||orbOpeningAll)return;
  button.disabled=true;button.textContent="Opening…";
  try{
   const {data,error}=await db.rpc("swiper_orb_open_pack",{p_pack_id:button.dataset.openOrbPack});if(error)throw error;
-  $("orbRevealArt").innerHTML='<img src="'+orbSafe(data.image_url)+'" alt="'+orbSafe(data.name)+'">';
-  $("orbRevealArt").style.setProperty("--orb-color",data.rarity_color||"#9aa8bd");$("orbRevealArt").dataset.effect=data.rarity_effect||"none";
-  $("orbRevealName").textContent=data.name;$("orbRevealRarity").textContent=data.rarity;$("orbRevealRarity").style.color=data.rarity_color||"#9aa8bd";
-  $("orbRevealCard").style.borderColor=data.rarity_color||"#3b4b63";
-  $("orbRevealOverlay").hidden=false;await loadOrbCenter();
+  queueOrbReveals([data]);await loadOrbCenter();
  }catch(error){orbSetStatus(error.message||"Pack opening failed.",true);button.disabled=false;button.textContent="Open pack"}
 });
-$("orbRevealClose").addEventListener("click",()=>{$("orbRevealOverlay").hidden=true});
+$("orbOpenAllPacks")?.addEventListener("click",async()=>{
+ const button=$("orbOpenAllPacks");if(!button||button.disabled||orbOpeningAll)return;
+ if(!orbPackCache.length)return;
+ const packs=[...orbPackCache];orbOpeningAll=true;button.disabled=true;
+ const rewards=[];let failed=0;
+ button.textContent="Opening 0/"+packs.length+"…";orbSetStatus("Opening your packs one by one…");
+ try{
+  for(let i=0;i<packs.length;i++){
+   button.textContent="Opening "+(i+1)+"/"+packs.length+"…";
+   try{const {data,error}=await db.rpc("swiper_orb_open_pack",{p_pack_id:packs[i].id});if(error)throw error;if(data)rewards.push(data)}
+   catch(error){failed++;console.warn("Could not open pack:",packs[i].id,error)}
+  }
+  await loadOrbCenter();
+  if(rewards.length){queueOrbReveals(rewards);orbSetStatus(failed?"Opened "+rewards.length+" packs; "+failed+" could not be opened.":"All "+rewards.length+" packs opened.");}
+  else orbSetStatus("No packs could be opened. Please try again.",true);
+ }finally{
+  orbOpeningAll=false;
+  if(button.isConnected){button.disabled=!orbPackCache.length;button.textContent=orbPackCache.length?"Open all packs ("+orbPackCache.length+")":"Open all packs"}
+ }
+});
+$("orbRevealClose").addEventListener("click",advanceOrbReveal);
 async function loadTradeCenter(){
  if(!user||isSwiperGuestSession()){tradeSetStatus("Sign in with an account to trade.",true);$("tradeList").innerHTML='<div class="empty">Trading is available to signed-in players.</div>';return}
  tradeSetStatus("Refreshing trades…");
@@ -3912,7 +3953,25 @@ body.playing-fullscreen:has(#laneControlButtons.enabled) #swiperGlobalChatLaunch
  }
 }
 </style>
-</body></html>
+<style id="swiper-orb-reveal-viewport-fix">
+/* Keep reveal animation pinned to the visible screen, never the scrolled shop panel. */
+body.swiper-orb-reveal-open{overflow:hidden!important;overscroll-behavior:none!important}
+#orbRevealOverlay{
+ position:fixed!important;inset:0!important;top:0!important;right:0!important;bottom:0!important;left:0!important;
+ z-index:2147483000!important;display:grid!important;place-items:center!important;
+ box-sizing:border-box!important;width:100vw!important;height:100vh!important;height:100dvh!important;
+ margin:0!important;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom))!important;
+ overflow-y:auto!important;overscroll-behavior:contain!important;
+}
+#orbRevealOverlay[hidden]{display:none!important}
+#orbRevealCard{margin:auto!important;max-height:calc(100dvh - 36px)!important;overflow-y:auto!important}
+#orbRevealCard.orb-reveal-enter{animation:orb-reveal-in .45s cubic-bezier(.2,.8,.2,1)!important}
+@media(max-height:620px){
+ #orbRevealCard{padding:16px 18px!important}
+ #orbRevealArt{width:min(132px,30vh)!important;height:min(132px,30vh)!important;margin:9px auto!important}
+ #orbRevealRarity{margin:6px 0 12px!important}
+}
+</style></body></html>
 
 <style id="swiper-radio-mini-final-layout">
 /* Closed state is artwork only — no pill, text, empty frame, or stretched dock. */
