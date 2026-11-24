@@ -942,7 +942,27 @@ body.swiper-practice-fallback #swiperReaderModeNotice{display:block}
  body.swiper-watch-mode *,body.swiper-watch-mode *::before,body.swiper-watch-mode *::after{scroll-behavior:auto!important}
 }
 </style>
-</head>
+<style id="swiper-radio-request-screen-style">
+#swiperRadioRequestScreen{position:fixed;inset:0;z-index:2147483000;background:#080d15;color:#f3f6fc;padding:calc(18px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));overflow-y:auto;overscroll-behavior:contain}
+#swiperRadioRequestScreen[hidden]{display:none!important}
+.swiper-radio-request-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;max-width:760px;margin:0 auto 22px}
+.swiper-radio-request-header small{color:#8ea6c2;font:700 10px "Fredoka",sans-serif;letter-spacing:1.8px}
+.swiper-radio-request-header h2{margin:4px 0;font:700 clamp(25px,6vw,38px) "Fredoka",sans-serif}
+.swiper-radio-request-header p{margin:0;color:#9aa9bc;font:14px/1.5 "Fredoka",sans-serif}
+#swiperRadioRequestClose{width:42px;height:42px;flex:0 0 42px;border:1px solid #35465c;border-radius:12px;background:#141e2b;color:#fff;font:28px/1 "Fredoka",sans-serif}
+#swiperRadioRequestSearchHost{max-width:760px;margin:0 auto}
+#swiperRadioRequestScreen #swiperRadioSearch{display:block!important;width:100%!important;margin:0!important}
+#swiperRadioRequestScreen #swiperRadioSearchInput{width:100%!important;min-height:50px!important;font-size:16px!important}
+#swiperRadioRequestScreen #swiperRadioSearchResults{max-height:none!important;overflow:visible!important}
+#swiperRadioRequestScreen #swiperRadioLoadMore{width:100%;min-height:44px;margin:12px 0}
+#swiperRadioMiniCollapse{display:grid;place-items:center;width:34px;height:34px;min-width:34px;min-height:34px;border:1px solid #526985;border-radius:9px;background:#1a2637;color:#f1f5fa;font:700 22px/1 "Fredoka",sans-serif;cursor:pointer}
+#swiperRadioMiniControls.image-only{width:66px!important;min-width:66px!important;height:66px!important;min-height:66px!important;padding:5px!important;display:block!important;grid-template-columns:1fr!important;grid-template-rows:1fr!important;border-radius:16px!important}
+#swiperRadioMiniControls.image-only #swiperRadioLauncher{display:grid!important;width:56px!important;height:56px!important;min-width:56px!important;min-height:56px!important;padding:0!important;grid-template-columns:1fr!important;grid-template-rows:1fr!important;border:0!important;background:transparent!important}
+#swiperRadioMiniControls.image-only #swiperRadioArt{display:block!important;width:56px!important;height:56px!important;min-width:56px!important;min-height:56px!important;max-width:56px!important;max-height:56px!important;object-fit:cover!important;border-radius:11px!important}
+#swiperRadioMiniControls.image-only #swiperRadioMiniState,#swiperRadioMiniControls.image-only #swiperRadioLauncherText,#swiperRadioMiniControls.image-only #swiperRadioMiniInfo,#swiperRadioMiniControls.image-only #swiperRadioMiniMore,#swiperRadioMiniControls.image-only #swiperRadioMiniLegacyControls,#swiperRadioMiniControls.image-only #swiperRadioMiniOpenLabel{display:none!important}
+#swiperRadioMiniCollapse:hover{border-color:#9bb9dc;background:#26364c}
+@media(max-width:520px){#swiperRadioRequestScreen{padding-left:12px;padding-right:12px}}
+</style></head>
 <body><script id="swiperWatchModeInit">(()=>{const mq=window.matchMedia("(max-width:260px) and (max-height:420px)");const apply=()=>{document.body.classList.toggle("swiper-watch-mode",mq.matches);document.documentElement.classList.toggle("swiper-watch-viewport",mq.matches)};apply();if(mq.addEventListener)mq.addEventListener("change",apply);else if(mq.addListener)mq.addListener(apply);window.addEventListener("orientationchange",apply,{passive:true});})();</script><div id="swiperReaderModeNotice" role="note" aria-label="Web view reminder">SWITCH BACK TO WEB VIEW FROM READING MODE</div>
 <div id="restrictedScreen" class="restricted-screen hidden" role="alert"><div class="restricted-card"><div class="restricted-mark">S</div><p class="eyebrow">SWIPER ACCOUNT STATUS</p><h1 id="restrictedTitle">Account restricted</h1><p id="restrictedText">This account cannot access Swiper right now.</p><p id="restrictedDetail" class="small"></p><a class="restrictedContact" href="mailto:messageswiper@gmail.com?subject=Swiper%20ban%20appeal">If you think this is a mistake, contact messageswiper@gmail.com</a><button id="restrictedLogout" class="primary">Sign out</button></div></div><audio id="swiperBgMusic" preload="auto" loop playsinline crossorigin="anonymous" aria-label="Swiper background music"><source src="https://raw.githubusercontent.com/Mystarnight-Extras/Swiper/main/1%20Hour%20Of%20Relaxed%20Scene-%5BAudioTrimmer.com%5D.mp3" type="audio/mpeg"></audio><div id="swiperLoading" role="status" aria-live="polite"><div class="swiper-loading-card"><div class="loading-brand">SWIPER</div><div class="loading-progress" role="img" aria-label="Loading animation"><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span></div><div class="loading-caption" id="swiperLoadingCaption">LOADING...</div><div id="swiperFirstVisitCheck" class="swiper-first-visit-check" hidden><p>Quick security check — complete this once to enter Swiper.</p><div id="swiperFirstVisitTurnstile"></div><button class="primary" id="swiperFirstVisitContinue" type="button" disabled>Continue to Swiper</button></div></div></div><div class="wrap">
 <header class="top"><div class="brand"><div class="brand-copy"><div class="brand-title-row"><img class="swiper-header-logo" src="Images/Swiper%20Image%20Logo.jpg?v=20261119-3" alt="Swiper logo"><h1>SWIPER</h1></div><p>One move can save your run.</p></div></div><div class="status" id="accountStatus">Guest mode<br>Scores stay on this device</div></header>
@@ -3306,9 +3326,9 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
 #swiperRadioAddSongs{display:none;width:100%;margin-top:10px;padding:11px 13px;border:1px solid #526985;border-radius:12px;background:#1d2b3d;color:#eaf2fc;font:700 12px "Fredoka",sans-serif;cursor:pointer}
 @media(max-width:520px){#swiperRadioDock{left:max(10px,env(safe-area-inset-left))!important;bottom:max(10px,env(safe-area-inset-bottom))!important;width:58px!important}#swiperRadioLauncher{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important}}
 </style>
-<div id="swiperRadioDock">
+<div id="swiperRadioRequestScreen" role="dialog" aria-modal="true" aria-labelledby="swiperRadioRequestTitle" hidden><div class="swiper-radio-request-header"><div><small>SWIPER RADIO</small><h2 id="swiperRadioRequestTitle">Request a song</h2><p>Find a track and add it to the shared station queue.</p></div><button id="swiperRadioRequestClose" type="button" aria-label="Close song request">×</button></div><div id="swiperRadioRequestSearchHost"></div></div><div id="swiperRadioDock">
  <section id="swiperRadioPanel" aria-label="Swiper Radio mini player">
-  <div id="swiperRadioPanelHead"><strong>Swiper Radio</strong><button id="swiperRadioMinimize" type="button" aria-label="Minimize radio player" title="Minimize radio player">−</button></div>
+  <div id="swiperRadioPanelHead"><strong>Swiper Radio</strong></div>
   <div id="swiperRadioAudioWrap" aria-hidden="true"></div>
   <div id="swiperRadioTurnOn" hidden><strong>Turn on radio?</strong><div><button id="swiperRadioTurnOnYes" type="button">Turn on radio</button><button id="swiperRadioTurnOnNo" type="button">Not now</button></div></div>
   <div id="swiperRadioNow"><img id="swiperRadioCover" alt=""><div style="min-width:0"><div id="swiperRadioSong">Connecting to the station…</div><div id="swiperRadioArtist">Loading current track</div></div></div>
@@ -3333,7 +3353,7 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
    <div id="swiperRadioMiniTimes">0:00 / --:--</div>
   </div>
   <div id="swiperRadioMiniMore">
-   <button id="swiperRadioMiniQueue" type="button" aria-label="Open song request queue" title="Request a song">Queue</button>
+   <button id="swiperRadioMiniQueue" type="button" aria-label="Request a song" title="Request a song">Request song</button><button id="swiperRadioMiniCollapse" type="button" aria-label="Minimize to artwork only" title="Show artwork only">−</button>
    <button id="swiperRadioMiniExpand" type="button" aria-label="Open all radio controls" title="Open all radio controls">+</button>
   </div>
   <div id="swiperRadioMiniLegacyControls" hidden aria-hidden="true">
@@ -3369,12 +3389,19 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function renderResults(append=false){const html=lastBatch.map(t=>'<div class="radio-result"><img loading="lazy" src="'+esc(t.artwork?.['150x150']||t.artwork?.['480x480']||'https://raw.githubusercontent.com/playswiper/Swiper/main/Images/RadioMusicIcon.svg')+'" onerror="this.onerror=null;this.src=\'https://raw.githubusercontent.com/playswiper/Swiper/main/Images/RadioMusicIcon.svg\'" alt=""><div class="radio-result-info"><strong>'+esc(t.title||'Untitled')+'</strong><small>'+esc(t.user?.name||'Unknown artist')+'</small></div><button type="button" data-radio-add="'+esc(t.id)+'" title="Request this song for 750 coins">Request - 750 coins</button></div>').join('');$('swiperRadioSearchResults').innerHTML=(append?$('swiperRadioSearchResults').innerHTML:'')+html||'<small>No songs found.</small>';$('swiperRadioLoadMore').hidden=lastBatch.length<PAGE}
 async function searchSongs(q,more=false,requestToken=null){q=q.trim();if(!q){searchResults=[];$('swiperRadioSearchResults').innerHTML='';$('swiperRadioLoadMore').hidden=true;return}if(!more){searchQuery=q;searchOffset=0;searchResults=[];$('swiperRadioSearchResults').innerHTML='<small>Searching…</small>'}const token=requestToken??++searchToken;status('Searching songs…');try{const batch=await api('/tracks/search?query='+encodeURIComponent(searchQuery)+'&limit='+PAGE+'&offset='+searchOffset);if(token!==searchToken)return;lastBatch=batch;searchResults=more?searchResults.concat(batch):batch;searchOffset+=batch.length;renderResults(!more);status(searchResults.length?'':'No matching songs')}catch(e){if(token===searchToken)status(e.message)}}
 async function addSearchTrack(id){const raw=searchResults.find(t=>String(t.id)===String(id));if(!raw)return;const auth=window.__swiperSupabaseClient;if(!auth){status('Sign in to request a song.');return}try{const {data:{session},error:sessionError}=await auth.auth.getSession();if(sessionError)throw sessionError;if(!session?.user||session.user.is_anonymous||session.user.app_metadata?.provider==='anonymous'||session.user.app_metadata?.providers?.includes('anonymous')){status('Sign in with a registered account to request songs.');return}status('Requesting for 750 coins…');const saved=await register(raw);const {data,error}=await auth.rpc('radio_request_track',{p_track_id:saved.id});if(error)throw error;const result=typeof data==='string'?JSON.parse(data):data;status('Song requested - 750 coins spent - '+Number(result?.points_remaining||0).toLocaleString()+' coins left');if($('shopPointsBalance'))$('shopPointsBalance').textContent=Number(result?.points_remaining||0).toLocaleString()+' coins';}catch(e){status(e.message||'Could not request this song.')}}
-$('swiperRadioLauncher').addEventListener('click',()=>setMiniExpanded(!$('swiperRadioMiniControls').classList.contains('expanded')));
+$('swiperRadioLauncher').addEventListener('click',()=>{const mini=$('swiperRadioMiniControls');if(mini.classList.contains('image-only')){mini.classList.remove('image-only');setMiniExpanded(true)}else setMiniExpanded(!mini.classList.contains('expanded'))});
 $('swiperRadioMiniPlay').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();$('swiperRadioPlay').click()});
 $('swiperRadioMiniSkip').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();$('swiperRadioSkip').click()});
 $('swiperRadioMiniExpand').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openPanel()});
-$('swiperRadioMiniQueue').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openPanel();setTimeout(()=>{$('swiperRadioSearchInput')?.focus();$('swiperRadioSearch')?.scrollIntoView({behavior:'smooth',block:'nearest'})},80)});
-$('swiperRadioMinimize').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closePanel();setMiniExpanded(true)});
+const requestScreen=$('swiperRadioRequestScreen'),requestSearch=$('swiperRadioSearch'),requestSearchHost=$('swiperRadioRequestSearchHost'),requestSearchParent=requestSearch?.parentNode,requestSearchNext=requestSearch?.nextSibling;
+function openSongRequest(){if(!requestScreen||!requestSearch||!requestSearchHost)return;closePanel();requestScreen.hidden=false;requestSearchHost.appendChild(requestSearch);document.body.style.overflow='hidden';setTimeout(()=>$('swiperRadioSearchInput')?.focus(),100)}
+function closeSongRequest(){if(!requestScreen)return;requestScreen.hidden=true;if(requestSearchParent)requestSearchParent.insertBefore(requestSearch,requestSearchNext&&requestSearchNext.parentNode===requestSearchParent?requestSearchNext:null);document.body.style.overflow=''}
+$('swiperRadioMiniQueue').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openSongRequest()});
+$('swiperRadioRequestClose').addEventListener('click',closeSongRequest);
+requestScreen.addEventListener('click',e=>{if(e.target===requestScreen)closeSongRequest()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!requestScreen.hidden)closeSongRequest()});
+$('swiperRadioMiniCollapse').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closePanel();setMiniExpanded(false);$('swiperRadioMiniControls').classList.add('image-only')});
+
 $('swiperRadioAddSongs').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setRadioStage(2)});
 $('swiperRadioPanel').addEventListener('click',e=>{if(radioStage===1&&!e.target.closest('#swiperRadioTurnOn button'))setRadioStage(2)});
 document.addEventListener('pointerdown',e=>{if(radioStage>0&&!e.target.closest('#swiperRadioDock'))closePanel()});
