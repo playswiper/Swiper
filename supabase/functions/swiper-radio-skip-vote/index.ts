@@ -26,7 +26,7 @@ Deno.serve(async(req:Request)=>{
   const ipHash=await hmac("swiper-radio-skip-ip:"+ip);
   const allowed=await rpc("swiper_username_login_rate_limit",{p_bucket_key:ipHash,p_limit:12,p_window_seconds:600});
   if(allowed!==true)return reply(origin,429,{error:"Too many skip votes from this connection. Try again later."});
-  const voter=uuidFromHex(await hmac("swiper-radio-skip-voter:"+ip+":"+clientKey));
+  const voter=uuidFromHex(await hmac("swiper-radio-skip-voter:"+ip+":"+clientKey+":"+trackId));
   const inserted=await rest("radio_skip_votes",{method:"POST",headers:{"Prefer":"return=minimal"},body:JSON.stringify({track_id:trackId,voter_key:voter})});
   if(!inserted.ok&&inserted.status!==409)throw new Error("Vote could not be saved.");
   const since=new Date(Date.now()-600000).toISOString();
