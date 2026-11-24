@@ -18,7 +18,10 @@ Deno.serve(async(req:Request)=>{
  const id=typeof body.expected_track_id==="string"?body.expected_track_id:"";
  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return reply(origin,400,{error:"Invalid track ID."});
  try{
-  const ip=(req.headers.get("cf-connecting-ip")??req.headers.get("x-real-ip")??req.headers.get("x-forwarded-for")?.split(",")[0]??"unknown").trim().slice(0,100);
+  const trustedIp=req.headers.get("cf-connecting-ip");
+  const isLocalOrigin=origin==="http://localhost:3000"||origin==="http://127.0.0.1:5500";
+  if(!trustedIp&&!isLocalOrigin)return reply(origin,503,{error:"Security check unavailable. Please retry."});
+  const ip=(trustedIp??"local-development").trim().slice(0,100);
   const bucket=await hmac("swiper-radio-advance-ip:"+ip);
   const r=await fetch(SUPABASE_URL+"/rest/v1/rpc/swiper_username_login_rate_limit",{method:"POST",headers:{"apikey":SERVICE_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_bucket_key:bucket,p_limit:30,p_window_seconds:900})});
   if(!r.ok||await r.json()!==true)return reply(origin,429,{error:"Too many station requests. Try again later."});
