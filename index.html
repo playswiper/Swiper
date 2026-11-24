@@ -1114,6 +1114,82 @@ body.swiper-practice-fallback #swiperReaderModeNotice{display:block}
  }
 }
 </style>
+
+<style id="swiper-practice-watch-hud-fix">
+/* Practice Only on tiny Apple Watch viewports: remove the reading-mode banner
+   and give the arena and both score counters the entire usable screen. */
+body.swiper-practice-only #swiperReaderModeNotice,
+body.swiper-practice-fallback #swiperReaderModeNotice,
+body.swiper-offline-mode #swiperReaderModeNotice{
+ display:none!important;
+}
+@media(max-width:260px) and (max-height:420px){
+ body.swiper-watch-mode.swiper-practice-only,
+ body.swiper-watch-mode.swiper-practice-fallback{
+  overflow:hidden!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .layout.view-game,
+ body.swiper-watch-mode.swiper-practice-fallback .layout.view-game{
+  position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+  max-width:100vw!important;min-width:0!important;margin:0!important;padding:2px!important;
+  overflow:hidden!important;display:block!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .layout.view-game>main,
+ body.swiper-watch-mode.swiper-practice-fallback .layout.view-game>main{
+  display:flex!important;flex-direction:column!important;gap:3px!important;
+  width:100%!important;height:100%!important;min-height:0!important;
+  margin:0!important;padding:3px!important;overflow:hidden!important;
+  border:0!important;border-radius:0!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .gamehead,
+ body.swiper-watch-mode.swiper-practice-fallback .gamehead{
+  display:flex!important;flex:0 0 auto!important;align-items:center!important;
+  justify-content:center!important;width:100%!important;min-width:0!important;
+  min-height:30px!important;margin:0!important;padding:0!important;gap:0!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .gamehead>div:first-child,
+ body.swiper-watch-mode.swiper-practice-fallback .gamehead>div:first-child{
+  display:none!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .scores,
+ body.swiper-watch-mode.swiper-practice-fallback .scores{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  flex:1 1 100%!important;width:100%!important;min-width:0!important;
+  gap:4px!important;margin:0!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .scorebox,
+ body.swiper-watch-mode.swiper-practice-fallback .scorebox{
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:center!important;gap:5px!important;min-width:0!important;
+  min-height:29px!important;padding:3px 4px!important;border-radius:7px!important;
+  white-space:nowrap!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .scorebox strong,
+ body.swiper-watch-mode.swiper-practice-fallback .scorebox strong{
+  display:inline!important;font-size:14px!important;line-height:1!important;
+  font-variant-numeric:tabular-nums!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .scorebox span,
+ body.swiper-watch-mode.swiper-practice-fallback .scorebox span{
+  display:inline!important;font-size:8px!important;line-height:1!important;
+  letter-spacing:.25px!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .arena,
+ body.swiper-watch-mode.swiper-practice-fallback .arena{
+  display:block!important;flex:1 1 auto!important;width:100%!important;
+  min-width:0!important;min-height:90px!important;height:auto!important;
+  max-height:none!important;margin:0!important;border-radius:8px!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .gamehead .options-trigger,
+ body.swiper-watch-mode.swiper-practice-fallback .gamehead .options-trigger{
+  display:none!important;
+ }
+ body.swiper-watch-mode.swiper-practice-only .hint,
+ body.swiper-watch-mode.swiper-practice-fallback .hint{
+  display:none!important;
+ }
+}
+</style>
 </head>
 <body><script id="swiperWatchModeInit">(()=>{const mq=window.matchMedia("(max-width:260px) and (max-height:420px)");const apply=()=>{document.body.classList.toggle("swiper-watch-mode",mq.matches);document.documentElement.classList.toggle("swiper-watch-viewport",mq.matches)};apply();if(mq.addEventListener)mq.addEventListener("change",apply);else if(mq.addListener)mq.addListener(apply);window.addEventListener("orientationchange",apply,{passive:true});})();</script><div id="swiperReaderModeNotice" role="note" aria-label="Web view reminder">SWITCH BACK TO WEB VIEW FROM READING MODE</div>
 <div id="restrictedScreen" class="restricted-screen hidden" role="alert"><div class="restricted-card"><div class="restricted-mark">S</div><p class="eyebrow">SWIPER ACCOUNT STATUS</p><h1 id="restrictedTitle">Account restricted</h1><p id="restrictedText">This account cannot access Swiper right now.</p><p id="restrictedDetail" class="small"></p><a class="restrictedContact" href="mailto:messageswiper@gmail.com?subject=Swiper%20ban%20appeal">If you think this is a mistake, contact messageswiper@gmail.com</a><button id="restrictedLogout" class="primary">Sign out</button></div></div><audio id="swiperBgMusic" preload="auto" loop playsinline crossorigin="anonymous" aria-label="Swiper background music"><source src="https://raw.githubusercontent.com/Mystarnight-Extras/Swiper/main/1%20Hour%20Of%20Relaxed%20Scene-%5BAudioTrimmer.com%5D.mp3" type="audio/mpeg"></audio><div id="swiperLoading" role="status" aria-live="polite"><div class="swiper-loading-card"><div class="loading-brand">SWIPER</div><div class="loading-progress" role="img" aria-label="Loading animation"><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span></div><div class="loading-caption" id="swiperLoadingCaption">LOADING...</div><div id="swiperFirstVisitCheck" class="swiper-first-visit-check" hidden><p>Quick security check — complete this once to enter Swiper.</p><div id="swiperFirstVisitTurnstile"></div><button class="primary" id="swiperFirstVisitContinue" type="button" disabled>Continue to Swiper</button></div></div></div><div class="wrap">
