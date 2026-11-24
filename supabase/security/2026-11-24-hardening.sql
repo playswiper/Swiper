@@ -317,11 +317,11 @@ begin
   if p_score is null or p_score < 0 or p_score > 1000000 then
     raise exception 'Score is outside the allowed range.';
   end if;
-  if p_mode not in ('practice','bot','quick') then
+  if p_mode is null or p_mode not in ('practice','bot','quick') then
     raise exception 'Invalid leaderboard mode.';
   end if;
   if p_mode = 'bot' then
-    if p_difficulty not in ('easy','normal','hard','expert','impossible') then
+    if p_difficulty is null or p_difficulty not in ('easy','normal','hard','expert','impossible') then
       raise exception 'Choose a valid bot difficulty.';
     end if;
   elsif p_difficulty is not null then
