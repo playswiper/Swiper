@@ -51,7 +51,10 @@ Deno.serve(async(req:Request)=>{
  const id=typeof body.provider_track_id==="string"?body.provider_track_id.trim():"";
  if(!/^[a-zA-Z0-9_-]{1,100}$/.test(id))return reply(origin,400,{error:"Invalid track ID."});
  try{
-  const ip=(req.headers.get("cf-connecting-ip")??req.headers.get("x-real-ip")??req.headers.get("x-forwarded-for")?.split(",")[0]??"unknown").trim().slice(0,100);
+  const trustedIp=req.headers.get("cf-connecting-ip");
+  const isLocalOrigin=origin==="http://localhost:3000"||origin==="http://127.0.0.1:5500";
+  if(!trustedIp&&!isLocalOrigin)return reply(origin,503,{error:"Security check unavailable. Please retry."});
+  const ip=(trustedIp??"local-development").trim().slice(0,100);
   const bucket=await hmac("swiper-radio-register-ip:"+ip);
   const allowed=await serviceRpc("swiper_username_login_rate_limit",{p_bucket_key:bucket,p_limit:80,p_window_seconds:900});
   if(allowed!==true)return reply(origin,429,{error:"Radio is receiving too many requests. Try again in 15 minutes."});
