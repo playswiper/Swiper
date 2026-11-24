@@ -148,3 +148,58 @@ $function$;
 
 revoke all on function public.swiper_auth_log_attempt(text,text,text) from public, anon, authenticated;
 grant execute on function public.swiper_auth_log_attempt(text,text,text) to service_role;
+
+-- 5) Keep the public outage-status RPC as an invoker wrapper. Its aggregate-only
+--    implementation lives in the non-exposed private schema.
+drop policy if exists swiper_auth_login_audit_service_role_only on private.swiper_auth_login_audit;
+create policy swiper_auth_login_audit_service_role_only
+on private.swiper_auth_login_audit
+for all
+to service_role
+using (true)
+with check (true);
+
+create or replace function private.swiper_status_outage_report_status_internal()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_bucket bigint := floor(extract(epoch from now()) / 7200)::bigint;
+  v_key text;
+  v_count integer := 0;
+  v_start timestamptz;
+  v_end timestamptz;
+begin
+  v_start := to_timestamp(v_bucket * 7200);
+  v_end := to_timestamp((v_bucket + 1) * 7200);
+  v_key := encode(extensions.digest(lower('Swiper status outage report ' || v_bucket::text), 'sha256'), 'hex');
+  select count(distinct r.user_id)::integer into v_count
+  from public.swiper_community_issue_reports r
+  where r.issue_key = v_key and r.created_at >= v_start and r.created_at < v_end;
+  return jsonb_build_object(
+    'report_count', v_count, 'threshold', 3,
+    'outage_detected', v_count >= 3,
+    'window_starts_at', v_start, 'window_ends_at', v_end
+  );
+end;
+$function$;
+
+grant usage on schema private to anon, authenticated;
+revoke all on function private.swiper_status_outage_report_status_internal() from public;
+grant execute on function private.swiper_status_outage_report_status_internal() to anon, authenticated;
+
+create or replace function public.swiper_status_outage_report_status()
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = ''
+as $function$
+  select private.swiper_status_outage_report_status_internal();
+$function$;
+
+revoke all on function public.swiper_status_outage_report_status() from public;
+grant execute on function public.swiper_status_outage_report_status() to anon, authenticated;
