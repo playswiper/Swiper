@@ -17,16 +17,16 @@ Deno.serve(async(req:Request)=>{
  if(origin&&!origins.has(origin))return reply(origin,403,{error:"Origin not allowed."});
  if(!SUPABASE_URL||!SERVICE_KEY||!PUBLIC_KEYS.includes(req.headers.get("apikey")??""))return reply(origin,401,{error:"Request could not be verified."});
  if(Number(req.headers.get("content-length")??0)>2048)return reply(origin,413,{error:"Request is too large."});
- let body:{track_id?:unknown;voter_key?:unknown};try{body=await req.json()}catch{return reply(origin,400,{error:"Invalid skip vote."})}
- const trackId=typeof body.track_id==="string"?body.track_id:"",clientKey=typeof body.voter_key==="string"?body.voter_key:"";
+ let body:{track_id?:unknown};try{body=await req.json()}catch{return reply(origin,400,{error:"Invalid skip vote."})}
+ const trackId=typeof body.track_id==="string"?body.track_id:"";
  const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
- if(!uuid.test(trackId)||!uuid.test(clientKey))return reply(origin,400,{error:"Invalid skip vote."});
+ if(!uuid.test(trackId))return reply(origin,400,{error:"Invalid skip vote."});
  try{
   const ip=(req.headers.get("cf-connecting-ip")??req.headers.get("x-real-ip")??req.headers.get("x-forwarded-for")?.split(",")[0]??"unknown").trim().slice(0,100);
   const ipHash=await hmac("swiper-radio-skip-ip:"+ip);
   const allowed=await rpc("swiper_username_login_rate_limit",{p_bucket_key:ipHash,p_limit:12,p_window_seconds:600});
   if(allowed!==true)return reply(origin,429,{error:"Too many skip votes from this connection. Try again later."});
-  const voter=uuidFromHex(await hmac("swiper-radio-skip-voter:"+ip+":"+clientKey+":"+trackId));
+  const voter=uuidFromHex(await hmac("swiper-radio-skip-voter:"+ip+":"+trackId));
   const inserted=await rest("radio_skip_votes",{method:"POST",headers:{"Prefer":"return=minimal"},body:JSON.stringify({track_id:trackId,voter_key:voter})});
   if(!inserted.ok&&inserted.status!==409)throw new Error("Vote could not be saved.");
   const since=new Date(Date.now()-600000).toISOString();
