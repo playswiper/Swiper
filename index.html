@@ -848,6 +848,46 @@ body.swiper-practice-only .home-info{display:none!important}
  #swiperPracticeOnlyRecovery{bottom:max(12px,env(safe-area-inset-bottom))!important;width:calc(100vw - 24px)!important}
 }
 </style>
+
+<style id="swiper-radio-offline-hud-mini-actions">
+/* Radio is an online service; keep it completely out of Practice Only. */
+body.swiper-offline-mode #swiperRadioDock,
+body.swiper-practice-only #swiperRadioDock,
+body.swiper-practice-fallback #swiperRadioDock{
+ display:none!important;visibility:hidden!important;pointer-events:none!important
+}
+/* Keep the live score and best-score row visible on narrow phones. */
+@media(max-width:600px){
+ .gamehead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:6px!important;flex-wrap:nowrap!important;min-width:0!important}
+ .gamehead>div:first-child{flex:1 1 auto!important;min-width:0!important}
+ .gamehead h2{font-size:14px!important;line-height:1.15!important;white-space:normal!important;margin:2px 0 7px!important}
+ .scores{display:flex!important;flex:0 0 auto!important;align-items:stretch!important;gap:4px!important;min-width:0!important}
+ .scorebox{display:flex!important;flex-direction:column!important;justify-content:center!important;min-width:48px!important;padding:5px 6px!important;border-radius:9px!important}
+ .scorebox strong{font-size:clamp(16px,5vw,21px)!important;line-height:1.1!important}
+ .scorebox span{font-size:8px!important;letter-spacing:.6px!important}
+ .options-trigger{min-width:34px!important;padding:5px!important}
+}
+#swiperRadioMiniMore{gap:5px!important}
+#swiperRadioMiniQueue,#swiperRadioMiniExpand{
+ display:grid!important;place-items:center!important;
+ width:48px!important;height:34px!important;min-width:42px!important;min-height:34px!important;
+ padding:4px 6px!important;border:1px solid #526985!important;border-radius:9px!important;
+ background:#1a2637!important;color:#eaf2fc!important;
+ font:700 11px "Fredoka",sans-serif!important;cursor:pointer!important
+}
+#swiperRadioMiniExpand{font-size:25px!important;line-height:1!important}
+#swiperRadioMiniQueue:hover,#swiperRadioMiniExpand:hover{border-color:#9bb9dc!important;background:#26364c!important}
+#swiperRadioPanelHead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}
+#swiperRadioMinimize{
+ display:grid!important;place-items:center!important;width:34px!important;height:30px!important;
+ border:1px solid #526985!important;border-radius:9px!important;background:#1a2637!important;
+ color:#f1f5fa!important;font:700 22px/1 "Fredoka",sans-serif!important;cursor:pointer!important
+}
+@media(max-width:520px){
+ #swiperRadioMiniQueue{width:42px!important;min-width:42px!important;font-size:10px!important}
+ #swiperRadioMiniExpand{width:38px!important;min-width:38px!important}
+}
+</style>
 </head>
 <body>
 <div id="restrictedScreen" class="restricted-screen hidden" role="alert"><div class="restricted-card"><div class="restricted-mark">S</div><p class="eyebrow">SWIPER ACCOUNT STATUS</p><h1 id="restrictedTitle">Account restricted</h1><p id="restrictedText">This account cannot access Swiper right now.</p><p id="restrictedDetail" class="small"></p><a class="restrictedContact" href="mailto:messageswiper@gmail.com?subject=Swiper%20ban%20appeal">If you think this is a mistake, contact messageswiper@gmail.com</a><button id="restrictedLogout" class="primary">Sign out</button></div></div><audio id="swiperBgMusic" preload="auto" loop playsinline crossorigin="anonymous" aria-label="Swiper background music"><source src="https://raw.githubusercontent.com/Mystarnight-Extras/Swiper/main/1%20Hour%20Of%20Relaxed%20Scene-%5BAudioTrimmer.com%5D.mp3" type="audio/mpeg"></audio><div id="swiperLoading" role="status" aria-live="polite"><div class="swiper-loading-card"><div class="loading-brand">SWIPER</div><div class="loading-progress" role="img" aria-label="Loading animation"><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span></div><div class="loading-caption" id="swiperLoadingCaption">LOADING...</div><div id="swiperFirstVisitCheck" class="swiper-first-visit-check" hidden><p>Quick security check — complete this once to enter Swiper.</p><div id="swiperFirstVisitTurnstile"></div><button class="primary" id="swiperFirstVisitContinue" type="button" disabled>Continue to Swiper</button></div></div></div><div class="wrap">
@@ -3214,7 +3254,7 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
 </style>
 <div id="swiperRadioDock">
  <section id="swiperRadioPanel" aria-label="Swiper Radio mini player">
-  <div id="swiperRadioPanelHead"><strong>Swiper Radio</strong></div>
+  <div id="swiperRadioPanelHead"><strong>Swiper Radio</strong><button id="swiperRadioMinimize" type="button" aria-label="Minimize radio player" title="Minimize radio player">−</button></div>
   <div id="swiperRadioAudioWrap" aria-hidden="true"></div>
   <div id="swiperRadioTurnOn" hidden><strong>Turn on radio?</strong><div><button id="swiperRadioTurnOnYes" type="button">Turn on radio</button><button id="swiperRadioTurnOnNo" type="button">Not now</button></div></div>
   <div id="swiperRadioNow"><img id="swiperRadioCover" alt=""><div style="min-width:0"><div id="swiperRadioSong">Connecting to the station…</div><div id="swiperRadioArtist">Loading current track</div></div></div>
@@ -3239,7 +3279,7 @@ body.swiper-practice-fallback #swiperCornerHub,body.swiper-practice-fallback #sw
    <div id="swiperRadioMiniTimes">0:00 / --:--</div>
   </div>
   <div id="swiperRadioMiniMore">
-   <span>More Options</span>
+   <button id="swiperRadioMiniQueue" type="button" aria-label="Open song request queue" title="Request a song">Queue</button>
    <button id="swiperRadioMiniExpand" type="button" aria-label="Open all radio controls" title="Open all radio controls">+</button>
   </div>
   <div id="swiperRadioMiniLegacyControls" hidden aria-hidden="true">
@@ -3279,6 +3319,8 @@ $('swiperRadioLauncher').addEventListener('click',()=>setMiniExpanded(!$('swiper
 $('swiperRadioMiniPlay').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();$('swiperRadioPlay').click()});
 $('swiperRadioMiniSkip').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();$('swiperRadioSkip').click()});
 $('swiperRadioMiniExpand').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openPanel()});
+$('swiperRadioMiniQueue').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openPanel();setTimeout(()=>{$('swiperRadioSearchInput')?.focus();$('swiperRadioSearch')?.scrollIntoView({behavior:'smooth',block:'nearest'})},80)});
+$('swiperRadioMinimize').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closePanel();setMiniExpanded(true)});
 $('swiperRadioAddSongs').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setRadioStage(2)});
 $('swiperRadioPanel').addEventListener('click',e=>{if(radioStage===1&&!e.target.closest('#swiperRadioTurnOn button'))setRadioStage(2)});
 document.addEventListener('pointerdown',e=>{if(radioStage>0&&!e.target.closest('#swiperRadioDock'))closePanel()});
