@@ -43,7 +43,7 @@ All four Edge Functions are ACTIVE. Their gateway `verify_jwt=false` setting is 
 
 ### GitHub changes
 
-- Signup minimum raised from 6 to 8 characters.
+- Signup UI minimum raised from 6 to 8 characters. This is client-side validation only; the project's server-side Auth password-length setting was not changed through the available project controls.
 - Chat-rules acceptance reads through the private-state RPC.
 - Radio registration, skip voting, and station advancement use the new Edge Functions.
 - Security SQL is documented in [2026-11-24-hardening.sql](./2026-11-24-hardening.sql).
