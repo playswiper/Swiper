@@ -72,3 +72,14 @@ with check (
   and coalesce(((select auth.jwt())->>'is_anonymous')::boolean, false) = false
   and exists (select 1 from public.swiper_moderator_badges b where b.user_id = (select auth.uid()))
 );
+
+
+-- Guest sessions may play, but must not read or participate in global chat.
+drop policy if exists "Global chat messages are publicly readable" on public.swiper_global_chat_messages;
+drop policy if exists "Global chat messages are readable by authenticated sessions" on public.swiper_global_chat_messages;
+create policy "Global chat messages are readable by registered players"
+on public.swiper_global_chat_messages for select to authenticated
+using (
+  (select auth.uid()) is not null
+  and coalesce(((select auth.jwt())->>'is_anonymous')::boolean, false) = false
+);
