@@ -1056,6 +1056,63 @@ body.swiper-practice-fallback #swiperReaderModeNotice{display:block}
   #swiperRadioMiniControls.expanded #swiperRadioMiniExpand{width:34px!important;min-width:34px!important;max-width:34px!important}
 }
 </style>
+
+<style id="swiper-radio-mini-overflow-fix">
+/* The mobile dock was constrained to launcher width; grow the dock with the expanded card. */
+#swiperRadioDock.swiper-radio-mini-wide{
+  width:min(356px,calc(100vw - 16px))!important;
+  max-width:calc(100vw - 16px)!important;
+  overflow:visible!important;
+  left:50%!important;right:auto!important;transform:translateX(-50%)!important;
+}
+#swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniControls.expanded{
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  overflow:visible!important;box-sizing:border-box!important;
+  grid-template-columns:56px minmax(0,1fr)!important;
+  grid-template-rows:56px 40px!important;
+  gap:7px!important;padding:8px!important;
+}
+#swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniMore{
+  width:100%!important;min-width:0!important;height:40px!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) 38px 38px!important;
+  gap:6px!important;overflow:visible!important;
+}
+#swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniMore button{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;width:100%!important;min-width:0!important;
+  max-width:none!important;height:40px!important;min-height:40px!important;
+  margin:0!important;padding:0 8px!important;
+  overflow:visible!important;white-space:nowrap!important;
+  text-align:center!important;text-indent:0!important;
+  font-family:"Fredoka",sans-serif!important;font-weight:700!important;
+  line-height:1!important;
+}
+#swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniQueue{
+  font-size:13px!important;letter-spacing:0!important;
+}
+#swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniCollapse,
+#swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniExpand{
+  width:38px!important;min-width:38px!important;max-width:38px!important;
+  padding:0!important;font-size:20px!important;
+}
+#swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniInfo,
+#swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniSong,
+#swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniArtist{
+  min-width:0!important;max-width:100%!important;overflow:hidden!important;
+}
+@media(max-width:380px){
+ #swiperRadioDock.swiper-radio-mini-wide{
+   width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;
+ }
+ #swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniMore{
+   grid-template-columns:minmax(0,1fr) 36px 36px!important;gap:5px!important;
+ }
+ #swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniCollapse,
+ #swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniExpand{
+   width:36px!important;min-width:36px!important;max-width:36px!important;
+ }
+}
+</style>
 </head>
 <body><script id="swiperWatchModeInit">(()=>{const mq=window.matchMedia("(max-width:260px) and (max-height:420px)");const apply=()=>{document.body.classList.toggle("swiper-watch-mode",mq.matches);document.documentElement.classList.toggle("swiper-watch-viewport",mq.matches)};apply();if(mq.addEventListener)mq.addEventListener("change",apply);else if(mq.addListener)mq.addListener(apply);window.addEventListener("orientationchange",apply,{passive:true});})();</script><div id="swiperReaderModeNotice" role="note" aria-label="Web view reminder">SWITCH BACK TO WEB VIEW FROM READING MODE</div>
 <div id="restrictedScreen" class="restricted-screen hidden" role="alert"><div class="restricted-card"><div class="restricted-mark">S</div><p class="eyebrow">SWIPER ACCOUNT STATUS</p><h1 id="restrictedTitle">Account restricted</h1><p id="restrictedText">This account cannot access Swiper right now.</p><p id="restrictedDetail" class="small"></p><a class="restrictedContact" href="mailto:messageswiper@gmail.com?subject=Swiper%20ban%20appeal">If you think this is a mistake, contact messageswiper@gmail.com</a><button id="restrictedLogout" class="primary">Sign out</button></div></div><audio id="swiperBgMusic" preload="auto" loop playsinline crossorigin="anonymous" aria-label="Swiper background music"><source src="https://raw.githubusercontent.com/Mystarnight-Extras/Swiper/main/1%20Hour%20Of%20Relaxed%20Scene-%5BAudioTrimmer.com%5D.mp3" type="audio/mpeg"></audio><div id="swiperLoading" role="status" aria-live="polite"><div class="swiper-loading-card"><div class="loading-brand">SWIPER</div><div class="loading-progress" role="img" aria-label="Loading animation"><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span><span class="loading-step"></span></div><div class="loading-caption" id="swiperLoadingCaption">LOADING...</div><div id="swiperFirstVisitCheck" class="swiper-first-visit-check" hidden><p>Quick security check — complete this once to enter Swiper.</p><div id="swiperFirstVisitTurnstile"></div><button class="primary" id="swiperFirstVisitContinue" type="button" disabled>Continue to Swiper</button></div></div></div><div class="wrap">
@@ -3471,7 +3528,7 @@ async function register(t){const x=norm(t),r=await fetch(U+'/rest/v1/rpc/radio_r
 async function bootstrap(){if(booting)return;booting=true;try{const st=await get('radio_station?select=current_track_id&id=eq.1');if(st[0]?.current_track_id){const cur=await get('radio_tracks?select=provider&id=eq.'+encodeURIComponent(st[0].current_track_id));if(cur[0]?.provider==='audius')return}let list=await api('/tracks/trending?time=week&limit=30');if(!list.length)list=await api('/tracks/trending?limit=30');let first=null;for(const t of list){try{const saved=await register(t);if(!first)first=saved}catch(e){console.warn(e)}}if(first)await fetch(U+'/rest/v1/rpc/radio_switch_to_audius',{method:'POST',headers:H,body:JSON.stringify({p_track_id:first.id})})}finally{booting=false}}
 let radioStage=0;
 function syncMiniControls(){const play=$('swiperRadioMiniPlay'),skip=$('swiperRadioMiniSkip');if(play){play.textContent=playing?'Ⅱ':'▶';play.setAttribute('aria-label',playing?'Pause radio':'Play radio');play.title=playing?'Pause radio':'Play radio'}if(skip){skip.disabled=$('swiperRadioSkip').disabled;skip.setAttribute('aria-label',$('swiperRadioSkip').textContent||'Skip current song')}const dock=$('swiperRadioMiniControls');if(dock)dock.classList.toggle('playing',playing)}
-function setMiniExpanded(value){const dock=$('swiperRadioMiniControls'),launcher=$('swiperRadioLauncher');if(!dock||!launcher)return;const isOpen=!!value,wasOpen=dock.classList.contains('expanded');dock.classList.toggle('expanded',isOpen);$('swiperRadioMiniState').textContent=isOpen?'Open':'Closed';launcher.setAttribute('aria-expanded',String(isOpen));launcher.setAttribute('aria-label',isOpen?'Collapse compact radio player':'Expand compact radio player');if(isOpen&&!wasOpen){dock.classList.remove('opening');void dock.offsetWidth;dock.classList.add('opening');setTimeout(()=>dock.classList.remove('opening'),650)}}
+function setMiniExpanded(value){const dock=$('swiperRadioMiniControls'),launcher=$('swiperRadioLauncher'),host=$('swiperRadioDock');if(!dock||!launcher)return;const isOpen=!!value,wasOpen=dock.classList.contains('expanded');dock.classList.toggle('expanded',isOpen);if(host)host.classList.toggle('swiper-radio-mini-wide',isOpen);$('swiperRadioMiniState').textContent=isOpen?'Open':'Closed';launcher.setAttribute('aria-expanded',String(isOpen));launcher.setAttribute('aria-label',isOpen?'Collapse compact radio player':'Expand compact radio player');if(isOpen&&!wasOpen){dock.classList.remove('opening');void dock.offsetWidth;dock.classList.add('opening');setTimeout(()=>dock.classList.remove('opening'),650)}}
 function setRadioStage(stage){radioStage=stage;if(stage===0){expanded=false;$('swiperRadioPanel').classList.remove('open');$('swiperRadioPanel').dataset.stage='';$('swiperRadioMiniExpand').setAttribute('aria-expanded','false');return}expanded=true;$('swiperRadioPanel').dataset.stage=stage===1?'peek':'full';$('swiperRadioPanel').classList.add('open');$('swiperRadioMiniExpand').setAttribute('aria-expanded','true')}
 function openPanel(){setRadioStage(2)}
 function closePanel(){setRadioStage(0)}
