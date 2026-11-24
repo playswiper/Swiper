@@ -247,3 +247,28 @@ using (exists (
   select 1 from public.swiper_moderator_badges b
   where b.user_id = (select auth.uid())
 ));
+
+-- 7) Evaluate admin JWT claims once per statement in announcement policies.
+drop policy if exists "Admin deletes announcements" on public.swiper_admin_announcements;
+create policy "Admin deletes announcements"
+on public.swiper_admin_announcements
+for delete
+to authenticated
+using (
+  (select auth.uid()) is not null
+  and coalesce(((select auth.jwt())->>'is_anonymous')::boolean,false)=false
+  and lower(coalesce((select auth.jwt())->>'email',''))='mystarsnight@gmail.com'
+);
+
+drop policy if exists "Admin publishes announcements" on public.swiper_admin_announcements;
+create policy "Admin publishes announcements"
+on public.swiper_admin_announcements
+for insert
+to authenticated
+with check (
+  (select auth.uid()) is not null
+  and coalesce(((select auth.jwt())->>'is_anonymous')::boolean,false)=false
+  and lower(coalesce((select auth.jwt())->>'email',''))='mystarsnight@gmail.com'
+  and expires_at <= created_at + interval '11 seconds'
+  and expires_at > created_at
+);
