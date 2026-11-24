@@ -32,6 +32,17 @@ The radio queue's paid request flow remains the `radio_request_track()` RPC, whi
 
 All four Edge Functions are ACTIVE. Their gateway `verify_jwt=false` setting is intentional: these endpoints support login and guest radio use, and each handler validates the public API key, allowed browser origin, request shape, and server-side limits. Service-role credentials remain server-side.
 
+### Score and reward integrity
+
+- Direct client writes to `swipe_scores` are revoked.
+- `swipe_submit_score()` checks registered-account status, profile ownership, ban/deletion status, score range, mode, and bot difficulty.
+- Score insertion and rank/game-count updates happen in one database transaction.
+- A two-second per-account cooldown limits rapid duplicate submissions.
+- The old `swipe_record_game()` helper is no longer executable by client roles.
+- Removed a duplicate score-reward trigger. Exactly one registered-account reward trigger remains.
+
+This prevents direct REST inserts and accidental duplicate coin awards. It is not a complete anti-cheat guarantee: the score value still originates from the client, so truly cheat-proof scores would require server-authoritative gameplay or a verifiable run protocol.
+
 ### Login audit
 
 - Private table: `private.swiper_auth_login_audit`
