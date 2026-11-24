@@ -14,6 +14,7 @@ Repository: `playswiper/Swiper`
 - Private profile state, including chat-rules acceptance, is returned through the caller-scoped `swipe_my_profile_private_state()` RPC.
 - Admin moderation, admin search, and verification RPCs require the non-anonymous admin identity `mystarsnight@gmail.com`.
 - Client roles cannot add, edit, or delete moderator badges or shop-catalog rows.
+- Multiplayer room-player table writes are not granted to client roles; stale direct insert/update policies were removed so match state changes stay behind scoped RPCs.
 - The public outage-status endpoint is now a SECURITY INVOKER wrapper around an aggregate-only implementation in the non-exposed `private` schema.
 - The shop crate wrapper is SECURITY INVOKER; the underlying pack-opening function performs the account and ownership checks.
 
