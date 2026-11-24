@@ -282,3 +282,84 @@ with check (
   and expires_at <= created_at + interval '11 seconds'
   and expires_at > created_at
 );
+
+-- 8) Score submission is authenticated and atomic. Clients cannot insert or
+--    modify swipe_scores directly, and the legacy ranking helper is not public.
+drop policy if exists "Registered players submit practice and bot scores" on public.swipe_scores;
+revoke insert, update, delete on table public.swipe_scores from public, anon, authenticated;
+
+drop trigger if exists swiper_shop_award_score_coins on public.swipe_scores;
+drop function if exists private.award_swiper_shop_coins_for_score();
+
+create or replace function public.swipe_submit_score(
+  p_score integer,
+  p_mode text,
+  p_difficulty text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  v_username text;
+  v_is_banned boolean;
+  v_banned_until timestamptz;
+  v_is_deleted boolean;
+  v_score_id bigint;
+  v_ranked jsonb;
+begin
+  if v_uid is null or coalesce((auth.jwt()->>'is_anonymous')::boolean, false) then
+    raise exception 'Sign in with a registered Swiper account to submit scores.'
+      using errcode = '42501';
+  end if;
+  if p_score is null or p_score < 0 or p_score > 1000000 then
+    raise exception 'Score is outside the allowed range.';
+  end if;
+  if p_mode not in ('practice','bot','quick') then
+    raise exception 'Invalid leaderboard mode.';
+  end if;
+  if p_mode = 'bot' then
+    if p_difficulty not in ('easy','normal','hard','expert','impossible') then
+      raise exception 'Choose a valid bot difficulty.';
+    end if;
+  elsif p_difficulty is not null then
+    raise exception 'Difficulty is only valid for Bot Play.';
+  end if;
+
+  select p.username,coalesce(p.is_banned,false),p.banned_until,coalesce(p.is_deleted,false)
+    into v_username,v_is_banned,v_banned_until,v_is_deleted
+  from public.swipe_profiles p
+  where p.id=v_uid
+  for update;
+
+  if not found or v_username is null or btrim(v_username)='' then
+    raise exception 'Your Swiper profile was not found.';
+  end if;
+  if v_is_deleted then
+    raise exception 'Deleted accounts cannot submit scores.';
+  end if;
+  if v_is_banned and (v_banned_until is null or v_banned_until>now()) then
+    raise exception 'Banned accounts cannot submit scores.';
+  end if;
+  if exists (
+    select 1 from public.swipe_scores s
+    where s.user_id=v_uid
+      and s.created_at>clock_timestamp()-interval '2 seconds'
+  ) then
+    raise exception 'Please wait a moment before submitting another score.';
+  end if;
+
+  insert into public.swipe_scores(player_name,score,mode,difficulty,user_id)
+  values(v_username,p_score,p_mode,p_difficulty,v_uid)
+  returning id into v_score_id;
+
+  v_ranked:=public.swipe_record_game(p_score);
+  return coalesce(v_ranked,'{}'::jsonb)||jsonb_build_object('score_id',v_score_id);
+end;
+$function$;
+
+revoke all on function public.swipe_record_game(integer) from public, anon, authenticated;
+revoke all on function public.swipe_submit_score(integer,text,text) from public, anon, authenticated;
+grant execute on function public.swipe_submit_score(integer,text,text) to authenticated;
