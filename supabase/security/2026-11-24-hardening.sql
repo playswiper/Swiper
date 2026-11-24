@@ -203,3 +203,47 @@ $function$;
 
 revoke all on function public.swiper_status_outage_report_status() from public;
 grant execute on function public.swiper_status_outage_report_status() to anon, authenticated;
+
+-- 6) Collapse redundant permissive SELECT policies without changing access.
+drop policy if exists "Global chat messages are readable by anonymous sessions" on public.swiper_global_chat_messages;
+drop policy if exists "Global chat messages are readable by signed-in players" on public.swiper_global_chat_messages;
+drop policy if exists "Global chat messages are readable by authenticated sessions" on public.swiper_global_chat_messages;
+create policy "Global chat messages are readable by authenticated sessions"
+on public.swiper_global_chat_messages
+for select
+to authenticated
+using ((select auth.uid()) is not null);
+
+-- Keep public update-log reads, while moderator write actions remain badge-gated.
+drop policy if exists "Moderators manage update logs" on public.swiper_update_logs;
+drop policy if exists "Moderators insert update logs" on public.swiper_update_logs;
+drop policy if exists "Moderators update update logs" on public.swiper_update_logs;
+drop policy if exists "Moderators delete update logs" on public.swiper_update_logs;
+create policy "Moderators insert update logs"
+on public.swiper_update_logs
+for insert
+to authenticated
+with check (exists (
+  select 1 from public.swiper_moderator_badges b
+  where b.user_id = (select auth.uid())
+));
+create policy "Moderators update update logs"
+on public.swiper_update_logs
+for update
+to authenticated
+using (exists (
+  select 1 from public.swiper_moderator_badges b
+  where b.user_id = (select auth.uid())
+))
+with check (exists (
+  select 1 from public.swiper_moderator_badges b
+  where b.user_id = (select auth.uid())
+));
+create policy "Moderators delete update logs"
+on public.swiper_update_logs
+for delete
+to authenticated
+using (exists (
+  select 1 from public.swiper_moderator_badges b
+  where b.user_id = (select auth.uid())
+));
