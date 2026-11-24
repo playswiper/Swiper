@@ -1,0 +1,150 @@
+-- Swiper production security hardening
+-- Applied to Supabase project upghyzhawctughyojwpo on 2026-11-24.
+-- Re-runnable: CREATE OR REPLACE, IF EXISTS, and REVOKE/GRANT are intentional.
+
+-- 1) Keep sensitive profile fields out of normal client SELECT queries.
+revoke select on table public.swipe_profiles from authenticated;
+grant select (
+  id, username, created_at, avatar_color, avatar_shape,
+  avatar_explosion_color, avatar_accent_color, display_name,
+  avatar_image_url, games_played, rank_name, tournament_crowns,
+  is_verified, avatar_trail, avatar_preset, equipped_emoji
+) on table public.swipe_profiles to authenticated;
+
+create or replace function public.swipe_my_profile_private_state()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_uid uuid := auth.uid();
+  v_state jsonb;
+begin
+  if v_uid is null then
+    raise exception 'Sign in to read your private profile settings.';
+  end if;
+
+  select jsonb_build_object(
+    'is_banned', p.is_banned,
+    'banned_until', p.banned_until,
+    'moderation_message', p.moderation_message,
+    'login_message_setting', p.login_message_setting,
+    'tomato_unlocked_setting', p.tomato_unlocked_setting,
+    'avatar_tomato_setting', p.avatar_tomato_setting,
+    'chat_rules_accepted_at', p.chat_rules_accepted_at
+  )
+  into v_state
+  from public.swipe_profiles p
+  where p.id = v_uid;
+
+  if v_state is null then
+    raise exception 'Your Swiper profile was not found.';
+  end if;
+  return v_state;
+end;
+$function$;
+
+-- A thin wrapper must not add another SECURITY DEFINER privilege boundary.
+alter function public.swiper_shop_open_crate(uuid) security invoker;
+
+-- 2) Radio writes are server-only. Browser clients can read public station data,
+--    but cannot inject tracks, queue entries, skip votes, or mutate station state.
+revoke insert, update, delete on table public.radio_queue from public, anon, authenticated;
+grant insert, update, delete on table public.radio_queue to service_role;
+drop policy if exists "Players can request library tracks" on public.radio_queue;
+
+revoke insert, update, delete on table public.radio_station from public, anon, authenticated;
+grant insert, update, delete on table public.radio_station to service_role;
+
+revoke insert, update, delete on table public.radio_tracks from public, anon, authenticated;
+grant insert, update, delete on table public.radio_tracks to service_role;
+
+revoke insert, update, delete on table public.radio_skip_votes from public, anon, authenticated;
+grant insert on table public.radio_skip_votes to service_role;
+drop policy if exists "Players can cast one skip vote per track" on public.radio_skip_votes;
+
+revoke all on function public.radio_register_audius_track(text,text,text,text,integer) from public, anon, authenticated;
+grant execute on function public.radio_register_audius_track(text,text,text,text,integer) to service_role;
+
+revoke all on function public.radio_switch_to_audius(uuid) from public, anon, authenticated;
+grant execute on function public.radio_switch_to_audius(uuid) to service_role;
+
+revoke all on function public.radio_skip_if_voted(uuid) from public, anon, authenticated;
+grant execute on function public.radio_skip_if_voted(uuid) to service_role;
+
+revoke all on function public.radio_advance_station(uuid) from public, anon, authenticated;
+grant execute on function public.radio_advance_station(uuid) to service_role;
+
+-- 3) Remove privileges that bypass row-level security or are not needed by clients.
+--    RLS does not protect TRUNCATE. Clients must never have TRUNCATE, REFERENCES,
+--    or TRIGGER privileges on exposed public tables.
+do $block$
+declare
+  r record;
+begin
+  for r in
+    select c.oid::regclass as relation_name
+    from pg_class c
+    join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind in ('r','p')
+  loop
+    execute format(
+      'revoke truncate, references, trigger on table %s from public, anon, authenticated',
+      r.relation_name
+    );
+  end loop;
+end;
+$block$;
+
+-- 4) Private, hashed login audit. No client role can read or write this table.
+create table if not exists private.swiper_auth_login_audit (
+  id bigint generated always as identity primary key,
+  account_hash text not null check (account_hash ~ '^[a-f0-9]{64}$'),
+  ip_hash text not null check (ip_hash ~ '^[a-f0-9]{64}$'),
+  outcome text not null check (outcome in ('success','invalid_credentials','unknown_account','rate_limited')),
+  attempted_at timestamptz not null default clock_timestamp()
+);
+
+create index if not exists swiper_auth_login_audit_attempted_at_idx
+  on private.swiper_auth_login_audit (attempted_at desc);
+create index if not exists swiper_auth_login_audit_account_attempted_idx
+  on private.swiper_auth_login_audit (account_hash, attempted_at desc);
+
+alter table private.swiper_auth_login_audit enable row level security;
+revoke all on table private.swiper_auth_login_audit from public, anon, authenticated;
+grant usage on schema private to service_role;
+
+create or replace function public.swiper_auth_log_attempt(
+  p_account_hash text,
+  p_ip_hash text,
+  p_outcome text
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  if coalesce(current_setting('request.jwt.claim.role', true),'') <> 'service_role' then
+    raise exception 'Not authorized.' using errcode='42501';
+  end if;
+  if p_account_hash is null or p_account_hash !~ '^[a-f0-9]{64}$'
+     or p_ip_hash is null or p_ip_hash !~ '^[a-f0-9]{64}$'
+     or p_outcome not in ('success','invalid_credentials','unknown_account','rate_limited') then
+    raise exception 'Invalid audit event.';
+  end if;
+
+  insert into private.swiper_auth_login_audit(account_hash,ip_hash,outcome)
+  values(p_account_hash,p_ip_hash,p_outcome);
+
+  if random() < 0.02 then
+    delete from private.swiper_auth_login_audit
+    where attempted_at < clock_timestamp() - interval '30 days';
+  end if;
+end;
+$function$;
+
+revoke all on function public.swiper_auth_log_attempt(text,text,text) from public, anon, authenticated;
+grant execute on function public.swiper_auth_log_attempt(text,text,text) to service_role;
