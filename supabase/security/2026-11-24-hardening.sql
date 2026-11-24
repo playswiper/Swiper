@@ -368,3 +368,12 @@ grant execute on function public.swipe_submit_score(integer,text,text) to authen
 --    are handled by scoped RPCs; authenticated clients have no table write grants.
 drop policy if exists "Players update own room record" on public.swipe_room_players;
 drop policy if exists "Signed-in users join rooms" on public.swipe_room_players;
+
+-- The service-role-only policy documents the trusted multiplayer writer.
+drop policy if exists swipe_room_players_service_role_all on public.swipe_room_players;
+create policy swipe_room_players_service_role_all
+on public.swipe_room_players
+for all
+to service_role
+using (true)
+with check (true);
