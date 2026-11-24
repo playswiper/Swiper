@@ -1900,7 +1900,7 @@ function initSwiperGlobalChat(){
   if(chatRulesCacheReady&&chatRulesCacheKey===key)return chatRulesCacheValue;
   chatRulesCacheKey=key;chatRulesCacheReady=false;
   if(user?.id){
-   const result=await db.from("swipe_profiles").select("chat_rules_accepted_at").eq("id",user.id).maybeSingle();
+   const result=await db.rpc("swipe_my_profile_private_state");
    if(result.error)throw result.error;
    chatRulesCacheValue=!!result.data?.chat_rules_accepted_at;
   }else{
