@@ -25,7 +25,7 @@ Browser clients are now read-only for radio database mutations. Direct client in
 |---|---:|---|
 | `swiper-username-login` | 6 | CAPTCHA, origin/API-key validation, IP and account throttles, hashed login audit |
 | `swiper-radio-register-track` | 1 | Audius metadata fetched server-side, 80 requests/IP/15 minutes, service-only track writes |
-| `swiper-radio-skip-vote` | 2 | 12 requests/IP/10 minutes, per-track HMAC voter IDs, service-only vote writes |
+| `swiper-radio-skip-vote` | 3 | 12 requests/IP/10 minutes, per-track HMAC voter IDs, service-only vote writes |
 | `swiper-radio-advance` | 1 | 30 requests/IP/15 minutes; database verifies the expected current track and duration |
 
 The radio queue's paid request flow remains the `radio_request_track()` RPC, which checks the registered account and charges 750 coins. The client can no longer bypass it with a direct queue insert.
