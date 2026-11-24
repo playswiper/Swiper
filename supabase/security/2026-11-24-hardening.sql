@@ -11,6 +11,16 @@ grant select (
   is_verified, avatar_trail, avatar_preset, equipped_emoji
 ) on table public.swipe_profiles to authenticated;
 
+-- Client writes are column-scoped too. Server-owned moderation, score, reward,
+-- verification, and preset-avatar fields cannot be set through table REST writes.
+revoke insert, update, delete on table public.swipe_profiles from public, anon, authenticated;
+grant insert (id, username, avatar_color, avatar_shape)
+on table public.swipe_profiles to authenticated;
+grant update (
+ display_name, avatar_image_url, avatar_color, avatar_shape,
+ avatar_accent_color, avatar_explosion_color, chat_rules_accepted_at
+) on table public.swipe_profiles to authenticated;
+
 create or replace function public.swipe_my_profile_private_state()
 returns jsonb
 language plpgsql
