@@ -41,3 +41,27 @@
 - Do not put the service-role key in GitHub or frontend code.
 - Keep new SQL migrations explicit about RLS and minimum grants.
 - Re-run Supabase Security Advisor after future schema/function changes.
+
+
+## Final Security Advisor review
+
+The latest Security Advisor still reports 53 authenticated-callable SECURITY DEFINER RPCs, 9 anonymous-policy notices, and the plan-gated leaked-password warning.
+
+The remaining anonymous-policy notices were reviewed individually:
+- `swipe_room_players` and `swipe_rooms`: guest matchmaking requires room access.
+- `swipe_reports` and `swiper_shop_inventory`: policies are scoped to the caller's own user ID.
+- `swipe_titles`, `swipe_tournaments`, and `swiper_update_logs`: intentionally public display data.
+- `cron.job` and `cron.job_run_details`: extension policies are flagged by the advisor, but the `cron` schema is not usable by `anon` or `authenticated`; extension internals were left untouched.
+
+The global chat anonymous read policy was removed. The replacement requires a registered, non-anonymous session. The two chat-membership RPCs also explicitly reject anonymous sessions.
+
+The 53 SECURITY DEFINER notices are not blindly suppressed. They are app RPCs that need elevated access to implement existing RLS-protected workflows. Anonymous execution is 0, every function has a fixed search path, and the admin/moderator endpoints retain explicit identity or badge checks.
+
+Final database verification:
+- Public tables without RLS: 0
+- Public SECURITY DEFINER functions executable by `anon`: 0
+- Public SECURITY DEFINER functions without a fixed search path: 0
+- Anonymous chat-read policies: 0
+- Client ability to grant moderator badges: blocked
+- Client ability to edit the shop catalog: blocked
+- Automatic client grants on future public tables, sequences, and functions: revoked
