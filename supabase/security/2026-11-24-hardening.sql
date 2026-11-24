@@ -363,3 +363,8 @@ $function$;
 revoke all on function public.swipe_record_game(integer) from public, anon, authenticated;
 revoke all on function public.swipe_submit_score(integer,text,text) from public, anon, authenticated;
 grant execute on function public.swipe_submit_score(integer,text,text) to authenticated;
+
+-- 9) Remove stale direct room-player write policies. Multiplayer state changes
+--    are handled by scoped RPCs; authenticated clients have no table write grants.
+drop policy if exists "Players update own room record" on public.swipe_room_players;
+drop policy if exists "Signed-in users join rooms" on public.swipe_room_players;
