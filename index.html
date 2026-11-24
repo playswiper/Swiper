@@ -1060,10 +1060,11 @@ body.swiper-practice-fallback #swiperReaderModeNotice{display:block}
 <style id="swiper-radio-mini-overflow-fix">
 /* The mobile dock was constrained to launcher width; grow the dock with the expanded card. */
 #swiperRadioDock.swiper-radio-mini-wide{
-  width:min(356px,calc(100vw - 16px))!important;
-  max-width:calc(100vw - 16px)!important;
+  width:min(390px,calc(100vw - 20px))!important;
+  max-width:calc(100vw - 20px)!important;
   overflow:visible!important;
-  left:50%!important;right:auto!important;transform:translateX(-50%)!important;
+  left:max(12px,env(safe-area-inset-left))!important;
+  right:auto!important;transform:none!important;
 }
 #swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniControls.expanded{
   width:100%!important;max-width:100%!important;min-width:0!important;
@@ -1102,7 +1103,7 @@ body.swiper-practice-fallback #swiperReaderModeNotice{display:block}
 }
 @media(max-width:380px){
  #swiperRadioDock.swiper-radio-mini-wide{
-   width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;
+   width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;
  }
  #swiperRadioDock.swiper-radio-mini-wide #swiperRadioMiniMore{
    grid-template-columns:minmax(0,1fr) 36px 36px!important;gap:5px!important;
