@@ -10,7 +10,7 @@ Repository: `playswiper/Swiper`
 - RLS is enabled on every table in the exposed `public` schema.
 - No `anon` or `authenticated` table privileges remain for `TRUNCATE`, `REFERENCES`, or `TRIGGER` on public tables.
 - No public-schema `SECURITY DEFINER` function is executable by the `anon` role.
-- Sensitive profile columns (moderation details, block lists, login-message state, and reward-unlock flags) are no longer selectable directly by signed-in clients. Public profile fields remain selectable.
+- Sensitive profile columns (moderation details, block lists, login-message state, and reward-unlock flags) are no longer selectable directly by signed-in clients. Public profile fields remain selectable. Profile writes are column-scoped: clients can create their own basic profile and edit safe display/avatar fields, but cannot directly set verification, moderation, score, reward, or protected avatar-preset fields.
 - Private profile state, including chat-rules acceptance, is returned through the caller-scoped `swipe_my_profile_private_state()` RPC.
 - Admin moderation, admin search, and verification RPCs require the non-anonymous admin identity `mystarsnight@gmail.com`.
 - Client roles cannot add, edit, or delete moderator badges or shop-catalog rows.
