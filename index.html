@@ -649,7 +649,7 @@ body.swiper-practice-only .home-info{display:none!important}
 .orb-pack-card,.orb-card,.trade-card,.trade-notice{background:#0d121b;border:1px solid #2b3547;border-radius:15px;padding:13px;min-width:0}
 .orb-pack-card,.orb-card{display:flex;align-items:center;gap:12px}
 .orb-pack-card .pack-copy,.orb-card .orb-copy{flex:1;min-width:0}
-.orb-art{width:58px;height:58px;flex:0 0 58px;object-fit:contain;border-radius:13px;background:#151b27;border:1px solid #344055;padding:5px}
+.orb-art{width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#151b27;border:1px solid #344055;padding:0;aspect-ratio:1}.orb-art img{width:100%;height:100%;display:block;object-fit:cover;border-radius:50%;transform:scale(var(--orb-image-zoom,1));transform-origin:center;max-width:none}.orb-card .orb-art{padding:0}
 .orb-card{display:flex;flex-direction:column;align-items:stretch;text-align:center;gap:8px}
 .orb-card .orb-art{width:82px;height:82px;flex-basis:82px;margin:0 auto}
 .orb-name{font-weight:700;overflow-wrap:anywhere}.orb-rarity{font-size:11px;font-weight:700;letter-spacing:.3px}
@@ -660,8 +660,8 @@ body.swiper-practice-only .home-info{display:none!important}
 .orb-reveal-overlay[hidden]{display:none!important}
 .orb-reveal-card{width:min(390px,100%);text-align:center;background:#111823;border:1px solid #3b4b63;border-radius:24px;padding:28px 22px;box-shadow:0 25px 100px #000b;animation:orb-reveal-in .45s cubic-bezier(.2,.8,.2,1)}
 .orb-reveal-kicker{font-size:10px;letter-spacing:2px;color:#aab7c9}
-.orb-reveal-art{width:170px;height:170px;margin:16px auto;display:grid;place-items:center;animation:orb-reveal-float 2.2s ease-in-out infinite}
-.orb-reveal-art img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 24px var(--orb-color,#91a6c7))}
+.orb-reveal-art{width:170px;height:170px;margin:16px auto;display:grid;place-items:center;overflow:hidden;border-radius:50%;animation:orb-reveal-float 2.2s ease-in-out infinite}
+.orb-reveal-art img{width:100%;height:100%;object-fit:cover;border-radius:50%;transform:scale(var(--orb-image-zoom,1));filter:drop-shadow(0 0 24px var(--orb-color,#91a6c7))}
 .orb-reveal-rarity{font-weight:700;margin:8px 0 20px}
 @keyframes orb-reveal-in{from{opacity:0;transform:translateY(18px) scale(.86)}to{opacity:1;transform:none}}
 @keyframes orb-reveal-float{50%{transform:translateY(-9px) scale(1.04)}}
@@ -1609,6 +1609,8 @@ async function loadShopWalletBalance(){
  }catch(error){console.warn("Could not load Shop wallet:",error.message);el.textContent="Wallet: unavailable"}
 }
 const orbSafe=(v)=>shopSafeText(v);
+const orbZoom=(v)=>Math.max(.25,Math.min(4,Number(v)||1));
+const orbImageHtml=(o,alt=o?.name||"Orb",extraClass="")=>'<span class="orb-art '+extraClass+'" style="--orb-image-zoom:'+orbZoom(o?.image_zoom)+'"><img src="'+orbSafe(o?.image_url||"")+'" alt="'+orbSafe(alt)+'" loading="lazy"></span>';
 let orbInventoryCache=[],orbEquippedCache=[],orbPackCache=[],tradeRefreshTimer=null;
 function orbSetStatus(message,isError=false){const el=$("orbCenterStatus");if(el){el.textContent=message||"";el.classList.toggle("error",!!isError)}}
 function tradeSetStatus(message,isError=false){const el=$("tradeStatus");if(el){el.textContent=message||"";el.classList.toggle("error",!!isError)}}
@@ -1624,7 +1626,7 @@ function renderSwiperOrbEffects(character,orbs){
  orbs.slice(0,6).forEach((orb,index)=>{
   const node=document.createElement("span");node.className="orb-character-orbit";node.dataset.effect=orb.rarity_effect||"none";
   const angle=(360/count)*index;node.style.setProperty("--orb-start",angle+"deg");node.style.setProperty("--orb-radius",(25+Math.floor(index/3)*10)+"px");node.style.setProperty("--orb-speed",(3.2+index*.45)+"s");node.style.setProperty("--orb-glow",orb.rarity_color||"#9db5c8");
-  const image=document.createElement("img");image.src=orb.image_url;image.alt=orb.name||"Equipped orb";image.loading="lazy";node.append(image);layer.append(node);
+  const image=document.createElement("img");image.src=orb.image_url;image.alt=orb.name||"Equipped orb";image.loading="lazy";image.style.setProperty("--orb-image-zoom",String(orbZoom(orb.image_zoom)));image.style.width="100%";image.style.height="100%";image.style.objectFit="cover";image.style.borderRadius="50%";node.style.overflow="hidden";node.style.borderRadius="50%";node.append(image);layer.append(node);
  });
 }
 window.swiperRenderOrbEffects=renderSwiperOrbEffects;
@@ -1635,7 +1637,7 @@ async function refreshEquippedOrbCache(){
   if(error)throw error;
   const ids=(equipped||[]).map(x=>x.orb_id);
   if(!ids.length){orbEquippedCache=[];window.swiperEquippedOrbs=[];renderSwiperOrbEffects(player,[]);return}
-  const {data:orbs,error:orbError}=await db.from("swiper_orbs").select("id,name,rarity,image_url,swiper_orb_rarities(color,effect)").in("id",ids).eq("active",true);
+  const {data:orbs,error:orbError}=await db.from("swiper_orbs").select("id,name,rarity,image_url,image_zoom,swiper_orb_rarities(color,effect)").in("id",ids).eq("active",true);
   if(orbError)throw orbError;
   const map=new Map((orbs||[]).map(o=>[o.id,o]));
   orbEquippedCache=(equipped||[]).map(e=>{const o=map.get(e.orb_id);return o?{...o,slot:e.slot,rarity_color:o.swiper_orb_rarities?.color,rarity_effect:o.swiper_orb_rarities?.effect}:null}).filter(Boolean);
@@ -1668,7 +1670,7 @@ async function loadOrbCenter(){
   orbPackCache=packResult.data||[];
   const rows=inventoryResult.data||[],ids=[...new Set(rows.map(x=>x.orb_id))];
   let defs=[];
-  if(ids.length){const result=await db.from("swiper_orbs").select("id,name,rarity,image_url,swiper_orb_rarities(color,effect,level)").in("id",ids);if(result.error)throw result.error;defs=result.data||[]}
+  if(ids.length){const result=await db.from("swiper_orbs").select("id,name,rarity,image_url,image_zoom,swiper_orb_rarities(color,effect,level)").in("id",ids);if(result.error)throw result.error;defs=result.data||[]}
   const defMap=new Map(defs.map(o=>[o.id,o]));
   const equippedMap=new Map((equippedResult.data||[]).map(e=>[e.orb_id,e.slot]));
   orbInventoryCache=rows.map(row=>{const o=defMap.get(row.orb_id);return o?{...o,quantity:row.quantity,reserved_quantity:row.reserved_quantity,equipped:equippedMap.has(row.orb_id),slot:equippedMap.get(row.orb_id),rarity_color:o.swiper_orb_rarities?.color||"#9aa8bd",rarity_effect:o.swiper_orb_rarities?.effect||"none"}:null}).filter(Boolean);
@@ -1677,7 +1679,7 @@ async function loadOrbCenter(){
   $("orbEquippedCount").textContent=orbEquippedCache.length+" / 6 equipped";
   $("orbPackList").innerHTML=orbPackCache.length?orbPackCache.map(pack=>`<div class="orb-pack-card"><div class="orb-art" aria-hidden="true">✦</div><div class="pack-copy"><div class="orb-name">${orbSafe(pack.crate_type==="item_pack"?"Orb Pack":pack.crate_type)}</div><div class="small">${Number(pack.luck_multiplier||1)}× luck · Unopened</div></div><button class="primary" data-open-orb-pack="${orbSafe(pack.id)}">Open pack</button></div>`).join(""):'<div class="empty">No unopened packs. Packs you own will appear here.</div>';
   const openAllButton=$("orbOpenAllPacks");if(openAllButton){openAllButton.disabled=!orbPackCache.length;openAllButton.textContent=orbPackCache.length?"Open all packs ("+orbPackCache.length+")":"Open all packs"}if($("orbPackCount"))$("orbPackCount").textContent=orbPackCache.length+" unopened";
-  $("orbInventoryGrid").innerHTML=orbInventoryCache.length?orbInventoryCache.map(o=>'<article class="orb-card" data-equipped="'+o.equipped+'" style="border-color:'+orbSafe(o.rarity_color)+'66"><img class="orb-art" src="'+orbSafe(o.image_url)+'" alt="'+orbSafe(o.name)+'" loading="lazy"><div class="orb-name">'+orbSafe(o.name)+'</div><div class="orb-rarity" style="color:'+orbSafe(o.rarity_color)+'">'+orbSafe(o.rarity)+'</div><div class="small">Quantity: '+Number(o.quantity)+' · '+(o.equipped?"Equipped":"Not equipped")+'</div><div class="orb-card-actions"><button class="secondary" data-orb-equip="'+orbSafe(o.id)+'" data-equipped="'+o.equipped+'">'+(o.equipped?"Unequip":"Equip")+'</button></div></article>').join(""):'<div class="empty">No orbs yet. Open a pack to discover your first orb.</div>';
+  $("orbInventoryGrid").innerHTML=orbInventoryCache.length?orbInventoryCache.map(o=>'<article class="orb-card" data-equipped="'+o.equipped+'" style="border-color:'+orbSafe(o.rarity_color)+'66">'+orbImageHtml(o,o.name)+'<div class="orb-name">'+orbSafe(o.name)+'</div><div class="orb-rarity" style="color:'+orbSafe(o.rarity_color)+'">'+orbSafe(o.rarity)+'</div><div class="small">Quantity: '+Number(o.quantity)+' · '+(o.equipped?"Equipped":"Not equipped")+'</div><div class="orb-card-actions"><button class="secondary" data-orb-equip="'+orbSafe(o.id)+'" data-equipped="'+o.equipped+'">'+(o.equipped?"Unequip":"Equip")+'</button></div></article>').join(""):'<div class="empty">No orbs yet. Open a pack to discover your first orb.</div>';
   orbSetStatus("");
  }catch(error){orbSetStatus(error.message||"Could not load your orb inventory.",true)}
 }
@@ -1714,7 +1716,7 @@ let orbRevealQueue=[],orbRevealIndex=0,orbOpeningAll=false;
 function showOrbReveal(reward){
  const overlay=$("orbRevealOverlay");
  if(overlay.parentElement!==document.body)document.body.appendChild(overlay);
- $("orbRevealArt").innerHTML='<img src="'+orbSafe(reward.image_url)+'" alt="'+orbSafe(reward.name)+'">';
+ $("orbRevealArt").innerHTML='<img src="'+orbSafe(reward.image_url)+'" alt="'+orbSafe(reward.name)+'" style="--orb-image-zoom:'+orbZoom(reward.image_zoom)+'">';
  $("orbRevealArt").style.setProperty("--orb-color",reward.rarity_color||"#9aa8bd");$("orbRevealArt").dataset.effect=reward.rarity_effect||"none";
  $("orbRevealName").textContent=reward.name||"Orb discovered";$("orbRevealRarity").textContent=reward.rarity||"Common";$("orbRevealRarity").style.color=reward.rarity_color||"#9aa8bd";
  $("orbRevealCard").style.borderColor=reward.rarity_color||"#3b4b63";
@@ -1782,12 +1784,12 @@ async function loadTradeCenter(){
   ]);
   if(itemsResult.error)throw itemsResult.error;if(profilesResult.error)throw profilesResult.error;
   const allOrbIds=[...(inventoryResult.data||[]).map(x=>x.orb_id),...(itemsResult.data||[]).map(x=>x.orb_id)];
-  const ownedDefsResult=allOrbIds.length?await db.from("swiper_orbs").select("id,name,rarity,image_url").in("id",[...new Set(allOrbIds)]):{data:[],error:null};
+  const ownedDefsResult=allOrbIds.length?await db.from("swiper_orbs").select("id,name,rarity,image_url,image_zoom").in("id",[...new Set(allOrbIds)]):{data:[],error:null};
   if(ownedDefsResult.error)throw ownedDefsResult.error;
   const names=new Map((profilesResult.data||[]).map(p=>[p.id,p.username])),orbMap=new Map((ownedDefsResult.data||[]).map(o=>[o.id,o]));
   const invMap=new Map((inventoryResult.data||[]).map(i=>[i.orb_id,i]));
   const items=itemsResult.data||[];
-  const renderSide=(trade,owner)=>{const list=items.filter(i=>i.trade_id===trade.id&&i.owner_id===owner),editable=["open","confirming"].includes(trade.status)&&Date.parse(trade.expires_at)>Date.now();return '<div class="trade-side"><strong>'+orbSafe(names.get(owner)||"Player")+'</strong><div class="trade-side-items">'+(list.length?list.map(i=>{const o=orbMap.get(i.orb_id),remove=editable&&owner===user.id?'<button class="secondary" data-trade-remove="'+orbSafe(trade.id)+'" data-orb-id="'+orbSafe(i.orb_id)+'">Remove</button>':"";return '<div class="trade-item-line">'+(o?'<img src="'+orbSafe(o.image_url)+'" alt="">':'')+'<span>'+orbSafe(o?.name||"Orb")+' × '+Number(i.quantity)+'</span>'+remove+'</div>'}).join(""):'<span class="small">No orbs offered yet</span>')+'</div></div>'};
+  const renderSide=(trade,owner)=>{const list=items.filter(i=>i.trade_id===trade.id&&i.owner_id===owner),editable=["open","confirming"].includes(trade.status)&&Date.parse(trade.expires_at)>Date.now();return '<div class="trade-side"><strong>'+orbSafe(names.get(owner)||"Player")+'</strong><div class="trade-side-items">'+(list.length?list.map(i=>{const o=orbMap.get(i.orb_id),remove=editable&&owner===user.id?'<button class="secondary" data-trade-remove="'+orbSafe(trade.id)+'" data-orb-id="'+orbSafe(i.orb_id)+'">Remove</button>':"";return '<div class="trade-item-line">'+(o?orbImageHtml(o,o.name,"trade-orb-art"):'')+'<span>'+orbSafe(o?.name||"Orb")+' × '+Number(i.quantity)+'</span>'+remove+'</div>'}).join(""):'<span class="small">No orbs offered yet</span>')+'</div></div>'};
   $("tradeList").innerHTML=trades.length?trades.map(t=>{
    const mine=t.requester_id===user.id,other=mine?t.recipient_id:t.requester_id,expired=Date.parse(t.expires_at)<=Date.now()&&!["completed","declined","cancelled","expired"].includes(t.status);
    const status=expired?"Expired":t.status==="requested"?(mine?"Request sent":"Incoming request"):t.status==="open"?"Offer negotiation":t.status==="confirming"?"Waiting for both confirmations":t.status[0].toUpperCase()+t.status.slice(1);
